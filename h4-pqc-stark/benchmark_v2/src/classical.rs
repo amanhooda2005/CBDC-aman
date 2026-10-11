@@ -6,6 +6,7 @@ use winterfell::{
     TraceInfo, TraceTable, TransitionConstraintDegree,
 };
 
+use crate::cover;
 use crate::dense;
 use crate::params::{Workload, MATRIX_A, MATRIX_B, MATRIX_C};
 
@@ -79,6 +80,8 @@ pub fn fill_matmul(columns: &mut [Vec<BaseElement>], base: usize, len: usize, ou
 pub struct Claim {
     pub workload: Workload,
     pub dense_y: [u64; dense::OUT],
+    /// Public outputs of a coverage workload (empty otherwise).
+    pub outputs: Vec<u64>,
 }
 
 impl Serializable for Claim {
@@ -88,6 +91,10 @@ impl Serializable for Claim {
             let values: Vec<BaseElement> = self.dense_y.iter().map(|&v| BaseElement::from(v)).collect();
             target.write(&values[..]);
         }
+        if self.workload.is_coverage() {
+            let values: Vec<BaseElement> = self.outputs.iter().map(|&v| BaseElement::from(v)).collect();
+            target.write(&values[..]);
+        }
     }
 }
 
@@ -95,6 +102,7 @@ pub fn trace_len(w: Workload) -> usize {
     match w {
         Workload::Matmul => TRACE_LEN,
         Workload::Dense => dense::MIN_LEN.next_power_of_two(),
+        w => cover::min_len(w).next_power_of_two().max(8),
     }
 }
 
@@ -102,6 +110,7 @@ pub fn width(w: Workload) -> usize {
     match w {
         Workload::Matmul => BLOCK_WIDTH,
         Workload::Dense => dense::WIDTH,
+        w => cover::width(w),
     }
 }
 
@@ -110,6 +119,7 @@ pub fn num_constraints(w: Workload) -> usize {
     match w {
         Workload::Matmul => BLOCK_CONSTRAINTS,
         Workload::Dense => dense::CONSTRAINTS,
+        w => cover::num_constraints(w),
     }
 }
 
@@ -130,6 +140,7 @@ impl Air for ClassicalAir {
         let (degrees, n_assert) = match w {
             Workload::Matmul => (matmul_degrees(), BLOCK_ASSERTIONS),
             Workload::Dense => (dense::degrees(len), dense::ASSERTIONS),
+            w => (cover::degrees(w, len), cover::num_assertions(w)),
         };
         Self { context: AirContext::new(trace_info, degrees, n_assert, options), claim, len }
     }
@@ -142,6 +153,7 @@ impl Air for ClassicalAir {
         match self.claim.workload {
             Workload::Matmul => matmul_constraints(frame.current(), frame.next(), 0, result),
             Workload::Dense => dense::constraints(frame.current(), frame.next(), periodic, 0, result),
+            w => cover::constraints(w, frame.current(), frame.next(), periodic, 0, result),
         }
     }
 
@@ -149,6 +161,7 @@ impl Air for ClassicalAir {
         match self.claim.workload {
             Workload::Matmul => matmul_assertions(0),
             Workload::Dense => dense::assertions(0, &self.claim.dense_y),
+            w => cover::assertions(w, 0, &self.claim.outputs),
         }
     }
 
@@ -156,6 +169,7 @@ impl Air for ClassicalAir {
         match self.claim.workload {
             Workload::Matmul => Vec::new(),
             Workload::Dense => dense::periodic_columns(self.len),
+            w => cover::periodic_columns(w, self.len),
         }
     }
 }
@@ -165,15 +179,18 @@ pub struct ClassicalProver {
     pub workload: Workload,
     pub out_override: Option<[u64; 4]>,
     pub dense_y: [u64; dense::OUT],
+    pub outputs: Vec<u64>,
+    pub inputs: Option<cover::Inputs>,
 }
 
 impl ClassicalProver {
     pub fn new(options: ProofOptions, workload: Workload) -> Self {
-        Self { options, workload, out_override: None, dense_y: dense::output(&dense::input()) }
+        let (outputs, inputs) = if workload.is_coverage() { (cover::outputs(workload), Some(cover::honest_inputs(workload))) } else { (Vec::new(), None) };
+        Self { options, workload, out_override: None, dense_y: dense::output(&dense::input()), outputs, inputs }
     }
 
     pub fn claim(&self) -> Claim {
-        Claim { workload: self.workload, dense_y: self.dense_y }
+        Claim { workload: self.workload, dense_y: self.dense_y, outputs: self.outputs.clone() }
     }
 
     pub fn build_trace(&self) -> TraceTable<BaseElement> {
@@ -182,6 +199,7 @@ impl ClassicalProver {
         match self.workload {
             Workload::Matmul => fill_matmul(&mut columns, 0, len, self.out_override),
             Workload::Dense => dense::fill(&mut columns, 0, len, &dense::input()),
+            _ => cover::fill(self.inputs.as_ref().expect("coverage inputs"), &mut columns, 0, len),
         }
         TraceTable::init(columns)
     }

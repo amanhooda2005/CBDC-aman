@@ -9,11 +9,28 @@
 | Version | 2×2 matmul (size / prove / verify) | H1 dense 165→32 | Status |
 |---|---|---|---|
 | **v2** (pre-registered) | 9.10× / 71.5× / **14.10×** → **FAIL** | 1.88× / 9.90× / 4.37× → PASS | Verdict stands as recorded |
-| **v3** (same statement, new proof, pre-registered before its run) | 4.97× / 14.20× / **7.40×** → **PASS** | 1.23× / 2.58× / 3.45× → PASS | Final construction |
+| **v3** (same statement, new proof, pre-registered before its run) | 4.97× / 14.20× / **7.40×** → **PASS** | 1.23× / 2.58× / 3.45× → PASS | Final construction; also passes on full H1/H2/H3 models (below) |
 
 Bounds: size ≤ 20×, prove ≤ 200×, verify ≤ 10×. 30 measured runs per system, idle machine, same proof options (125–128-bit conjectured security on both sides).
 
-**Bottom line:** a STARK proving a short opening of a statistically binding SIS commitment, alongside the workload, stays within all three overhead bounds for both workloads with the v3 proof. The original v2 proof missed the verify bound on the 2×2 workload. v3 was designed after that miss (disclosed in [`docs/h4_v3.md`](docs/h4_v3.md)), so read v3 as a confirmed engineering iteration, not a replacement of v2's result.
+### Coverage of the H1–H3 model classes (v3)
+
+Complete, exact integer inference of the actual trained models and rule. The circuits are proven correct: inputs are range-checked, requantization and ReLU are proven, interval bounds rule out field wrap-around, and forgeries are rejected. Pre-registered in [`docs/h4_coverage.md`](docs/h4_coverage.md) before any timing. Data: [`benchmark_coverage.csv`](benchmark_v2/results/benchmark_coverage.csv), summary [`benchmark_coverage.md`](benchmark_v2/results/benchmark_coverage.md).
+
+| Workload | What is proven | Size | Prove | Verify | Verdict |
+|---|---|---|---|---|---|
+| `h1_mlp_full` | trained H1 `W32_B1`, all layers, one real illicit transaction | 1.18× | 1.28× | 1.92× | **PASS** |
+| `h2_gcn_node` | trained H2 GCN, node 36333 over its real 3-node receptive field | 1.13× | 1.36× | 1.76× | **PASS** |
+| `h3_rule_x64` | H3 `choose_action` + `is_violation`, 64 real decisions | 1.20× | 1.51× | 1.96× | **PASS** |
+
+Fidelity of the proven integer models vs the float models (test splits):
+- **H1:** F1 0.505 vs 0.512, decision agreement 99.5%.
+- **H2:** F1 0.732 vs 0.743, prediction agreement 99.0%, with features clipped per feature to the 0.1–99.9 percentile (declared; clipping alone costs 0.001 F1).
+- **H3:** 100% agreement over 1,000 decisions.
+
+On real model workloads, adding the post-quantum SIS opening costs under 2× on every metric. The opening's cost is roughly fixed, so it matters most for trivially small computations, as the 2×2 case shows.
+
+**Bottom line:** a STARK proving a short opening of a statistically binding SIS commitment, alongside the workload, stays within all three overhead bounds with the v3 proof: for the 2×2 and dense-layer workloads, and for complete inference of the trained H1, H2 and H3 models. The original v2 proof missed the verify bound on the 2×2 workload. v3 was designed after that miss (disclosed in [`docs/h4_v3.md`](docs/h4_v3.md)), so read v3 as a confirmed engineering iteration, not a replacement of v2's result.
 
 ### v3 (final construction)
 
@@ -62,7 +79,7 @@ Results: 3 warm-up + 30 measured runs per system, interleaved, on an idle machin
 **Limitations:**
 - SIS binding is statistical under the assumption that the PRG-generated G and B behave like uniformly random matrices. Confirmed with the lattice estimator (≥ 2⁶¹⁵ quantum).
 - Commitments are binding only. Hiding is not claimed, and this Winterfell fork does not add zero-knowledge masking.
-- Coverage: one linear layer of the H1 MLP (no ReLU, no later layers). The H2 GCN and H3 agents are not covered. No settlement-layer integration.
+- Coverage (v2 run): one linear layer of the H1 MLP. Complete inference of the trained H1, H2 and H3 models was added later with v3; see "Coverage of the H1–H3 model classes" above. No settlement-layer integration.
 - Timings are from one machine. The ratios are the reported quantity.
 
 Reproduce: `cd benchmark_v2 && cargo test --release && cargo run --release -- 30 > results/benchmark_v2.csv && python analyze.py results/benchmark_v2.csv`.
