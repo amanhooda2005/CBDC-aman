@@ -4,6 +4,70 @@ This reproducible research prototype tests—not assumes—the proposition that 
 
 It follows the progression from centralized Elliptic1 GCN AML (Weber et al., 2019), through structural graph context (Bellei et al., 2024), to the cross-institution setting represented by FedGraph-VASP. The gap tested here is scarce local illicit supervision in a federated graph setting.
 
+## Final result (protocol v2)
+
+Pre-registration: [`experiments/PREREGISTRATION_v2.md`](experiments/PREREGISTRATION_v2.md) (committed before any v2 run). 10 seeds, matched 200-epoch budget, validation-based checkpoint selection for every method, pooled centralized baseline on the **identical** scarce label mask, K = 3 institutions. Results: [`results/v2/`](results/v2/). Figures: [`results/v2/figures/`](results/v2/figures/).
+
+Reproduce: `python src/protocol_v2.py run --config experiments/configs/protocol_v2.yaml --seed <s>` for s = 42…51, then `python src/protocol_v2.py aggregate --config experiments/configs/protocol_v2.yaml` and `python src/figures_v2.py`.
+
+### Primary test (original H2): FedAvg vs centralized false positives
+
+One-sided paired Wilcoxon over 10 seeds, Holm across 6 levels. Criterion: FP reduction ≥ 20% and Holm p < 0.05.
+
+| Labels kept | FP centralized | FP FedAvg | FP reduction | Holm p | Criterion |
+|---|---|---|---|---|---|
+| 100% | 113.7 | 62.3 | 45% | 0.025 | met |
+| 50% | 52.7 | 9.5 | 82% | 0.006 | met |
+| 20% | 27.1 | 9.0 | 67% | 0.031 | met |
+| 10% | 504.3 | 0.5 | 99.9% | 0.008 | met |
+| 5% | 500.3 | 24.7 | 95% | 0.012 | met |
+| 1% | 515.9 | 26.5 | 95% | 0.006 | met |
+
+### Why this does not mean federation detects laundering better
+
+Same runs, two-sided paired Wilcoxon (secondary, pre-registered as exploratory):
+
+| Labels kept | F1 centralized | F1 FedAvg | ΔF1 (p) | Recall centralized | Recall FedAvg | ΔPR-AUC (p) |
+|---|---|---|---|---|---|---|
+| 100% | 0.757 | 0.649 | −0.109 (0.002) | 0.712 | 0.526 | −0.034 (0.014) |
+| 50% | 0.705 | 0.517 | −0.188 (0.002) | 0.589 | 0.354 | −0.021 (0.014) |
+| 20% | 0.495 | 0.314 | −0.181 (0.004) | 0.346 | 0.189 | −0.026 (0.23) |
+| 10% | 0.324 | 0.148 | −0.177 (0.002) | 0.331 | 0.080 | +0.164 (0.56) |
+| 5% | 0.166 | 0.041 | −0.125 (0.002) | 0.227 | 0.024 | +0.078 (1.0) |
+| 1% | 0.096 | 0.030 | −0.066 (0.031) | 0.190 | 0.019 | +0.031 (0.010) |
+
+- FedAvg has **significantly lower F1 at every level** and much lower recall. Its false-positive reduction comes from flagging fewer transactions at the fixed 0.5 threshold, not from better discrimination. A model that flags nothing has zero false positives.
+- Threshold-free ranking (PR-AUC) is significantly **worse** for FedAvg with 50–100% labels, and not different at 5–20%.
+- With ≤ 10% labels the centralized model is miscalibrated and over-flags (≈500 FP), which inflates the FP reduction. At 1% labels, centralized selected its epoch-1 checkpoint in 8 of 10 seeds (validation F1 stayed at 0).
+- FedAvg is also significantly below **local-only** training on F1 at every level.
+
+**Verdict, original H2:** the pre-registered false-positive criterion is met at all six levels, but federation does **not** improve AML detection. The criterion as written can be satisfied by a more conservative classifier, so it should not be used alone. Report it with F1, recall and PR-AUC.
+
+### Refined H2 (boundary channel mitigates scarcity): not supported
+
+The boundary-alignment channel (λ = 0.05) **lowers** F1 versus plain FedAvg at 5 of 6 levels (p ≤ 0.037), and never reduces degradation in a meaningful way. The only nominally significant "mitigation" (1% labels, p = 0.019) is a floor effect: both methods score F1 = 0.030. See `results/v2/h2_refined_boundary_mitigation.csv`.
+
+### Privacy (institution-level DP)
+
+Clip C = 1.5, Gaussian noise per institution per round, 40 rounds, δ = 1e-5, RDP accounting (`src/dp_accounting.py`). All labels, boundary channel off.
+
+| Noise multiplier z | ε | F1 (mean ± sd) | PR-AUC | False positives |
+|---|---|---|---|---|
+| 0 (no DP, FedAvg) | — | 0.649 | 0.782 | 62.3 |
+| 0.001 | 2.0 × 10⁷ | 0.627 ± 0.018 | 0.792 | 32.1 |
+| 0.01 | 2.0 × 10⁵ | 0.653 ± 0.028 | 0.786 | 47.0 |
+| 0.1 | 2.3 × 10³ | 0.527 ± 0.038 | 0.495 | 511.5 |
+| 1.0 | 50.3 | 0.287 ± 0.046 | 0.164 | 1810.7 |
+
+With three institutions, the noise is averaged over only three updates. No tested setting gives both meaningful privacy and usable detection. At ε ≈ 50 (already weak), F1 drops from 0.65 to 0.29. The guarantee is institution-level, model-update channel only. It does not cover individual transactions, the boundary channel, or FedAvg sample-count weights.
+
+### Limitations
+
+- Institutions are simulated by graph partitioning of Elliptic1; no real VASP ownership.
+- One dataset, one architecture (2-layer GCN), K = 3 for the main sweep.
+- Decision threshold fixed at 0.5 for all methods. FP comparisons depend on it; F1 and PR-AUC are reported for that reason.
+- v1 results (`results/*.csv`, 5 seeds) are superseded: 5 seeds cannot reach p < 0.05 with a two-sided paired Wilcoxon (minimum p = 0.0625), and v1 trained methods for unequal budgets.
+
 ## Data and labels
 
 The project uses the supplied Elliptic1 files. Transaction IDs are mapped once to contiguous node indices. Labels are `1` illicit, `0` licit and `-1` unknown. Unknown nodes are **never** cast as licit labels, included in supervised loss, or included in evaluation. The raw dataset is excluded from Git.
@@ -49,7 +113,9 @@ In a real VASP deployment, an agreed privacy-preserving counterparty/transfer id
 
 Optional institution-level update perturbation is available via `privacy.enabled` in the experiment config, or `--institution-privacy` for `src/main.py federated`. Each institution's whole model delta is jointly L2-clipped and Gaussian-noised before weighted FedAvg, and boundary embedding vectors are separately clipped/noised before export. This is institution-level update privacy engineering, not transaction-level differential privacy. The simulated boundary IDs and sample counts used as aggregation weights remain visible; model outputs and metrics remain observable. There is no accountant or calibrated end-to-end epsilon/delta, secure aggregation, encryption, or formal privacy guarantee. Configure `clip_norm` and `noise_multiplier` explicitly; do not claim transaction-level privacy or a quantified DP guarantee.
 
-## Status and recorded findings
+## Status and recorded findings (v1, superseded by protocol v2 above)
+
+*Single-seed v1 numbers, kept for the record. Use the protocol v2 results above.*
 
 Committed results: `results/*.csv`, seed 42 only, K=3 unless stated.
 
