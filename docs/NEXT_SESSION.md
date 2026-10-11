@@ -1,51 +1,36 @@
 # Next session: state and plan
 
-Written 2026-10-11. All experiments are merged on `main` (PRs up to #27); no open PRs. The top-level `README.md` has the Final Results table.
+Updated 2026-10-11 (evening). Everything is merged on `main` (PRs up to #32). No experiments are running and no PRs are open.
 
 ## Where things stand
 
 | | Verdict | Where |
 |---|---|---|
 | H1 | Partly supported: 10× latency only at 60 blocks; gas fails per dispute | `h1-zkopml-v2/README.md`, `WRITEUP.md` |
-| H2 | Pre-registered FP criterion met, but federation detects worse (lower F1/recall); boundary channel hurts; DP kills utility with 3 institutions | `h2-federated-aml/README.md` (protocol v2) |
+| H2 | FP criterion met at the 0.5 threshold, but **fails at matched recall** (Finding B, pre-registered); F1 lower than centralized; boundary channel hurts; DP kills utility | `h2-federated-aml/README.md` |
 | H3 | Deterrence supported (agent-level p ≈ 1e-6); Sybil resistance fails | `h3-abt/README.md` |
-| H4 | v3 passes all bounds incl. complete trained H1/H2/H3 inference (≤ 2× overhead); v2 missed 2×2 verify; v1 withdrawn | `h4-pqc-stark/README.md`, `docs/h4_*.md` |
+| H4 | v3 passes all bounds: 2×2, dense, full H1/H2/H3 models, and **one composed proof of H1 → risk → H3 → committed amount** (Finding A, 1.15×/1.28×/1.77×) | `h4-pqc-stark/README.md`, `docs/h4_*.md` |
 
-## Two findings that would make the paper (proposed, not started)
+The top-level `README.md` has the Final Results table and a "Cross-cutting findings" section (A, B, overhead law).
 
-### Finding A — one post-quantum proof for an entire CBDC transaction decision
+## Done this session
 
-This is the proposal's three-layer architecture as a single artifact. One STARK proves, for one transaction:
-1. the H1 risk model's inference on the transaction's features;
-2. the H3 agent's execute/refuse decision, with the H1 risk flag feeding the rule (e.g. treated as a policy-violation condition alongside amount > limit and sanctioned destination);
-3. that the amount the rule compared is the amount inside the post-quantum SIS commitment (link the committed amount bits to the rule's amount input).
+- **Overhead law** (PR #29, post-hoc): the PQ cost is roughly fixed (+12 ms verify, +28 ms prove, +8.4 KB). It predicted the composed workload's size and prove ratio within 0.02×, and underpredicted verify (1.61× predicted, 1.77× measured).
+- **Finding B** (PR #30): at matched validation recall, the ≥ 20% FP-reduction criterion fails at all 5 fully evaluable levels. With 50–100% labels, FedAvg has 67–80% more false positives (Holm p = 0.012 and 0.049). Exception: at 10% labels, FedAvg has 80% fewer, but this is not significant after Holm (p = 0.070). The 1% level is not evaluable (5 of 10 seeds have centralized validation recall of 0).
+- **Finding A** (PR #31): composed circuit `h4-pqc-stark/benchmark_v2/src/compose.rs`, amount link in `rlc.rs`, 20/20 tests, PASS.
 
-Why it matters: no prior work proves ML inference, agent policy, and a PQ-binding commitment together. The measured number is the overhead of the composed proof vs the same composition without the commitment, and vs three separate proofs.
+## If more work is wanted (optional, nothing pending)
 
-Plan:
-- Reuse the existing blocks (`h1mlp.rs`, `rule.rs`, `rlc.rs` SIS block).
-- **Width limit:** Winterfell caps traces at 255 columns, and H1 (166) + H3 (108) + SIS (12) = 286 is too wide. Build a narrow single-decision rule that reuses one bit-decomposition column set across consecutive rows (one comparison per row), about 30 columns.
-- Wiring: H1 logit → risk flag (logit > threshold, via a sign decomposition) → rule input. Amount: the rule's amount column equals Σ 2^t·bit_t of the SIS amount bits (one constraint at the row holding those bits).
-- Tests: honest accept; forging the risk flag, the decision, or using a different amount than the committed one is rejected.
-- Pre-register (bounds as before), then run 30 measured runs on an idle machine.
-
-### Finding B — the false-positive criterion in federated AML is gameable; a calibration-controlled answer
-
-H2 showed FedAvg "meets" the ≥20%-fewer-false-positives criterion only by flagging less: recall drops and F1 is lower. Turn that into a methodological finding with a fair test:
-- Compare false positives **at matched recall**: FedAvg's FP at the threshold where it reaches the centralized model's recall, with thresholds set on validation.
-- Report precision–recall curves per method.
-- Plan: make `protocol_v2.py` also save per-node test and validation scores. Re-run `main_scarcity` only (10 seeds; ~2–3 h with 4 workers). Pre-register the matched-recall analysis first (one-sided Wilcoxon, Holm).
-- Expected message: "FP-reduction targets for federated AML must be stated at fixed recall; otherwise a more conservative model satisfies them." Either outcome is publishable.
-
-### Cheap extra (no new runs): an overhead law for PQ commitments in ZKML
-
-Fit verify/prove time = classical + fixed SIS cost across the five measured workloads (2×2, dense, H1 MLP, H2 GCN, H3 rule) in `h4-pqc-stark/benchmark_v2/results/*.csv`. State it as: ratio ≈ 1 + c / workload cost. One plot plus one paragraph.
+- **H3 Sybil fix:** bind ABT identity to a stake history that is not transferable (for example, a registration bond that a fresh id cannot avoid). Then re-test `SYBIL_SUCCEEDED`.
+- **Finding A at scale:** batch several decisions per proof (needs a second trace segment or a wider-field fork), or bind H1's input to the transaction record.
+- **H2:** report the matched-recall test for local-only and boundary as well (the numbers are already in `results/v2_scores/matched_recall_by_method.csv`, descriptive only).
 
 ## Practical notes (things that bit us)
 
-- Data: Elliptic CSVs from `https://data.pyg.org/datasets/elliptic/<name>.csv.zip`. Never commit them.
-- Rust: `~/.cargo/bin` (rustup, stable). Use a short `CARGO_TARGET_DIR` (e.g. `C:\cbdc_t`), or MSVC linking fails with LNK1104 (path length).
+- Data: Elliptic CSVs from `https://data.pyg.org/datasets/elliptic/<name>.csv.zip` into `h2-federated-aml/data/elliptic1/`, then `python src/data.py prepare`. Never commit them.
+- An H2 `scores` seed takes about 1.5 h with 3 threads. 10 seeds with 4 workers took about 6 h.
+- Rust: `~/.cargo/bin`. Use a short `CARGO_TARGET_DIR` (e.g. `C:\cbdc_t`), or MSVC linking fails with LNK1104. Tests run with `cargo test --release`: declared constraint degrees are upper bounds, and debug builds check exact degrees.
 - **Never switch branches in a working tree that a running experiment imports from.** Use `git worktree add`.
-- Winterfell fork constraints: width ≤ 255; f23201 field is 23 bits. Use the sextic extension for security. Constant-only traces break the composition-degree check, so add a clock column.
-- Lattice estimator: `docker run --rm -v "$PWD:/work" sagemath/sagemath:latest sage -python /work/est_h4.py`. Script in `h4-pqc-stark/docs/`.
-- Discipline used throughout: commit parameters, bounds and analysis code **before** confirmatory runs; label anything post-hoc as such.
+- Winterfell fork: width ≤ 255; the f23201 field is 23 bits; use the sextic extension. Constant-only traces break the composition-degree check.
+- Lattice estimator: `docker run --rm -v "$PWD:/work" sagemath/sagemath:latest sage -python /work/est_h4.py` (script in `h4-pqc-stark/docs/`).
+- Discipline: commit parameters, bounds and analysis code **before** confirmatory runs; label post-hoc work as such.
