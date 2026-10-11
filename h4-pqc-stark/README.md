@@ -30,6 +30,15 @@ Fidelity of the proven integer models vs the float models (test splits):
 
 On real model workloads, adding the post-quantum SIS opening costs under 2× on every metric. The opening's cost is roughly fixed, so it matters most for trivially small computations, as the 2×2 case shows.
 
+### Overhead law (post-hoc, no new runs)
+
+Across the five v3 workloads, the post-quantum part behaves like a fixed added cost: **PQ ≈ classical + c**, so **ratio ≈ 1 + c / classical**.
+- Verify: c ≈ 12 ms (range 8–15 ms).
+- Prove: c ≈ 28 ms (range 15–39 ms).
+- Proof size: c ≈ 8.4 KB (range 7.8–10.2 KB). The exception is the 2×2 case: its 8-row trace is padded to 128 rows for the SIS block, which adds 26.5 KB.
+
+The practical reading is simple. The overhead ratio falls as the model grows, so post-quantum binding is cheapest exactly for the real models a CBDC would run. This law was fitted after the fact on existing measurements, so it is descriptive, not a tested prediction. Script: [`overhead_law.py`](benchmark_v2/overhead_law.py). Outputs: [`overhead_law.md`](benchmark_v2/results/overhead_law.md) and [`overhead_law.png`](benchmark_v2/results/overhead_law.png).
+
 **Bottom line:** a STARK proving a short opening of a statistically binding SIS commitment, alongside the workload, stays within all three overhead bounds with the v3 proof: for the 2×2 and dense-layer workloads, and for complete inference of the trained H1, H2 and H3 models. The original v2 proof missed the verify bound on the 2×2 workload. v3 was designed after that miss (disclosed in [`docs/h4_v3.md`](docs/h4_v3.md)), so read v3 as a confirmed engineering iteration, not a replacement of v2's result.
 
 ### v3 (final construction)
