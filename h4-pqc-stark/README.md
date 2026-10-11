@@ -4,7 +4,40 @@
 
 > **“A lattice-based ZK-STARK construction can secure ZKML proof verification for the model classes used in H1-H3 while keeping proof size and verifier latency within a bounded overhead factor relative to classical (non-quantum-resistant) ZK-STARKs, making PQC migration practical without re-architecting the settlement layer.”**
 
-## Final result (v2)
+## Final result
+
+| Version | 2×2 matmul (size / prove / verify) | H1 dense 165→32 | Status |
+|---|---|---|---|
+| **v2** (pre-registered) | 9.10× / 71.5× / **14.10×** → **FAIL** | 1.88× / 9.90× / 4.37× → PASS | Verdict stands as recorded |
+| **v3** (same statement, new proof, pre-registered before its run) | 4.97× / 14.20× / **7.40×** → **PASS** | 1.23× / 2.58× / 3.45× → PASS | Final construction |
+
+Bounds: size ≤ 20×, prove ≤ 200×, verify ≤ 10×. 30 measured runs per system, idle machine, same proof options (125–128-bit conjectured security on both sides).
+
+**Bottom line:** a STARK proving a short opening of a statistically binding SIS commitment, alongside the workload, stays within all three overhead bounds for both workloads with the v3 proof. The original v2 proof missed the verify bound on the 2×2 workload. v3 was designed after that miss (disclosed in [`docs/h4_v3.md`](docs/h4_v3.md)), so read v3 as a confirmed engineering iteration, not a replacement of v2's result.
+
+### v3 (final construction)
+
+v3 proves exactly the same commitment as v2 (same uniform matrix, n = 80; a test asserts identical commitments). Profiling showed v2's verify time was dominated by the verifier's DEEP composition over 80 accumulator columns. v3 instead:
+- packs s = (bits, r) four coordinates per row (128 rows);
+- after s is committed, draws γ from the 138-bit extension field;
+- checks all 80 commitment rows with one auxiliary accumulator, Σⱼ γʲ(Aⱼ·s − cⱼ) = 0.
+
+Extra soundness error is ≤ 79/p⁶ ≈ 2⁻¹³⁰·⁵ (Schwartz–Zippel). Binding is unchanged. Details and disclosure: [`docs/h4_v3.md`](docs/h4_v3.md). Data: [`benchmark_v2/results/benchmark_v3.csv`](benchmark_v2/results/benchmark_v3.csv), summary [`benchmark_v3.md`](benchmark_v2/results/benchmark_v3.md).
+
+| Workload | System | Trace (rows × cols) | Proof size | Prove ms | Verify ms |
+|---|---|---|---|---|---|
+| matmul_2x2 | classical | 8 × 17 | 6,683 B | 2.60 | 1.43 |
+| matmul_2x2 | PQ v3 | 128 × 35* | 33,194 B | 36.91 | 10.57 |
+| dense_165x32 | classical | 256 × 33 | 33,710 B | 24.50 | 5.84 |
+| dense_165x32 | PQ v3 | 256 × 51* | 41,460 B | 63.29 | 20.14 |
+
+\*Main columns plus one extension-field auxiliary column counted as 6 base columns.
+
+Remaining verify cost in v3 comes mainly from the verifier evaluating the public matrix (80 × 512 entries) at the out-of-domain point. That is inherent to an unstructured matrix; structured matrices that would avoid it were considered and rejected because they admit short collisions.
+
+Reproduce v3: `cd benchmark_v2 && cargo test --release && cargo run --release -- 30 v3 > results/benchmark_v3.csv && python analyze.py results/benchmark_v3.csv`.
+
+## v2 result (pre-registered, kept as recorded)
 
 **The v1 prototype and all its numbers (sections 1–11 below) are withdrawn.** The v1 circuit did not prove what it claimed: the SIS matrix and selectors were prover-controlled, the relation was checked under the wrong modulus with a free quotient, randomness was not range-checked, and both v1 circuits ran at ~11–17 bits of STARK security. Details: [`docs/h4_v2_security.md`](docs/h4_v2_security.md).
 
