@@ -24,3 +24,4 @@ privacy_sweep:
 criterion:
   min_fp_reduction: 0.20
   alpha: 0.05
+scores_subdir: v2_scores
