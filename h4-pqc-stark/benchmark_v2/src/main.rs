@@ -1,4 +1,5 @@
 mod classical;
+mod compose;
 mod cover;
 mod dense;
 mod gadget;
@@ -108,8 +109,12 @@ fn time_rlc(prover: &RlcProver) -> Measurement {
 fn main() {
     let runs: usize = std::env::args().nth(1).and_then(|s| s.parse().ok()).unwrap_or(30);
     let mode = std::env::args().nth(2).unwrap_or_default();
-    let v3 = mode == "v3" || mode == "coverage";
-    let workloads: Vec<Workload> = if mode == "coverage" { vec![Workload::H1Mlp, Workload::H2Gcn, Workload::H3Rule] } else { vec![Workload::Matmul, Workload::Dense] };
+    let v3 = mode == "v3" || mode == "coverage" || mode == "composed";
+    let workloads: Vec<Workload> = match mode.as_str() {
+        "coverage" => vec![Workload::H1Mlp, Workload::H2Gcn, Workload::H3Rule],
+        "composed" => vec![Workload::Composed],
+        _ => vec![Workload::Matmul, Workload::Dense],
+    };
     let warmup = 3;
     eprintln!(
         "H4 benchmark v2: SIS n={} rows, {} amount bits, {} ternary r, p={}; {} warmup + {} measured runs per system",
@@ -118,8 +123,10 @@ fn main() {
     println!("workload,system,run,trace_rows,trace_width,proof_bytes,prove_ms,verify_ms,conjectured_security_bits");
     for workload in workloads {
         let classical = ClassicalProver::new(options(), workload);
-        let pq = pq_prover(workload, 123_456_789);
-        let pq3 = rlc_prover(workload, 123_456_789);
+        // The composed workload commits to the amount its decision is made on.
+        let amount = if workload == Workload::Composed { compose::decision()[0] as u64 } else { 123_456_789 };
+        let pq = pq_prover(workload, amount);
+        let pq3 = rlc_prover(workload, amount);
         for run in 0..warmup + runs {
             // Interleave the two systems so drift in machine load affects both equally.
             let c = time_classical(&classical);
@@ -503,6 +510,100 @@ mod tests {
             let p = rlc_prover(w, 7);
             assert!(p.prove(p.build_trace()).unwrap().security_level(true) >= 120, "v3 {:?} security", w);
         }
+    }
+
+    // ---------------------------------------------------------------- composed: H1 -> risk -> H3 decision -> committed amount
+
+    fn composed_amount() -> u64 {
+        compose::decision()[0] as u64
+    }
+
+    fn composed_inputs(amount: i64, risk: Option<i64>) -> cover::Inputs {
+        let mut row = compose::decision();
+        row[0] = amount;
+        cover::Inputs::Composed(h1mlp::spec().x.clone(), row, risk)
+    }
+
+    #[test]
+    fn composed_reference_and_risk_uniqueness() {
+        let x = &h1mlp::spec().x;
+        let (exec, viol, risk) = compose::reference(x, &compose::decision());
+        assert_eq!(risk, 1, "the H1 transaction is flagged");
+        assert_eq!(rule::spec().viol[compose::DECISION], 0, "decision is compliant under the original rule");
+        assert_eq!(viol, 1, "the risk flag makes it a violation");
+        assert_eq!(compose::outputs(), vec![exec as u64, viol as u64]);
+        assert_eq!(compose::degrees(256).len(), compose::CONSTRAINTS);
+        // The two-sided risk window is unique over every logit the H1 circuit can produce.
+        let v: serde_json::Value = serde_json::from_str(include_str!("../specs/h1_spec.json")).unwrap();
+        let (lo, hi) = (v["bounds"]["a3"][0].as_i64().unwrap(), v["bounds"]["a3"][1].as_i64().unwrap());
+        let s = compose::spec();
+        let (d_lo, d_hi) = (lo - s.b3.abs() - s.threshold - 1, hi + s.b3.abs() - s.threshold - 1);
+        let p = params::modulus() as i64;
+        assert!(d_hi < p - 1 - (1 << 22) && d_lo >= (1 << 22) - p, "risk window ambiguous for d in [{}, {}]", d_lo, d_hi);
+        assert!((compose::decision()[0] as u64) < (1 << rlc::LINK_BITS));
+    }
+
+    #[test]
+    fn composed_air_accepts_honest_traces() {
+        let p = ClassicalProver::new(options(), Workload::Composed);
+        assert!(classical_trace_ok(&p, &p.build_trace()), "classical composed");
+        for g in GAMMAS {
+            assert!(rlc_air_ok(&rlc_prover(Workload::Composed, composed_amount()), BaseElement::from(g)), "v3 composed gamma {}", g);
+        }
+    }
+
+    #[test]
+    fn composed_air_rejects_forgeries() {
+        let a = composed_amount() as i64;
+        // Forged risk flag (outputs recomputed as if the transaction were not flagged).
+        for (label, outputs) in [("flag 0, outputs honest", None), ("flag 0, outputs for flag 0", Some(vec![0, 0]))] {
+            let mut p = ClassicalProver::new(options(), Workload::Composed);
+            p.inputs = Some(composed_inputs(a, Some(0)));
+            if let Some(o) = outputs { p.outputs = o; }
+            assert!(!classical_trace_ok(&p, &p.build_trace()), "{}", label);
+            let mut q = rlc_prover(Workload::Composed, composed_amount());
+            q.inputs = Some(composed_inputs(a, Some(0)));
+            q.outputs = p.outputs.clone();
+            assert!(!rlc_air_ok(&q, BaseElement::from(12_345u64)), "v3 {}", label);
+        }
+        // Wrong public decision / violation flag.
+        for i in 0..2 {
+            let mut p = ClassicalProver::new(options(), Workload::Composed);
+            p.outputs[i] = 1 - p.outputs[i];
+            assert!(!classical_trace_ok(&p, &p.build_trace()), "classical wrong output {}", i);
+            let mut q = rlc_prover(Workload::Composed, composed_amount());
+            q.outputs[i] = 1 - q.outputs[i];
+            assert!(!rlc_air_ok(&q, BaseElement::from(12_345u64)), "v3 wrong output {}", i);
+        }
+        // The decision is made on a different amount than the committed one: the classical
+        // circuit cannot tell (no commitment), the post-quantum circuit rejects it.
+        let mut p = ClassicalProver::new(options(), Workload::Composed);
+        p.inputs = Some(composed_inputs(a + 1, None));
+        assert!(classical_trace_ok(&p, &p.build_trace()), "classical has no amount binding");
+        let mut q = rlc_prover(Workload::Composed, composed_amount());
+        q.inputs = Some(composed_inputs(a + 1, None));
+        assert!(!rlc_air_ok(&q, BaseElement::from(12_345u64)), "v3 amount differs from commitment");
+        // Committed amount with a bit above 2^16 set, rule uses only the low 16 bits.
+        let mut q = rlc_prover(Workload::Composed, composed_amount() + (1 << 20));
+        q.inputs = Some(composed_inputs(a, None));
+        assert!(!rlc_air_ok(&q, BaseElement::from(12_345u64)), "v3 high committed bits");
+        // A register changed mid-trace (risk flag flipped after the risk row is checked).
+        let p = ClassicalProver::new(options(), Workload::Composed);
+        let mut t = p.build_trace();
+        let risk_col = compose::RULE_BASE + 11;
+        t.set(risk_col, 240, BaseElement::ZERO);
+        assert!(!classical_trace_ok(&p, &t), "register not constant");
+    }
+
+    #[test]
+    fn composed_end_to_end_prove_verify() {
+        assert!(classical_accepted(ClassicalProver::new(options(), Workload::Composed)), "classical composed");
+        assert!(rlc_accepted(rlc_prover(Workload::Composed, composed_amount())), "v3 composed");
+        let mut bad = rlc_prover(Workload::Composed, composed_amount());
+        bad.inputs = Some(composed_inputs(composed_amount() as i64 + 1, None));
+        assert!(!rlc_accepted(bad), "v3 composed with an uncommitted amount");
+        let p = rlc_prover(Workload::Composed, composed_amount());
+        assert!(p.prove(p.build_trace()).unwrap().security_level(true) >= 120, "v3 composed security");
     }
 
     #[test]

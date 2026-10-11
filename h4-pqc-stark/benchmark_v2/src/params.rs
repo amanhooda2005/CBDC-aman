@@ -31,6 +31,8 @@ pub enum Workload {
     H2Gcn,
     /// H3 agent decision rule over a batch of 64 real decisions.
     H3Rule,
+    /// One transaction end to end: H1 inference -> risk flag -> H3 decision (compose.rs).
+    Composed,
 }
 
 impl Workload {
@@ -41,11 +43,12 @@ impl Workload {
             Workload::H1Mlp => "h1_mlp_full",
             Workload::H2Gcn => "h2_gcn_node",
             Workload::H3Rule => "h3_rule_x64",
+            Workload::Composed => "composed_h1_h3",
         }
     }
 
     pub fn is_coverage(self) -> bool {
-        matches!(self, Workload::H1Mlp | Workload::H2Gcn | Workload::H3Rule)
+        matches!(self, Workload::H1Mlp | Workload::H2Gcn | Workload::H3Rule | Workload::Composed)
     }
 }
 
