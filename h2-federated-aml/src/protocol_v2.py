@@ -4,6 +4,7 @@ centralized baseline, false-positive outcome, 10 seeds, and an institution-level
 Usage:
     python src/protocol_v2.py run --config experiments/configs/protocol_v2.yaml --seed 42
     python src/protocol_v2.py aggregate --config experiments/configs/protocol_v2.yaml
+    python src/protocol_v2.py scores --config experiments/configs/protocol_v2.yaml --seed 42
 """
 from __future__ import annotations
 import argparse
@@ -29,8 +30,8 @@ def _row(metrics: dict, **fields) -> dict:
     return out
 
 
-def _case(data, splits, cfg, seed, k, scarcity, method, boundary_lambda=0.0, privacy=None):
-    common = dict(k=k, partition_method=cfg["partition_method"], seed=seed, lr=cfg["learning_rate"], hidden_dim=cfg["hidden_dim"], device=cfg["device"], scarcity=scarcity, select_on_val=True)
+def _case(data, splits, cfg, seed, k, scarcity, method, boundary_lambda=0.0, privacy=None, score_sink=None):
+    common = dict(k=k, partition_method=cfg["partition_method"], seed=seed, lr=cfg["learning_rate"], hidden_dim=cfg["hidden_dim"], device=cfg["device"], scarcity=scarcity, select_on_val=True, score_sink=score_sink)
     budget = cfg["global_rounds"] * cfg["local_epochs"]
     if method == "centralized":
         metrics, *_ = run_centralized_pooled(data, splits, epochs=budget, **common)
@@ -60,6 +61,23 @@ def run_seed(cfg: dict, seed: int, out_dir: Path) -> Path:
         rows.append(_row(_case(data, splits, cfg, seed, k, dp["scarcity"], "fedavg", 0.0, privacy), experiment="privacy_sweep", method="fedavg_dp", scarcity=dp["scarcity"], seed=seed, institutions=k, boundary_lambda=0.0, clip_norm=dp["clip_norm"], noise_multiplier=z, epsilon=eps, delta=dp["delta"]))
     out_dir.mkdir(parents=True, exist_ok=True); path = out_dir / f"seed_{seed}.csv"
     pd.DataFrame(rows).to_csv(path, index=False); return path
+
+
+def run_scores(cfg: dict, seed: int, out_dir: Path) -> Path:
+    """Re-run main_scarcity only, saving each model's illicit-class scores on the validation and test nodes."""
+    torch.set_num_threads(int(cfg.get("threads_per_worker", 3)))
+    data = load_graph(); splits = make_splits(data.y, seed); rows = []; k = cfg["institutions"]
+    arrays = {"val_idx": torch.where(splits["val"])[0].numpy(), "test_idx": torch.where(splits["test"])[0].numpy()}
+    arrays["val_y"], arrays["test_y"] = data.y[splits["val"]].numpy(), data.y[splits["test"]].numpy()
+    for scarcity in cfg["scarcity_levels"]:
+        for method in ("centralized", "local_only", "fedavg", "fedavg_boundary"):
+            lam = cfg["boundary_lambda"] if method == "fedavg_boundary" else 0.0; sink = []
+            rows.append(_row(_case(data, splits, cfg, seed, k, scarcity, method, lam, score_sink=sink), experiment="main_scarcity", method=method, scarcity=scarcity, seed=seed, institutions=k, boundary_lambda=lam))
+            score = torch.softmax(sink[0], dim=1)[:, 1].numpy()
+            arrays[f"{method}@{scarcity}@val"], arrays[f"{method}@{scarcity}@test"] = score[splits["val"].numpy()], score[splits["test"].numpy()]
+    out_dir.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(out_dir / f"scores_seed_{seed}.npz", **arrays)
+    path = out_dir / f"seed_{seed}.csv"; pd.DataFrame(rows).to_csv(path, index=False); return path
 
 
 def _paired(a: pd.Series, b: pd.Series, alternative: str) -> tuple[int, float, float]:
@@ -136,8 +154,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(); sub = parser.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run"); r.add_argument("--config", required=True); r.add_argument("--seed", type=int, required=True)
     a = sub.add_parser("aggregate"); a.add_argument("--config", required=True)
+    sc = sub.add_parser("scores"); sc.add_argument("--config", required=True); sc.add_argument("--seed", type=int, required=True)
     args = parser.parse_args(); cfg = yaml.safe_load(open(args.config, encoding="utf-8")); out_dir = RESULTS_DIR / cfg["results_subdir"]
     if args.cmd == "run": print(run_seed(cfg, args.seed, out_dir))
+    elif args.cmd == "scores": print(run_scores(cfg, args.seed, RESULTS_DIR / cfg["scores_subdir"]))
     else: print(json.dumps(aggregate(cfg, out_dir), indent=2, default=float))
 
 
