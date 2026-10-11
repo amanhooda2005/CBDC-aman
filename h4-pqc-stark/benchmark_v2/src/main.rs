@@ -1,8 +1,13 @@
 mod classical;
+mod cover;
 mod dense;
+mod gadget;
+mod gcn;
+mod h1mlp;
 mod params;
 mod pq;
 mod rlc;
+mod rule;
 mod sis;
 
 use std::time::Instant;
@@ -84,6 +89,8 @@ pub fn rlc_prover(workload: Workload, amount: u64) -> RlcProver {
         r,
         out_override: None,
         dense_y: dense::output(&dense::input()),
+        outputs: if workload.is_coverage() { cover::outputs(workload) } else { Vec::new() },
+        inputs: if workload.is_coverage() { Some(cover::honest_inputs(workload)) } else { None },
     }
 }
 
@@ -100,14 +107,16 @@ fn time_rlc(prover: &RlcProver) -> Measurement {
 
 fn main() {
     let runs: usize = std::env::args().nth(1).and_then(|s| s.parse().ok()).unwrap_or(30);
-    let v3 = std::env::args().nth(2).as_deref() == Some("v3");
+    let mode = std::env::args().nth(2).unwrap_or_default();
+    let v3 = mode == "v3" || mode == "coverage";
+    let workloads: Vec<Workload> = if mode == "coverage" { vec![Workload::H1Mlp, Workload::H2Gcn, Workload::H3Rule] } else { vec![Workload::Matmul, Workload::Dense] };
     let warmup = 3;
     eprintln!(
         "H4 benchmark v2: SIS n={} rows, {} amount bits, {} ternary r, p={}; {} warmup + {} measured runs per system",
         SIS_ROWS, AMOUNT_BITS, N_RAND, params::modulus(), warmup, runs
     );
     println!("workload,system,run,trace_rows,trace_width,proof_bytes,prove_ms,verify_ms,conjectured_security_bits");
-    for workload in [Workload::Matmul, Workload::Dense] {
+    for workload in workloads {
         let classical = ClassicalProver::new(options(), workload);
         let pq = pq_prover(workload, 123_456_789);
         let pq3 = rlc_prover(workload, 123_456_789);
@@ -130,7 +139,7 @@ mod tests {
     use super::*;
     use std::panic::{catch_unwind, AssertUnwindSafe};
     use winterfell::{
-        math::{fields::f23201::BaseElement, FieldElement},
+        math::{fields::f23201::BaseElement, FieldElement, StarkField},
         Air, EvaluationFrame, TraceInfo, TraceTable,
     };
 
@@ -372,6 +381,127 @@ mod tests {
             let p = rlc_prover(w, 7);
             let s = p.prove(p.build_trace()).unwrap().security_level(true);
             assert!(s >= 120, "v3 {:?}: {} bits", w, s);
+        }
+    }
+
+    // ---------------------------------------------------------------- H1-H3 model-class coverage
+
+    const COVERAGE: [Workload; 3] = [Workload::H1Mlp, Workload::H2Gcn, Workload::H3Rule];
+
+    fn classical_trace_ok(p: &ClassicalProver, trace: &TraceTable<BaseElement>) -> bool {
+        let (w, len) = (classical::width(p.workload), classical::trace_len(p.workload));
+        let air = ClassicalAir::new(TraceInfo::new(w, len), p.claim(), options());
+        air_satisfied(&air, trace, w, len, classical::num_constraints(p.workload))
+    }
+
+    #[test]
+    fn coverage_rust_reference_matches_python_reference() {
+        let s1 = h1mlp::spec();
+        let (h, h2, logit) = h1mlp::reference(&s1.x);
+        assert_eq!(logit, s1.logit, "H1 logit");
+        let v: serde_json::Value = serde_json::from_str(include_str!("../specs/h1_spec.json")).unwrap();
+        let ints = |k: &str| v[k].as_array().unwrap().iter().map(|e| e.as_i64().unwrap()).collect::<Vec<_>>();
+        assert_eq!(h, ints("h"));
+        assert_eq!(h2, ints("h2"));
+        let s2 = gcn::spec();
+        assert_eq!(gcn::reference(&s2.x), s2.logits, "H2 logits");
+        let s3 = rule::spec();
+        for (i, row) in s3.rows.iter().enumerate() {
+            assert_eq!(rule::reference(row), (s3.exec[i], s3.viol[i]), "H3 decision {}", i);
+        }
+    }
+
+    #[test]
+    fn coverage_air_accepts_honest_traces() {
+        for w in COVERAGE {
+            let p = ClassicalProver::new(options(), w);
+            assert!(classical_trace_ok(&p, &p.build_trace()), "classical {:?}", w);
+            for g in GAMMAS {
+                assert!(rlc_air_ok(&rlc_prover(w, 123_456_789), BaseElement::from(g)), "v3 {:?} gamma {}", w, g);
+            }
+        }
+    }
+
+    #[test]
+    fn coverage_air_rejects_wrong_public_outputs() {
+        for w in COVERAGE {
+            let mut p = ClassicalProver::new(options(), w);
+            p.outputs[0] = if w == Workload::H3Rule { 1 - p.outputs[0] } else { (p.outputs[0] + 1) % params::modulus() };
+            assert!(!classical_trace_ok(&p, &p.build_trace()), "{:?}: wrong first output", w);
+            let mut q = rlc_prover(w, 123_456_789);
+            q.outputs[0] = if w == Workload::H3Rule { 1 - q.outputs[0] } else { (q.outputs[0] + 1) % params::modulus() };
+            assert!(!rlc_air_ok(&q, BaseElement::from(12_345u64)), "v3 {:?}: wrong first output", w);
+        }
+        // H3: flipping the violation flag of the last decision
+        let mut p = ClassicalProver::new(options(), Workload::H3Rule);
+        let last = p.outputs.len() - 1;
+        p.outputs[last] = 1 - p.outputs[last];
+        assert!(!classical_trace_ok(&p, &p.build_trace()), "H3: wrong violation flag");
+    }
+
+    #[test]
+    fn coverage_air_rejects_out_of_range_inputs_even_with_matching_outputs() {
+        // H1: feature 0 one step above its clipped maximum, output recomputed honestly for that input.
+        let s1 = h1mlp::spec();
+        let mut x = s1.x.clone();
+        x[0] = s1.x_hi[0] + 1;
+        let mut p = ClassicalProver::new(options(), Workload::H1Mlp);
+        p.outputs = vec![gadget::felt(h1mlp::reference(&x).2).as_int() as u64];
+        p.inputs = Some(cover::Inputs::H1(x));
+        assert!(!classical_trace_ok(&p, &p.build_trace()), "H1 input above range");
+        // H2: a stream value below its feature box
+        let s2 = gcn::spec();
+        let mut x2 = s2.x.clone();
+        x2[1][3] = s2.x_lo[3] - 1;
+        let mut p = ClassicalProver::new(options(), Workload::H2Gcn);
+        p.outputs = gcn::reference(&x2).iter().map(|&l| gadget::felt(l).as_int() as u64).collect();
+        p.inputs = Some(cover::Inputs::H2(x2));
+        assert!(!classical_trace_ok(&p, &p.build_trace()), "H2 input below range");
+        // H3: a violation payoff outside its 13-bit range
+        let mut rows = rule::spec().rows.clone();
+        rows[0][3] = 1 << 13;
+        let mut p = ClassicalProver::new(options(), Workload::H3Rule);
+        let (e, v) = rule::reference(&rows[0]);
+        p.outputs[0] = e as u64;
+        p.outputs[rule::N] = v as u64;
+        p.inputs = Some(cover::Inputs::H3(rows));
+        assert!(!classical_trace_ok(&p, &p.build_trace()), "H3 payoff out of range");
+    }
+
+    #[test]
+    fn coverage_air_rejects_tampered_intermediates() {
+        // H1: flip the low quotient bit of pipeline 1 at its first row (q changes by +-1)
+        let p = ClassicalProver::new(options(), Workload::H1Mlp);
+        let mut t = p.build_trace();
+        let col = 1 + 24 + 32 * 3 + 1; // P1Q bit 0
+        let v = t.get(col, 165);
+        t.set(col, 165, BaseElement::ONE - v);
+        assert!(!classical_trace_ok(&p, &t), "H1 tampered quotient");
+        // H1: forge the ReLU output of the first neuron
+        let mut t = p.build_trace();
+        let out1 = 1 + 24 + 32 * 3 + 1 + 11 + 11;
+        let v = t.get(out1, 165);
+        t.set(out1, 165, v + BaseElement::ONE);
+        assert!(!classical_trace_ok(&p, &t), "H1 forged relu output");
+        // H3: claim a violating offer is compliant by zeroing VIOL in the trace
+        let p = ClassicalProver::new(options(), Workload::H3Rule);
+        let mut t = p.build_trace();
+        let viol_col = 8 + 48 + 3;
+        let row = rule::spec().viol.iter().position(|&b| b == 1).unwrap();
+        t.set(viol_col, row, BaseElement::ZERO);
+        assert!(!classical_trace_ok(&p, &t), "H3 forged violation flag");
+    }
+
+    #[test]
+    fn coverage_end_to_end_prove_verify() {
+        for w in COVERAGE {
+            assert!(classical_accepted(ClassicalProver::new(options(), w)), "classical {:?}", w);
+            assert!(rlc_accepted(rlc_prover(w, 123_456_789)), "v3 {:?}", w);
+            let mut bad = rlc_prover(w, 123_456_789);
+            bad.outputs[0] = if w == Workload::H3Rule { 1 - bad.outputs[0] } else { (bad.outputs[0] + 1) % params::modulus() };
+            assert!(!rlc_accepted(bad), "v3 {:?} wrong output", w);
+            let p = rlc_prover(w, 7);
+            assert!(p.prove(p.build_trace()).unwrap().security_level(true) >= 120, "v3 {:?} security", w);
         }
     }
 

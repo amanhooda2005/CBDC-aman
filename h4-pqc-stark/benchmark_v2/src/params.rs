@@ -25,6 +25,12 @@ pub enum Workload {
     Matmul,
     /// First dense layer of the H1 MLP: 165 inputs -> 32 outputs.
     Dense,
+    /// Full trained H1 model (W32_B1) inference: proj + ReLU, residual block, head.
+    H1Mlp,
+    /// Trained H2 GCN (2 layers) prediction for one Elliptic node over its receptive field.
+    H2Gcn,
+    /// H3 agent decision rule over a batch of 64 real decisions.
+    H3Rule,
 }
 
 impl Workload {
@@ -32,7 +38,14 @@ impl Workload {
         match self {
             Workload::Matmul => "matmul_2x2",
             Workload::Dense => "dense_165x32",
+            Workload::H1Mlp => "h1_mlp_full",
+            Workload::H2Gcn => "h2_gcn_node",
+            Workload::H3Rule => "h3_rule_x64",
         }
+    }
+
+    pub fn is_coverage(self) -> bool {
+        matches!(self, Workload::H1Mlp | Workload::H2Gcn | Workload::H3Rule)
     }
 }
 

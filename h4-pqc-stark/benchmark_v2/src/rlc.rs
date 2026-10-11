@@ -20,6 +20,7 @@ use winterfell::{
 };
 
 use crate::classical::{fill_matmul, matmul_assertions, matmul_constraints, matmul_degrees, BLOCK_ASSERTIONS, BLOCK_WIDTH};
+use crate::cover;
 use crate::dense;
 use crate::params::{b_entry, felt_from_i64, g_entry, Workload, AMOUNT_BITS, N_RAND, SIS_ROWS};
 
@@ -46,6 +47,7 @@ pub fn trace_len(w: Workload) -> usize {
     let workload_len = match w {
         Workload::Matmul => 8,
         Workload::Dense => dense::MIN_LEN,
+        w => cover::min_len(w),
     };
     ROWS.max(workload_len).next_power_of_two()
 }
@@ -54,6 +56,7 @@ fn workload_width(w: Workload) -> usize {
     match w {
         Workload::Matmul => BLOCK_WIDTH,
         Workload::Dense => dense::WIDTH,
+        w => cover::width(w),
     }
 }
 
@@ -67,6 +70,7 @@ pub fn num_main_constraints(w: Workload) -> usize {
         + match w {
             Workload::Matmul => crate::classical::BLOCK_CONSTRAINTS,
             Workload::Dense => dense::CONSTRAINTS,
+            w => cover::num_constraints(w),
         }
 }
 
@@ -75,6 +79,8 @@ pub struct Statement {
     pub workload: Workload,
     pub commitment: [u64; SIS_ROWS],
     pub dense_y: [u64; dense::OUT],
+    /// Public outputs of a coverage workload (empty otherwise).
+    pub outputs: Vec<u64>,
 }
 
 impl Serializable for Statement {
@@ -83,6 +89,9 @@ impl Serializable for Statement {
         let mut values: Vec<BaseElement> = self.commitment.iter().map(|&v| BaseElement::from(v)).collect();
         if self.workload == Workload::Dense {
             values.extend(self.dense_y.iter().map(|&v| BaseElement::from(v)));
+        }
+        if self.workload.is_coverage() {
+            values.extend(self.outputs.iter().map(|&v| BaseElement::from(v)));
         }
         target.write(&values[..]);
     }
@@ -128,6 +137,10 @@ impl Air for RlcAir {
                 main.extend(dense::degrees(len));
                 dense::ASSERTIONS
             }
+            w => {
+                main.extend(cover::degrees(w, len));
+                cover::num_assertions(w)
+            }
         };
         let aux = vec![TransitionConstraintDegree::with_cycles(1, vec![len]); 2];
         let context = AirContext::new_multi_segment(trace_info, main, aux, workload_assertions, 1, options);
@@ -149,6 +162,7 @@ impl Air for RlcAir {
         match self.statement.workload {
             Workload::Matmul => matmul_constraints(cur, next, SIS_MAIN_WIDTH, out),
             Workload::Dense => dense::constraints(cur, next, &periodic[PERIODIC_FIXED + SIS_ROWS * K..], SIS_MAIN_WIDTH, out),
+            w => cover::constraints(w, cur, next, &periodic[PERIODIC_FIXED + SIS_ROWS * K..], SIS_MAIN_WIDTH, out),
         }
     }
 
@@ -186,6 +200,7 @@ impl Air for RlcAir {
         match self.statement.workload {
             Workload::Matmul => matmul_assertions(SIS_MAIN_WIDTH),
             Workload::Dense => dense::assertions(SIS_MAIN_WIDTH, &self.statement.dense_y),
+            w => cover::assertions(w, SIS_MAIN_WIDTH, &self.statement.outputs),
         }
     }
 
@@ -214,6 +229,9 @@ impl Air for RlcAir {
         }
         if self.statement.workload == Workload::Dense {
             columns.extend(dense::periodic_columns(len));
+        }
+        if self.statement.workload.is_coverage() {
+            columns.extend(cover::periodic_columns(self.statement.workload, len));
         }
         columns
     }
@@ -289,11 +307,13 @@ pub struct RlcProver {
     pub r: [i64; N_RAND],
     pub out_override: Option<[u64; 4]>,
     pub dense_y: [u64; dense::OUT],
+    pub outputs: Vec<u64>,
+    pub inputs: Option<cover::Inputs>,
 }
 
 impl RlcProver {
     pub fn statement(&self) -> Statement {
-        Statement { workload: self.workload, commitment: self.commitment, dense_y: self.dense_y }
+        Statement { workload: self.workload, commitment: self.commitment, dense_y: self.dense_y, outputs: self.outputs.clone() }
     }
 
     pub fn build_trace(&self) -> RlcTrace {
@@ -312,6 +332,7 @@ impl RlcProver {
         match self.workload {
             Workload::Matmul => fill_matmul(&mut columns, SIS_MAIN_WIDTH, len, self.out_override),
             Workload::Dense => dense::fill(&mut columns, SIS_MAIN_WIDTH, len, &dense::input()),
+            _ => cover::fill(self.inputs.as_ref().expect("coverage inputs"), &mut columns, SIS_MAIN_WIDTH, len),
         }
         RlcTrace { layout: TraceLayout::new(width, [1], [1]), main: Matrix::new(columns), coords }
     }

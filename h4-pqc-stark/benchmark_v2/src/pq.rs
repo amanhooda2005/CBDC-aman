@@ -17,6 +17,7 @@ pub fn trace_len(w: Workload) -> usize {
     let workload_len = match w {
         Workload::Matmul => 8,
         Workload::Dense => dense::MIN_LEN,
+        _ => unreachable!("the v2 PQ circuit is only defined for matmul and dense; use v3"),
     };
     sis::MIN_LEN.max(workload_len).next_power_of_two()
 }
@@ -25,6 +26,7 @@ fn workload_width(w: Workload) -> usize {
     match w {
         Workload::Matmul => BLOCK_WIDTH,
         Workload::Dense => dense::WIDTH,
+        _ => unreachable!("the v2 PQ circuit is only defined for matmul and dense; use v3"),
     }
 }
 
@@ -38,6 +40,7 @@ pub fn num_constraints(w: Workload) -> usize {
         + match w {
             Workload::Matmul => crate::classical::BLOCK_CONSTRAINTS,
             Workload::Dense => dense::CONSTRAINTS,
+            _ => unreachable!("the v2 PQ circuit is only defined for matmul and dense; use v3"),
         }
 }
 
@@ -83,6 +86,7 @@ impl Air for PqAir {
                 degrees.extend(dense::degrees(len));
                 dense::ASSERTIONS
             }
+            _ => unreachable!("the v2 PQ circuit is only defined for matmul and dense; use v3"),
         };
         let context = AirContext::new(trace_info, degrees, sis::ASSERTIONS + workload_assertions, options);
         Self { context, statement, len }
@@ -99,6 +103,7 @@ impl Air for PqAir {
         match self.statement.workload {
             Workload::Matmul => matmul_constraints(cur, next, sis::WIDTH, work_out),
             Workload::Dense => dense::constraints(cur, next, &periodic[sis::PERIODIC..], sis::WIDTH, work_out),
+            _ => unreachable!("the v2 PQ circuit is only defined for matmul and dense; use v3"),
         }
     }
 
@@ -107,6 +112,7 @@ impl Air for PqAir {
         match self.statement.workload {
             Workload::Matmul => v.extend(matmul_assertions(sis::WIDTH)),
             Workload::Dense => v.extend(dense::assertions(sis::WIDTH, &self.statement.dense_y)),
+            _ => unreachable!("the v2 PQ circuit is only defined for matmul and dense; use v3"),
         }
         v
     }
@@ -143,6 +149,7 @@ impl PqProver {
         match self.workload {
             Workload::Matmul => fill_matmul(&mut columns, sis::WIDTH, len, self.out_override),
             Workload::Dense => dense::fill(&mut columns, sis::WIDTH, len, &dense::input()),
+            _ => unreachable!("the v2 PQ circuit is only defined for matmul and dense; use v3"),
         }
         TraceTable::init(columns)
     }
