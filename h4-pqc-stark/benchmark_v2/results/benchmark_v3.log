@@ -1,0 +1,1 @@
+H4 benchmark v2: SIS n=80 rows, 64 amount bits, 448 ternary r, p=7340033; 3 warmup + 30 measured runs per system
