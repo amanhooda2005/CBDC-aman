@@ -25,7 +25,8 @@ def main(path: Path) -> None:
     lines = ["| Workload | System | Trace (rows x cols) | Security (bits) | Proof size (B) | Prove ms (mean ± sd) | Verify ms (mean ± sd) | Runs |", "|---|---|---|---|---|---|---|---|"]
     verdict = ["", "| Workload | Metric | Classical mean | PQ mean | Ratio (PQ/classical) | Bound | Result |", "|---|---|---|---|---|---|---|"]
     for workload in sorted({k[0] for k in data}):
-        for system in ("classical", "pq_sis"):
+        pq_system = next(k[1] for k in data if k[0] == workload and k[1] != "classical")
+        for system in ("classical", pq_system):
             d = data[(workload, system)]
             rows_, cols, sec = meta[(workload, system)]
             lines.append(
@@ -36,12 +37,12 @@ def main(path: Path) -> None:
         all_pass = True
         for metric, bound in BOUNDS.items():
             c = statistics.mean(data[(workload, "classical")][metric])
-            p = statistics.mean(data[(workload, "pq_sis")][metric])
+            p = statistics.mean(data[(workload, pq_system)][metric])
             ratio = p / c
             ok = ratio <= bound
             all_pass &= ok
             verdict.append(f"| {workload} | {metric} | {c:,.3f} | {p:,.3f} | {ratio:.2f}x | <= {bound:.0f}x | {'PASS' if ok else 'FAIL'} |")
-        verdict.append(f"| {workload} | **all three** | | | | | **{'PASS' if all_pass else 'FAIL'}** |")
+        verdict.append(f"| {workload} | **all three ({pq_system})** | | | | | **{'PASS' if all_pass else 'FAIL'}** |")
     out = "\n".join(lines + verdict)
     target = path.with_suffix(".md")
     target.write_text(out + "\n", encoding="utf-8")

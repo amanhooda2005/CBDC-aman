@@ -2,6 +2,7 @@ mod classical;
 mod dense;
 mod params;
 mod pq;
+mod rlc;
 mod sis;
 
 use std::time::Instant;
@@ -11,6 +12,7 @@ use winterfell::{FieldExtension, HashFunction, ProofOptions, Prover, StarkProof}
 use classical::{ClassicalAir, ClassicalProver};
 use params::{amount_bits, commit, Workload, AMOUNT_BITS, N_RAND, SIS_ROWS};
 use pq::{PqAir, PqProver};
+use rlc::{RlcAir, RlcProver};
 
 /// Identical options for both circuits: 42 queries x log2(8) = 126 bits + 16 grinding,
 /// sextic extension (138-bit field), Blake3-256. Winterfell reports the resulting
@@ -72,8 +74,33 @@ fn time_classical(prover: &ClassicalProver) -> Measurement {
     Measurement { bytes, prove_ms, verify_ms: t.elapsed().as_secs_f64() * 1e3, security }
 }
 
+pub fn rlc_prover(workload: Workload, amount: u64) -> RlcProver {
+    let (bits, r) = honest_opening(amount);
+    RlcProver {
+        options: options(),
+        workload,
+        commitment: commit(&bits, &r),
+        bits,
+        r,
+        out_override: None,
+        dense_y: dense::output(&dense::input()),
+    }
+}
+
+fn time_rlc(prover: &RlcProver) -> Measurement {
+    let trace = prover.build_trace();
+    let t = Instant::now();
+    let proof: StarkProof = prover.prove(trace).expect("v3 proof generation failed");
+    let prove_ms = t.elapsed().as_secs_f64() * 1e3;
+    let (bytes, security) = (proof.to_bytes().len(), proof.security_level(true));
+    let t = Instant::now();
+    winterfell::verify::<RlcAir>(proof, prover.statement()).expect("v3 verification failed");
+    Measurement { bytes, prove_ms, verify_ms: t.elapsed().as_secs_f64() * 1e3, security }
+}
+
 fn main() {
     let runs: usize = std::env::args().nth(1).and_then(|s| s.parse().ok()).unwrap_or(30);
+    let v3 = std::env::args().nth(2).as_deref() == Some("v3");
     let warmup = 3;
     eprintln!(
         "H4 benchmark v2: SIS n={} rows, {} amount bits, {} ternary r, p={}; {} warmup + {} measured runs per system",
@@ -83,14 +110,16 @@ fn main() {
     for workload in [Workload::Matmul, Workload::Dense] {
         let classical = ClassicalProver::new(options(), workload);
         let pq = pq_prover(workload, 123_456_789);
+        let pq3 = rlc_prover(workload, 123_456_789);
         for run in 0..warmup + runs {
             // Interleave the two systems so drift in machine load affects both equally.
             let c = time_classical(&classical);
-            let p = time_pq(&pq);
+            let p = if v3 { time_rlc(&pq3) } else { time_pq(&pq) };
             if run >= warmup {
                 let n = run - warmup + 1;
                 println!("{},classical,{},{},{},{},{:.4},{:.4},{}", workload.name(), n, classical::trace_len(workload), classical::width(workload), c.bytes, c.prove_ms, c.verify_ms, c.security);
-                println!("{},pq_sis,{},{},{},{},{:.4},{:.4},{}", workload.name(), n, pq::trace_len(workload), pq::width(workload), p.bytes, p.prove_ms, p.verify_ms, p.security);
+                let (label, rows, width) = if v3 { ("pq_sis_v3", rlc::trace_len(workload), rlc::main_width(workload) + 6) } else { ("pq_sis", pq::trace_len(workload), pq::width(workload)) };
+                println!("{},{},{},{},{},{},{:.4},{:.4},{}", workload.name(), label, n, rows, width, p.bytes, p.prove_ms, p.verify_ms, p.security);
             }
         }
     }
@@ -224,6 +253,126 @@ mod tests {
         let mut c = ClassicalProver::new(options(), Workload::Dense);
         c.dense_y[0] = (c.dense_y[0] + 1) % params::modulus();
         assert!(!classical_accepted(c));
+    }
+
+    // ---------------------------------------------------------------- v3 (random linear combination)
+
+    fn rlc_air_ok(p: &RlcProver, gamma: BaseElement) -> bool {
+        use winterfell::{AuxTraceRandElements, Trace};
+        let mut trace = p.build_trace();
+        let len = trace.length();
+        let width = rlc::main_width(p.workload);
+        let aux = trace.build_aux_segment::<BaseElement>(&[], &[gamma]).expect("aux segment");
+        let air = RlcAir::new(TraceInfo::new_multi_segment(trace.layout().clone(), len, vec![]), p.statement(), options());
+        let mut rand = AuxTraceRandElements::new();
+        rand.add_segment_elements(vec![gamma]);
+        let periodic = air.get_periodic_column_values();
+        let mut main_out = vec![BaseElement::ZERO; rlc::num_main_constraints(p.workload)];
+        let mut aux_out = vec![BaseElement::ZERO; 2];
+        let main = trace.main_segment();
+        for row in 0..len - 1 {
+            let cur: Vec<BaseElement> = (0..width).map(|c| main.get(c, row)).collect();
+            let next: Vec<BaseElement> = (0..width).map(|c| main.get(c, row + 1)).collect();
+            let values: Vec<BaseElement> = periodic.iter().map(|col| col[row % col.len()]).collect();
+            let frame = EvaluationFrame::from_rows(cur, next);
+            air.evaluate_transition(&frame, &values, &mut main_out);
+            let aux_frame = EvaluationFrame::from_rows(vec![aux.get(0, row)], vec![aux.get(0, row + 1)]);
+            air.evaluate_aux_transition(&frame, &aux_frame, &values, &rand, &mut aux_out);
+            if main_out.iter().chain(aux_out.iter()).any(|v| *v != BaseElement::ZERO) {
+                return false;
+            }
+        }
+        let main_ok = air.get_assertions().iter().all(|a| main.get(a.column(), a.first_step()) == a.values()[0]);
+        let aux_ok = air.get_aux_assertions(&rand).iter().all(|a| aux.get(a.column(), a.first_step()) == a.values()[0]);
+        main_ok && aux_ok
+    }
+
+    fn rlc_malformed(workload: Workload, commit_bits: [i64; AMOUNT_BITS], commit_r: [i64; N_RAND], bits: [i64; AMOUNT_BITS], r: [i64; N_RAND]) -> RlcProver {
+        let mut p = rlc_prover(workload, 0);
+        p.commitment = commit(&commit_bits, &commit_r);
+        p.bits = bits;
+        p.r = r;
+        p
+    }
+
+    fn rlc_accepted(prover: RlcProver) -> bool {
+        let statement = prover.statement();
+        catch_unwind(AssertUnwindSafe(|| match prover.prove(prover.build_trace()) {
+            Ok(proof) => winterfell::verify::<RlcAir>(proof, statement).is_ok(),
+            Err(_) => false,
+        }))
+        .unwrap_or(false)
+    }
+
+    const GAMMAS: [u64; 3] = [12_345, 987_654, 4_000_001];
+
+    #[test]
+    fn v3_commitment_is_identical_to_v2() {
+        // Same statement: v3 proves the very same commitment v2 does.
+        for w in WORKLOADS {
+            assert_eq!(rlc_prover(w, 123_456_789).commitment, pq_prover(w, 123_456_789).commitment);
+        }
+    }
+
+    #[test]
+    fn v3_air_accepts_honest_traces() {
+        for w in WORKLOADS {
+            for g in GAMMAS {
+                assert!(rlc_air_ok(&rlc_prover(w, 123_456_789), BaseElement::from(g)), "{:?} gamma {}", w, g);
+            }
+        }
+    }
+
+    #[test]
+    fn v3_air_rejects_every_forgery() {
+        for w in WORKLOADS {
+            for g in GAMMAS {
+                let g = BaseElement::from(g);
+                let (b1000, r) = honest_opening(1000);
+                let (b999, _) = honest_opening(999);
+                assert!(!rlc_air_ok(&rlc_malformed(w, b1000, r, b999, r), g), "{:?}: different amount", w);
+                let (b, mut r5) = honest_opening(42);
+                r5[0] = 5;
+                assert!(!rlc_air_ok(&rlc_malformed(w, b, r5, b, r5), g), "{:?}: r = 5", w);
+                let (b, mut r2) = honest_opening(42);
+                r2[10] = 2;
+                assert!(!rlc_air_ok(&rlc_malformed(w, b, r2, b, r2), g), "{:?}: r = 2", w);
+                let (mut b2, r) = honest_opening(42);
+                b2[3] = 2;
+                assert!(!rlc_air_ok(&rlc_malformed(w, b2, r, b2, r), g), "{:?}: bit = 2", w);
+                let (mut bm, r) = honest_opening(42);
+                bm[0] = -1;
+                assert!(!rlc_air_ok(&rlc_malformed(w, bm, r, bm, r), g), "{:?}: bit = -1 (ternary in a bit slot)", w);
+            }
+        }
+        let mut p = rlc_prover(Workload::Matmul, 42);
+        p.out_override = Some([20, 22, 43, 50]);
+        assert!(!rlc_air_ok(&p, BaseElement::from(12_345u64)), "wrong matrix product");
+        let mut p = rlc_prover(Workload::Dense, 42);
+        p.dense_y[0] = (p.dense_y[0] + 1) % params::modulus();
+        assert!(!rlc_air_ok(&p, BaseElement::from(12_345u64)), "wrong dense output");
+    }
+
+    #[test]
+    fn v3_end_to_end_honest_accepted_and_forgeries_rejected() {
+        for w in WORKLOADS {
+            assert!(rlc_accepted(rlc_prover(w, 123_456_789)), "{:?}", w);
+            let (b1000, r) = honest_opening(1000);
+            let (b999, _) = honest_opening(999);
+            assert!(!rlc_accepted(rlc_malformed(w, b1000, r, b999, r)), "{:?}", w);
+            let (b, mut r5) = honest_opening(42);
+            r5[0] = 5;
+            assert!(!rlc_accepted(rlc_malformed(w, b, r5, b, r5)), "{:?}", w);
+        }
+    }
+
+    #[test]
+    fn v3_options_reach_at_least_120_bits() {
+        for w in WORKLOADS {
+            let p = rlc_prover(w, 7);
+            let s = p.prove(p.build_trace()).unwrap().security_level(true);
+            assert!(s >= 120, "v3 {:?}: {} bits", w, s);
+        }
     }
 
     #[test]

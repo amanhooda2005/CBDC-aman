@@ -10,8 +10,8 @@
 | dense_165x32 | proof_bytes | 33,710.000 | 63,539.000 | 1.88x | <= 20x | PASS |
 | dense_165x32 | prove_ms | 22.390 | 221.749 | 9.90x | <= 200x | PASS |
 | dense_165x32 | verify_ms | 5.152 | 22.535 | 4.37x | <= 10x | PASS |
-| dense_165x32 | **all three** | | | | | **PASS** |
+| dense_165x32 | **all three (pq_sis)** | | | | | **PASS** |
 | matmul_2x2 | proof_bytes | 6,683.000 | 60,844.000 | 9.10x | <= 20x | PASS |
 | matmul_2x2 | prove_ms | 2.586 | 184.861 | 71.50x | <= 200x | PASS |
 | matmul_2x2 | verify_ms | 1.367 | 19.282 | 14.10x | <= 10x | FAIL |
-| matmul_2x2 | **all three** | | | | | **FAIL** |
+| matmul_2x2 | **all three (pq_sis)** | | | | | **FAIL** |
