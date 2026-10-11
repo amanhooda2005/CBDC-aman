@@ -1,0 +1,105 @@
+{
+  "v2_inf": {
+    "params": {
+      "n": "80",
+      "q": "7340033",
+      "m": "512",
+      "length_bound": "2",
+      "norm": "+Infinity"
+    },
+    "MATZOV (default)": {
+      "best_attack": "lattice",
+      "log2_rop": 704.8403414274019,
+      "beta": 507,
+      "all": {
+        "lattice": 704.8403414274019
+      }
+    },
+    "ADPS16 classical": {
+      "best_attack": "lattice",
+      "log2_rop": 633.1882052400341,
+      "beta": 511,
+      "all": {
+        "lattice": 633.1882052400341
+      }
+    },
+    "ADPS16 quantum": {
+      "best_attack": "lattice",
+      "log2_rop": 619.3912052400341,
+      "beta": 511,
+      "all": {
+        "lattice": 619.3912052400341
+      }
+    },
+    "ChaLoy21 quantum": {
+      "best_attack": "lattice",
+      "log2_rop": 615.3032052400341,
+      "beta": 511,
+      "all": {
+        "lattice": 615.3032052400341
+      }
+    }
+  },
+  "v2_l2": {
+    "params": {
+      "n": "80",
+      "q": "7340033",
+      "m": "512",
+      "length_bound": "45.254833995939045",
+      "norm": "2"
+    },
+    "MATZOV (default)": {
+      "best_attack": "lattice",
+      "log2_rop": Infinity,
+      "beta": 512,
+      "all": {
+        "lattice": Infinity
+      }
+    },
+    "ADPS16 classical": {
+      "best_attack": "lattice",
+      "log2_rop": Infinity,
+      "beta": 512,
+      "all": {
+        "lattice": Infinity
+      }
+    },
+    "ADPS16 quantum": {
+      "best_attack": "lattice",
+      "log2_rop": Infinity,
+      "beta": 512,
+      "all": {
+        "lattice": Infinity
+      }
+    },
+    "ChaLoy21 quantum": {
+      "best_attack": "lattice",
+      "log2_rop": Infinity,
+      "beta": 512,
+      "all": {
+        "lattice": Infinity
+      }
+    }
+  },
+  "v1_inf": {
+    "params": {
+      "n": "128",
+      "q": "8380417",
+      "m": "260",
+      "length_bound": "262142",
+      "norm": "+Infinity"
+    },
+    "MATZOV (default)": {
+      "error": "ValueError('min() iterable argument is empty')"
+    },
+    "ADPS16 classical": {
+      "error": "ValueError('min() iterable argument is empty')"
+    },
+    "ADPS16 quantum": {
+      "error": "ValueError('min() iterable argument is empty')"
+    },
+    "ChaLoy21 quantum": {
+      "error": "ValueError('min() iterable argument is empty')"
+    }
+  }
+}

@@ -8,7 +8,7 @@
 
 **The v1 prototype and all its numbers (sections 1–11 below) are withdrawn.** The v1 circuit did not prove what it claimed: the SIS matrix and selectors were prover-controlled, the relation was checked under the wrong modulus with a free quotient, randomness was not range-checked, and both v1 circuits ran at ~11–17 bits of STARK security. Details: [`docs/h4_v2_security.md`](docs/h4_v2_security.md).
 
-v2 (`benchmark_v2/`) proves a workload plus knowledge of a short opening of a public SIS commitment, c = G·bits + B·r mod p. B and selectors are verifier-computed periodic columns, arithmetic is native mod p (7,340,033), bits are boolean, and r is exactly ternary. SIS binding estimate: n = 80, m = 512, beyond a full-dimension BKZ attack (> 136 bits quantum, heuristic). Classical and PQ circuits share the same workload block and the same proof options (sextic extension, blowup 8, 42 queries, 16-bit grinding, Blake3-256), giving 125–128 bits conjectured STARK security. Tests evaluate the AIR directly and reject forged openings, out-of-range r, non-boolean bits, and wrong workload outputs.
+v2 (`benchmark_v2/`) proves a workload plus knowledge of a short opening of a public SIS commitment, c = G·bits + B·r mod p. B and selectors are verifier-computed periodic columns, arithmetic is native mod p (7,340,033), bits are boolean, and r is exactly ternary. SIS binding (n = 80, m = 512): statistically binding, about 2⁻⁶³⁶ expected short collisions for a random matrix; the lattice estimator gives ≥ 2⁶¹⁵ (quantum) attack cost ([`docs/h4_lattice_estimator.json`](docs/h4_lattice_estimator.json)). Classical and PQ circuits share the same workload block and the same proof options (sextic extension, blowup 8, 42 queries, 16-bit grinding, Blake3-256), giving 125–128 bits conjectured STARK security. Tests evaluate the AIR directly and reject forged openings, out-of-range r, non-boolean bits, and wrong workload outputs.
 
 Results: 3 warm-up + 30 measured runs per system, interleaved, on an idle machine. Raw data: [`benchmark_v2/results/benchmark_v2.csv`](benchmark_v2/results/benchmark_v2.csv); summary: [`benchmark_v2/results/benchmark_v2.md`](benchmark_v2/results/benchmark_v2.md).
 
@@ -27,7 +27,7 @@ Results: 3 warm-up + 30 measured runs per system, interleaved, on an idle machin
 - The SIS opening adds a roughly fixed cost (~180–200 ms prove, ~18 ms verify, +30–54 KB proof here), mostly the verifier evaluating 81 public periodic columns. Relative overhead therefore shrinks as the proven workload grows. Overhead stays bounded for a realistic ML layer, but not for a trivially small computation.
 
 **Limitations:**
-- SIS security is a root-Hermite heuristic, not a lattice-estimator run. Run the estimator before any external claim.
+- SIS binding is statistical under the assumption that the PRG-generated G and B behave like uniformly random matrices. Confirmed with the lattice estimator (≥ 2⁶¹⁵ quantum).
 - Commitments are binding only. Hiding is not claimed, and this Winterfell fork does not add zero-knowledge masking.
 - Coverage: one linear layer of the H1 MLP (no ReLU, no later layers). The H2 GCN and H3 agents are not covered. No settlement-layer integration.
 - Timings are from one machine. The ratios are the reported quantity.
