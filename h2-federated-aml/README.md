@@ -43,6 +43,42 @@ Same runs, two-sided paired Wilcoxon (secondary, pre-registered as exploratory):
 
 **Verdict, original H2:** the pre-registered false-positive criterion is met at all six levels, but federation does **not** improve AML detection. The criterion as written can be satisfied by a more conservative classifier, so it should not be used alone. Report it with F1, recall and PR-AUC.
 
+### Matched-recall test: the false-positive criterion is gameable (Finding B, pre-registered)
+
+Pre-registration: [`experiments/PREREGISTRATION_matched_recall.md`](experiments/PREREGISTRATION_matched_recall.md), committed before the rerun. We reran `main_scarcity` for 10 seeds and saved per-node scores. The rerun reproduces v2: test false positives were identical in all 240 seed × method × level cases, and F1 differed by at most 0.017.
+
+**Fair comparison.** Both models must catch the same share of illicit transactions:
+- The target recall is the centralized model's validation recall at the 0.5 threshold.
+- Each method uses the largest threshold that reaches that recall on **validation**.
+- Test false positives are counted once, at that threshold.
+
+| Labels kept | FP reduction at 0.5 (v2 criterion) | FP centralized, matched | FP FedAvg, matched | FP reduction, matched | Holm p (one-sided) | Criterion at matched recall | FedAvg worse? Holm p (two-sided) |
+|---|---|---|---|---|---|---|---|
+| 100% | 45% | 112.9 | 203.7 | −80% | 1.0 | **fails** | yes, 0.012 |
+| 50% | 82% | 52.7 | 87.8 | −67% | 1.0 | **fails** | yes, 0.049 |
+| 20% | 67% | 27.0 | 51.6 | −91% | 1.0 | **fails** | n.s. (0.78) |
+| 10% | 99.9% | 503.5 | 100.5 | +80% | 0.070 | **fails** (n.s.) | — |
+| 5% | 95% | 499.4 | 401.6 | +20% | 1.0 | **fails** | n.s. |
+| 1% | 95% | 993.8 | 1135.0 | −14% | 1.0 | not met; only 5/10 seeds evaluable* | n.s. |
+
+\*In 5 seeds the centralized model caught no illicit validation transactions at 1% labels, so no recall could be matched. Under the pre-registered rule, this level does not count toward the verdict.
+
+Matching worked: mean test recall at the matched threshold differs by at most 0.009 between the two models at every level.
+
+- **Pre-registered verdict: Finding B supported.** The criterion that passed at all 6 levels at the default threshold fails at matched recall at all 5 fully evaluable levels.
+- **With plenty of labels (50–100%), FedAvg makes significantly *more* false positives** than the centralized model when both catch the same share of laundering: 67–80% more.
+- **One honest exception:** at 10% labels FedAvg's whole precision–recall curve sits above centralized (figure). At matched recall it has 80% fewer false positives (unadjusted p = 0.012), but this does not survive Holm correction (p = 0.070). In this regime the pooled model trained on very few labels is the weak one.
+- **Methodological message:** a false-positive reduction target for federated AML must be stated at a fixed recall (or as a full precision–recall curve). Otherwise a model that simply flags less will meet it.
+
+Outputs, in [`results/v2_scores/`](results/v2_scores/):
+- `matched_recall_primary.csv`, `matched_recall_by_method.csv`, `matched_recall_per_seed.csv`, `matched_recall_report.json`;
+- per-node scores, `scores_seed_*.npz`;
+- figure: [`pr_curves.png`](results/v2_scores/pr_curves.png).
+
+Reproduce:
+- `python src/protocol_v2.py scores --config experiments/configs/protocol_v2.yaml --seed <s>` for s = 42…51 (about 1.5 h per seed with 3 threads; we ran 4 in parallel);
+- then `python src/matched_recall.py --config experiments/configs/protocol_v2.yaml`.
+
 ### Refined H2 (boundary channel mitigates scarcity): not supported
 
 The boundary-alignment channel (λ = 0.05) **lowers** F1 versus plain FedAvg at 5 of 6 levels (p ≤ 0.037), and never reduces degradation in a meaningful way. The only nominally significant "mitigation" (1% labels, p = 0.019) is a floor effect: both methods score F1 = 0.030. See `results/v2/h2_refined_boundary_mitigation.csv`.
