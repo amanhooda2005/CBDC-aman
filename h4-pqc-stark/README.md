@@ -30,6 +30,20 @@ Fidelity of the proven integer models vs the float models (test splits):
 
 On real model workloads, adding the post-quantum SIS opening costs under 2× on every metric. The opening's cost is roughly fixed, so it matters most for trivially small computations, as the 2×2 case shows.
 
+### One proof for a whole CBDC transaction decision (composed, v3)
+
+A single post-quantum STARK proves the following for one transaction:
+1. complete inference of the trained H1 model, with the risk score kept private;
+2. the risk flag;
+3. the H3 agent's execute/refuse decision, with the risk flag as a violation condition;
+4. that the amount the agent decided on is exactly the amount inside the SIS commitment.
+
+To fit in 255 columns, the rule uses a narrow single-decision layout. Pre-registered in [`docs/h4_composed.md`](docs/h4_composed.md) before timing. Tests: 20/20. They include a decision made on an amount different from the committed one, which the classical proof accepts and the post-quantum proof rejects.
+
+| Workload | Size | Prove | Verify | Verdict |
+|---|---|---|---|---|
+| `composed_h1_h3` (H1 → risk → H3 → committed amount) | 1.15× | 1.28× | 1.77× | **PASS** |
+
 ### Overhead law (post-hoc, no new runs)
 
 Across the five v3 workloads, the post-quantum part behaves like a fixed added cost: **PQ ≈ classical + c**, so **ratio ≈ 1 + c / classical**.

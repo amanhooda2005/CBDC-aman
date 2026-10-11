@@ -42,3 +42,25 @@ Disclosure: one unmeasured smoke run (`-- 1 composed`) was made while another ex
 - One transaction and one decision per proof. Batching decisions would need the original multi-row rule, which does not fit next to H1 within 255 columns.
 - H1's input features are not tied to the amount. Elliptic's features are anonymized, so no feature is the amount.
 - The SIS binding is statistical, and the PQ security assumptions are those of `h4_v2_security.md`. The STARK itself is hash-based.
+
+## Result (30 measured runs, recorded after the pre-registration above)
+
+Data: [`benchmark_composed.csv`](../benchmark_v2/results/benchmark_composed.csv). Summary: [`benchmark_composed.md`](../benchmark_v2/results/benchmark_composed.md). Conjectured security: 126 bits for both systems.
+
+| Metric | Classical (no commitment) | PQ (SIS v3 + amount link) | Ratio | Bound | Overhead law predicted | Result |
+|---|---|---|---|---|---|---|
+| Proof size | 61,659 B | 71,191 B | 1.15× | ≤ 20× | 1.14× | PASS |
+| Prove time | 111.0 ms | 142.2 ms | 1.28× | ≤ 200× | 1.26× | PASS |
+| Verify time | 19.6 ms | 34.8 ms | 1.77× | ≤ 10× | 1.61× | PASS |
+
+**Verdict: PASS on all three bounds.** One post-quantum proof covers:
+- the H1 model's inference, with the score kept private;
+- the risk flag;
+- the agent's decision;
+- the amount, bound to the commitment.
+
+It costs less than 2× the same proof without post-quantum binding.
+
+The overhead law (fitted post-hoc on five other workloads) predicts size and prove time within 0.02×. It underpredicts verify time: the measured added cost is 15.2 ms against the law's 12 ms, which sits at the top of the range the law was fitted on.
+
+Descriptive, from unpaired runs: compared with proving H1 inference alone with the same post-quantum commitment (`h1_mlp_full`, `pq_sis_v3`), adding the agent decision, the risk flag and the amount link costs about +6.0 KB, +32 ms prove and +3.4 ms verify.
