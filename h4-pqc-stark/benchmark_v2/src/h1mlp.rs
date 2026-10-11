@@ -26,7 +26,7 @@ const F: usize = 165;
 const H: usize = 32;
 const SH_A_START: usize = F;
 const SH_B_START: usize = F + H;
-const FINAL: usize = F + 2 * H;
+pub const FINAL: usize = F + 2 * H;
 pub const MIN_LEN: usize = FINAL + 1;
 
 // pipeline sizes
@@ -43,7 +43,7 @@ const XC: usize = XB + XBITS;
 const ACC_A: usize = XC + XBITS;
 const ACC_B: usize = ACC_A + H;
 const DL: usize = ACC_B + H;
-const C_HEAD: usize = DL + H;
+pub const C_HEAD: usize = DL + H;
 const P1Q: usize = C_HEAD + 1;
 const P1R: usize = P1Q + Q1;
 const OUT1: usize = P1R + R1;
@@ -67,7 +67,6 @@ const PE_DMOVE: usize = PE_W3 + 1;
 const PE_DIN: usize = PE_DMOVE + 1;
 pub const PERIODIC: usize = PE_DIN + 1;
 
-#[cfg(test)]
 pub const CONSTRAINTS: usize = 2 + 2 * XBITS + H + H + H + 1 + 2 + Q1 + R1 + 2 + Q2 + R2;
 pub const ASSERTIONS: usize = 3 * H + 2;
 
@@ -231,7 +230,6 @@ pub fn periodic_columns(len: usize) -> Vec<Vec<BaseElement>> {
     cols
 }
 
-#[cfg(test)]
 /// Integer reference forward pass (same semantics the circuit enforces).
 pub fn reference(x: &[i64]) -> (Vec<i64>, Vec<i64>, i64) {
     let s = spec();
@@ -249,6 +247,11 @@ pub fn reference(x: &[i64]) -> (Vec<i64>, Vec<i64>, i64) {
         .collect();
     let logit = (0..H).map(|n| s.w3[n] * h2[n]).sum::<i64>() + s.b3;
     (h, h2, logit)
+}
+
+/// Integer logit of the reference forward pass.
+pub fn logit(x: &[i64]) -> i64 {
+    reference(x).2
 }
 
 /// Fills the block. `x` is the private input (tests may pass an out-of-range one).

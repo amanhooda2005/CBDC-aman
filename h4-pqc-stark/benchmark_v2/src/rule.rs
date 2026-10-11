@@ -28,8 +28,8 @@ pub const N: usize = 64;
 pub const MIN_LEN: usize = N + 1;
 const W16: usize = 16;
 const W22: usize = 22;
-const CB: usize = 12;
-const VB: usize = 13;
+pub const CB: usize = 12;
+pub const VB: usize = 13;
 
 const A: usize = 0;
 const D: usize = 1;

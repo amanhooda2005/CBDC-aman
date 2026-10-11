@@ -6,13 +6,14 @@ use winterfell::{
 };
 
 use crate::params::Workload;
-use crate::{gcn, h1mlp, rule};
+use crate::{compose, gcn, h1mlp, rule};
 
 pub fn min_len(w: Workload) -> usize {
     match w {
         Workload::H1Mlp => h1mlp::MIN_LEN,
         Workload::H2Gcn => gcn::MIN_LEN,
         Workload::H3Rule => rule::MIN_LEN,
+        Workload::Composed => compose::MIN_LEN,
         _ => unreachable!("not a coverage workload"),
     }
 }
@@ -22,6 +23,7 @@ pub fn width(w: Workload) -> usize {
         Workload::H1Mlp => h1mlp::WIDTH,
         Workload::H2Gcn => gcn::WIDTH,
         Workload::H3Rule => rule::WIDTH,
+        Workload::Composed => compose::WIDTH,
         _ => unreachable!(),
     }
 }
@@ -32,6 +34,7 @@ pub fn num_constraints(w: Workload) -> usize {
         Workload::H1Mlp => h1mlp::CONSTRAINTS,
         Workload::H2Gcn => gcn::CONSTRAINTS,
         Workload::H3Rule => rule::CONSTRAINTS,
+        Workload::Composed => compose::CONSTRAINTS,
         _ => unreachable!(),
     }
 }
@@ -41,6 +44,7 @@ pub fn num_assertions(w: Workload) -> usize {
         Workload::H1Mlp => h1mlp::ASSERTIONS,
         Workload::H2Gcn => gcn::ASSERTIONS,
         Workload::H3Rule => rule::ASSERTIONS,
+        Workload::Composed => compose::ASSERTIONS,
         _ => unreachable!(),
     }
 }
@@ -50,6 +54,7 @@ pub fn degrees(w: Workload, len: usize) -> Vec<TransitionConstraintDegree> {
         Workload::H1Mlp => h1mlp::degrees(len),
         Workload::H2Gcn => gcn::degrees(len),
         Workload::H3Rule => rule::degrees(len),
+        Workload::Composed => compose::degrees(len),
         _ => unreachable!(),
     }
 }
@@ -59,6 +64,7 @@ pub fn constraints<E: FieldElement + From<BaseElement>>(w: Workload, cur: &[E], 
         Workload::H1Mlp => h1mlp::constraints(cur, next, per, base, out),
         Workload::H2Gcn => gcn::constraints(cur, next, per, base, out),
         Workload::H3Rule => rule::constraints(cur, next, per, base, out),
+        Workload::Composed => compose::constraints(cur, next, per, base, out),
         _ => unreachable!(),
     }
 }
@@ -68,6 +74,7 @@ pub fn assertions(w: Workload, base: usize, outputs: &[u64]) -> Vec<Assertion<Ba
         Workload::H1Mlp => h1mlp::assertions(base, outputs),
         Workload::H2Gcn => gcn::assertions(base, outputs),
         Workload::H3Rule => rule::assertions(base, outputs),
+        Workload::Composed => compose::assertions(base, outputs),
         _ => unreachable!(),
     }
 }
@@ -77,6 +84,7 @@ pub fn periodic_columns(w: Workload, len: usize) -> Vec<Vec<BaseElement>> {
         Workload::H1Mlp => h1mlp::periodic_columns(len),
         Workload::H2Gcn => gcn::periodic_columns(len),
         Workload::H3Rule => rule::periodic_columns(len),
+        Workload::Composed => compose::periodic_columns(len),
         _ => unreachable!(),
     }
 }
@@ -87,6 +95,7 @@ pub fn outputs(w: Workload) -> Vec<u64> {
         Workload::H1Mlp => h1mlp::outputs(),
         Workload::H2Gcn => gcn::outputs(),
         Workload::H3Rule => rule::outputs(),
+        Workload::Composed => compose::outputs(),
         _ => unreachable!(),
     }
 }
@@ -97,6 +106,8 @@ pub enum Inputs {
     H1(Vec<i64>),
     H2(Vec<Vec<i64>>),
     H3(Vec<[i64; 6]>),
+    /// H1 input, H3 decision, and an optional forced risk flag (tests).
+    Composed(Vec<i64>, [i64; 6], Option<i64>),
 }
 
 pub fn honest_inputs(w: Workload) -> Inputs {
@@ -104,6 +115,7 @@ pub fn honest_inputs(w: Workload) -> Inputs {
         Workload::H1Mlp => Inputs::H1(h1mlp::spec().x.clone()),
         Workload::H2Gcn => Inputs::H2(gcn::spec().x.clone()),
         Workload::H3Rule => Inputs::H3(rule::spec().rows.clone()),
+        Workload::Composed => Inputs::Composed(h1mlp::spec().x.clone(), compose::decision(), None),
         _ => unreachable!(),
     }
 }
@@ -113,5 +125,6 @@ pub fn fill(inputs: &Inputs, columns: &mut [Vec<BaseElement>], base: usize, len:
         Inputs::H1(x) => h1mlp::fill(columns, base, len, x),
         Inputs::H2(x) => gcn::fill(columns, base, len, x),
         Inputs::H3(rows) => rule::fill(columns, base, len, rows),
+        Inputs::Composed(x, row, risk) => compose::fill(columns, base, len, x, row, *risk),
     }
 }

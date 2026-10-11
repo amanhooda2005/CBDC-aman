@@ -12,6 +12,11 @@
 //! If A.s != c, the difference is a nonzero polynomial in gamma of degree < n, so a random
 //! gamma satisfies the check with probability at most (n - 1) / |F_p^6| (Schwartz-Zippel).
 //! This replaces v2's n accumulator columns with one extension column.
+//!
+//! Composed workload only: the rule's amount register is bound to the committed amount bits.
+//! One extra main column ACC accumulates sum_i 2^i * bit_i over the first LINK_BITS bits (rows
+//! 0..LINK_BITS/K); the remaining committed bits must be zero; at row LINK_BITS/K the rule's
+//! amount must equal ACC. So the decision is made on exactly the amount inside the commitment.
 
 use winterfell::{
     math::{fields::f23201::BaseElement, ExtensionOf, FieldElement},
@@ -20,6 +25,7 @@ use winterfell::{
 };
 
 use crate::classical::{fill_matmul, matmul_assertions, matmul_constraints, matmul_degrees, BLOCK_ASSERTIONS, BLOCK_WIDTH};
+use crate::compose;
 use crate::cover;
 use crate::dense;
 use crate::params::{b_entry, felt_from_i64, g_entry, Workload, AMOUNT_BITS, N_RAND, SIS_ROWS};
@@ -37,6 +43,12 @@ const SIS_MAIN_WIDTH: usize = 3 * K;
 const SIS_MAIN_CONSTRAINTS: usize = 10 * K;
 /// Periodic columns: sel0, is_bit, is_bit_next, then A[j][(row+1)*K + t] for each (j, t).
 const PERIODIC_FIXED: usize = 3;
+/// Composed workload: amount bits bound to the rule (amount < 2^16), one main column, 3 constraints.
+pub const LINK_BITS: usize = 16;
+const LINK_ROW: usize = LINK_BITS / K;
+const LINK_COLS: usize = 1;
+const LINK_CONSTRAINTS: usize = 3;
+
 
 /// Public matrix entry A[j][i] for coordinate i of s = (bits, r): the v2 matrix [G | B].
 pub fn a_entry(j: usize, i: usize) -> u64 {
@@ -61,7 +73,7 @@ fn workload_width(w: Workload) -> usize {
 }
 
 pub fn main_width(w: Workload) -> usize {
-    SIS_MAIN_WIDTH + workload_width(w)
+    SIS_MAIN_WIDTH + workload_width(w) + if w == Workload::Composed { LINK_COLS } else { 0 }
 }
 
 #[cfg(test)]
@@ -72,6 +84,7 @@ pub fn num_main_constraints(w: Workload) -> usize {
             Workload::Dense => dense::CONSTRAINTS,
             w => cover::num_constraints(w),
         }
+        + if w == Workload::Composed { LINK_CONSTRAINTS } else { 0 }
 }
 
 #[derive(Clone)]
@@ -101,6 +114,9 @@ pub struct RlcAir {
     context: AirContext<BaseElement>,
     statement: Statement,
     len: usize,
+    /// Number of workload transition constraints and periodic columns (where the link starts).
+    workload_constraints: usize,
+    workload_periodic: usize,
 }
 
 fn range<E: FieldElement + From<BaseElement>>(row: &[E], is_bit: E, t: usize, out: &mut [E]) {
@@ -128,7 +144,8 @@ impl Air for RlcAir {
                 main.push(TransitionConstraintDegree::with_cycles(1, vec![len]));
             }
         }
-        let workload_assertions = match w {
+        let sis_constraints = main.len();
+        let mut workload_assertions = match w {
             Workload::Matmul => {
                 main.extend(matmul_degrees());
                 BLOCK_ASSERTIONS
@@ -142,9 +159,19 @@ impl Air for RlcAir {
                 cover::num_assertions(w)
             }
         };
+        let workload_constraints = main.len() - sis_constraints;
+        let workload_periodic = match w {
+            Workload::Matmul => 0,
+            Workload::Dense => dense::periodic_columns(len).len(),
+            w => cover::periodic_columns(w, len).len(),
+        };
+        if w == Workload::Composed {
+            main.extend(vec![TransitionConstraintDegree::with_cycles(1, vec![len]); LINK_CONSTRAINTS]);
+            workload_assertions += 1;
+        }
         let aux = vec![TransitionConstraintDegree::with_cycles(1, vec![len]); 2];
         let context = AirContext::new_multi_segment(trace_info, main, aux, workload_assertions, 1, options);
-        Self { context, statement, len }
+        Self { context, statement, len, workload_constraints, workload_periodic }
     }
 
     fn context(&self) -> &AirContext<BaseElement> {
@@ -163,6 +190,19 @@ impl Air for RlcAir {
             Workload::Matmul => matmul_constraints(cur, next, SIS_MAIN_WIDTH, out),
             Workload::Dense => dense::constraints(cur, next, &periodic[PERIODIC_FIXED + SIS_ROWS * K..], SIS_MAIN_WIDTH, out),
             w => cover::constraints(w, cur, next, &periodic[PERIODIC_FIXED + SIS_ROWS * K..], SIS_MAIN_WIDTH, out),
+        }
+        if self.statement.workload == Workload::Composed {
+            let link = &periodic[PERIODIC_FIXED + SIS_ROWS * K + self.workload_periodic..];
+            let out = &mut out[self.workload_constraints..];
+            let acc = SIS_MAIN_WIDTH + compose::WIDTH;
+            let (mut weighted, mut bits) = (E::ZERO, E::ZERO);
+            for t in 0..K {
+                weighted += link[t] * cur[s(t)];
+                bits += cur[s(t)];
+            }
+            out[0] = next[acc] - cur[acc] - weighted;
+            out[1] = link[K] * bits;
+            out[2] = link[K + 1] * (cur[SIS_MAIN_WIDTH + compose::AMOUNT_COL] - cur[acc]);
         }
     }
 
@@ -200,7 +240,13 @@ impl Air for RlcAir {
         match self.statement.workload {
             Workload::Matmul => matmul_assertions(SIS_MAIN_WIDTH),
             Workload::Dense => dense::assertions(SIS_MAIN_WIDTH, &self.statement.dense_y),
-            w => cover::assertions(w, SIS_MAIN_WIDTH, &self.statement.outputs),
+            w => {
+                let mut v = cover::assertions(w, SIS_MAIN_WIDTH, &self.statement.outputs);
+                if w == Workload::Composed {
+                    v.push(Assertion::single(SIS_MAIN_WIDTH + compose::WIDTH, 0, BaseElement::ZERO));
+                }
+                v
+            }
         }
     }
 
@@ -232,6 +278,13 @@ impl Air for RlcAir {
         }
         if self.statement.workload.is_coverage() {
             columns.extend(cover::periodic_columns(self.statement.workload, len));
+        }
+        if self.statement.workload == Workload::Composed {
+            for t in 0..K {
+                columns.push((0..len).map(|r| if r < LINK_ROW { BaseElement::from(1u64 << (r * K + t)) } else { BaseElement::ZERO }).collect());
+            }
+            columns.push((0..len).map(|r| if (LINK_ROW..bit_rows).contains(&r) { BaseElement::ONE } else { BaseElement::ZERO }).collect());
+            columns.push((0..len).map(|r| if r == LINK_ROW { BaseElement::ONE } else { BaseElement::ZERO }).collect());
         }
         columns
     }
@@ -333,6 +386,16 @@ impl RlcProver {
             Workload::Matmul => fill_matmul(&mut columns, SIS_MAIN_WIDTH, len, self.out_override),
             Workload::Dense => dense::fill(&mut columns, SIS_MAIN_WIDTH, len, &dense::input()),
             _ => cover::fill(self.inputs.as_ref().expect("coverage inputs"), &mut columns, SIS_MAIN_WIDTH, len),
+        }
+        if self.workload == Workload::Composed {
+            let acc = SIS_MAIN_WIDTH + compose::WIDTH;
+            let mut running = 0i64;
+            for row in 0..len {
+                columns[acc][row] = felt_from_i64(running);
+                if row < LINK_ROW {
+                    running += (0..K).map(|t| coords[row * K + t] << (row * K + t)).sum::<i64>();
+                }
+            }
         }
         RlcTrace { layout: TraceLayout::new(width, [1], [1]), main: Matrix::new(columns), coords }
     }
