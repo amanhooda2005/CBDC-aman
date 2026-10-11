@@ -13,6 +13,7 @@ pub const TRACE_LEN: usize = 8;
 /// Matmul block width: A, B, C, OUT (16) plus a clock column so no trace is all-constant.
 pub const BLOCK_WIDTH: usize = 17;
 /// Number of transition constraints in the matmul block.
+#[cfg(test)]
 pub const BLOCK_CONSTRAINTS: usize = 21;
 /// Number of assertions in the matmul block.
 pub const BLOCK_ASSERTIONS: usize = 13;
@@ -104,6 +105,7 @@ pub fn width(w: Workload) -> usize {
     }
 }
 
+#[cfg(test)]
 pub fn num_constraints(w: Workload) -> usize {
     match w {
         Workload::Matmul => BLOCK_CONSTRAINTS,

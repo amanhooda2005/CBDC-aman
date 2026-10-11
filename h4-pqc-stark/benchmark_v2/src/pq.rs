@@ -8,7 +8,7 @@ use winterfell::{
     TraceInfo, TraceTable,
 };
 
-use crate::classical::{fill_matmul, matmul_assertions, matmul_constraints, matmul_degrees, BLOCK_ASSERTIONS, BLOCK_CONSTRAINTS, BLOCK_WIDTH};
+use crate::classical::{fill_matmul, matmul_assertions, matmul_constraints, matmul_degrees, BLOCK_ASSERTIONS, BLOCK_WIDTH};
 use crate::dense;
 use crate::params::{Workload, AMOUNT_BITS, N_RAND, SIS_ROWS};
 use crate::sis;
@@ -32,10 +32,11 @@ pub fn width(w: Workload) -> usize {
     sis::WIDTH + workload_width(w)
 }
 
+#[cfg(test)]
 pub fn num_constraints(w: Workload) -> usize {
     sis::CONSTRAINTS
         + match w {
-            Workload::Matmul => BLOCK_CONSTRAINTS,
+            Workload::Matmul => crate::classical::BLOCK_CONSTRAINTS,
             Workload::Dense => dense::CONSTRAINTS,
         }
 }

@@ -16,6 +16,7 @@ pub const OUT: usize = 32;
 const ACC: usize = 0;
 const X: usize = ACC + OUT;
 pub const WIDTH: usize = X + 1;
+#[cfg(test)]
 pub const CONSTRAINTS: usize = OUT;
 pub const ASSERTIONS: usize = 2 * OUT;
 /// x occupies rows 1..=IN; outputs are checked at row IN + 1.
