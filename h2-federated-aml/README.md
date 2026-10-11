@@ -111,7 +111,7 @@ In a real VASP deployment, an agreed privacy-preserving counterparty/transfer id
 
 `boundary.py` validates the research payload shape and prevents this code path from carrying raw features or neighbourhoods. The simulation exchanges model updates and learned boundary embeddings; optional update perturbation is described below. It does **not** implement secure aggregation, encryption, a privacy proof, or production authentication.
 
-Optional institution-level update perturbation is available via `privacy.enabled` in the experiment config, or `--institution-privacy` for `src/main.py federated`. Each institution's whole model delta is jointly L2-clipped and Gaussian-noised before weighted FedAvg, and boundary embedding vectors are separately clipped/noised before export. This is institution-level update privacy engineering, not transaction-level differential privacy. The simulated boundary IDs and sample counts used as aggregation weights remain visible; model outputs and metrics remain observable. There is no accountant or calibrated end-to-end epsilon/delta, secure aggregation, encryption, or formal privacy guarantee. Configure `clip_norm` and `noise_multiplier` explicitly; do not claim transaction-level privacy or a quantified DP guarantee.
+Optional institution-level update perturbation is available via `privacy.enabled` in the experiment config, or `--institution-privacy` for `src/main.py federated`. Each institution's whole model delta is jointly L2-clipped and Gaussian-noised before weighted FedAvg, and boundary embedding vectors are separately clipped/noised before export. This is institution-level update privacy engineering, not transaction-level differential privacy. The simulated boundary IDs and sample counts used as aggregation weights remain visible; model outputs and metrics remain observable. There is no accountant or calibrated end-to-end epsilon/delta, secure aggregation, encryption, or formal privacy guarantee. Configure `clip_norm` and `noise_multiplier` explicitly; do not claim transaction-level privacy or a quantified DP guarantee. *Update (protocol v2): `src/dp_accounting.py` now provides RDP accounting (institution-level, model-update channel, full participation, δ = 1e-5) and the v2 privacy sweep reports ε; see the protocol v2 results in `README.md`. The boundary-embedding channel and FedAvg weights remain unaccounted.*
 
 ## Status and recorded findings (v1, superseded by protocol v2 above)
 
@@ -131,7 +131,7 @@ What these show:
 - The "federation degrades less under scarcity" pattern is partly an artifact. Federated F1 starts lower, so its drop is smaller. It is not evidence that federation beats the baseline.
 - The boundary channel does not help. Differences from FedAvg are within ±0.02 and change sign across scarcity levels. Raising lambda from 0 to 1.0 lowers F1 monotonically (0.147 → 0.012).
 
-**Original H2 criterion not yet tested.** It requires a federated vs centralized comparison under each scarcity level, ≥20% fewer false positives, multiple seeds, and a significance test. Missing:
+**Original H2 criterion not yet tested at v1** (it was tested in protocol v2, see "Final result (protocol v2)" above). It requires a federated vs centralized comparison under each scarcity level, ≥20% fewer false positives, multiple seeds, and a significance test. Missing:
 1. Centralized GCN run at each scarcity level (only the 100% run exists).
 2. Multiple seeds (all results are seed 42).
 3. A significance test on false-positive counts.
