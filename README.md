@@ -23,7 +23,7 @@ Full research proposal: `docs/CBDC_AI_Blockchain_Research_Proposal.pdf`
 
 All four experiments are complete and merged. Each hypothesis README has the full method, numbers, and limitations.
 
-**Complete write-up with every result, method, limitation and reproduction command: [`docs/FULL_REPORT.md`](docs/FULL_REPORT.md).**
+**Complete write-up with every result, method, limitation and reproduction command: [`docs/FULL_REPORT.md`](docs/FULL_REPORT.md).** Exhaustive record of every experiment ever run (including withdrawn and superseded versions, every per-seed/per-run table generated from the result files, all pre-registrations, corrections log): [`docs/EXHAUSTIVE_REPORT.md`](docs/EXHAUSTIVE_REPORT.md), rebuilt by `python docs/exhaustive/build.py`.
 
 | | Verdict | Key numbers | Main caveat |
 |---|---|---|---|
