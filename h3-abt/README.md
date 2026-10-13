@@ -10,7 +10,7 @@
 
 **Second, separate pass/fail test:** Sybil resistance — can a slashed agent dodge its penalty by quitting and re-registering as a new identity? Reported as its own result, not blended into the above.
 
-**Status:** Control vs treatment comparison and one-sided two-proportion z-test are implemented. The Sybil / identity-reset probe of the in-sim registry is implemented as a **separate** result. On-chain Solidity is **not** built. **H3 is not proven.** There is **no claim of Sybil resistance.** Smoke-test `n=3` is not a confirmatory sample. A separate confirmatory config exists in `configs/experiment.yaml`; running it is not a license to retune parameters for a p-value.
+**Status:** Control vs treatment comparison and one-sided two-proportion z-test are implemented. The Sybil / identity-reset probe of the in-sim registry is implemented as a **separate** result. On-chain Solidity is **not** built. **H3 is not proven.** Sybil resistance fails with the id-keyed registry; the pre-registered durable-liability experiment shows operator-bound history or a registration bond ≥ B* restores it (see below). Smoke-test `n=3` is not a confirmatory sample. A separate confirmatory config exists in `configs/experiment.yaml`; running it is not a license to retune parameters for a p-value.
 
 ## What goes here
 
@@ -301,6 +301,54 @@ Deterrence holds at the correct unit of analysis. The earlier action-level p (3.
 - Scope: one simulation configuration (seed 42, 20 agents × 50 steps per group), in-simulation registry, no on-chain contract.
 
 **Sybil probe:** `SYBIL_SUCCEEDED` (documented limitation, see section 8). Not part of the z-test verdict.
+
+## Durable liability: wear-out and the Sybil fix (pre-registered, seeds 43–52)
+
+Pre-registration: [`docs/PREREGISTRATION_durable.md`](docs/PREREGISTRATION_durable.md), committed before these seeds were run. Code: `src/h3_abt/durable.py`. Run: `python run_durable.py`. Outputs: `results/durable_report.json` and `results/durable_actions.csv`.
+
+Design:
+- 10 new seeds × 20 agents = 200 agents per regime, with the same opportunities in every regime.
+- Unit = agent; one-sided Mann–Whitney, with permutation p ≤ 1 × 10⁻⁵ for every test below.
+
+**Two problems with the original design:**
+1. **Deterrence wears out.** Slashing uses up the stake. In the flat (original) regime:
+   - 180 of 200 staked agents were driven to zero stake.
+   - Their violation rate climbs from 19% (steps 1–10) to 45% (steps 41–50), against 50% for unstaked control.
+   - The staked-vs-control gap shrinks from −0.31 to −0.05 (p = 0.003 late, still significant but small).
+2. **Sybil reset.** With escalating penalties and a registry keyed by agent id, agents reset identity 1,757 times (about 9 fresh ids each). That erases the escalation completely: the violation rate is identical to having no escalation at all.
+
+| Regime | Violation rate | Steps 1–10 | Steps 41–50 | Resets |
+|---|---|---|---|---|
+| Control (unstaked) | 50.7% | 49.8% | 50.5% | 0 |
+| Flat ABT (original) | 30.6% | 19.1% | **45.2%** | 0 |
+| + stake maintenance | 19.6% | 19.1% | 18.3% | 0 |
+| + escalation, id-keyed registry (free reset) | 19.6% | 19.1% | 18.3% | 1,757 |
+| + escalation, **operator-bound** history | **2.0%** | 8.7% | 0.0% | 0 |
+
+Primary tests (Holm across both):
+- **T1:** stake maintenance beats flat in steps 41–50: 18.4% vs 45.2%, z = −13.1, p ≪ 10⁻⁶. **Supported.**
+- **T2:** operator-bound escalation beats id-keyed escalation with free resets: 2.0% vs 19.6%, z = −18.5, p ≪ 10⁻⁶. **Supported.**
+
+**Registration-bond sweep.** The registry stays id-keyed, but a new identity costs bond B. The analytic break-even is B* = V_max − p·s − C_min = 14. Prediction and result agree exactly:
+
+| Bond B | 0 | 5 | 10 | **14** | 20 | 40 |
+|---|---|---|---|---|---|---|
+| Resets | 1,757 | 833 | 176 | **0** | 0 | 0 |
+| Violation rate | 19.6% | 10.3% | 3.8% | **2.0%** | 2.0% | 2.0% |
+
+Cost to honest-ish agents: under operator-bound escalation, each operator loses 15 on average over 50 steps (one offence, then compliance). Under flat maintenance, each loses 147.
+
+**Updated H3 verdict:**
+- Deterrence is **supported**, but in the original form it **wears out** as stakes are slashed to zero.
+- **Sybil resistance fails with id-keyed identity, and is restored by either fix:**
+  - binding history to the operator credential, or
+  - a registration bond of at least B* = 14 in this configuration (in general, the largest one-step gain from a violation net of the base slash).
+- Combined with stake maintenance, violations fall from 50.7% (control) to 2.0%.
+- Scope:
+  - simulation only;
+  - myopic agents;
+  - detection probability 1;
+  - unlimited operator capital for top-ups.
 
 ## Next milestone
 
