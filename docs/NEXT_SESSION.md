@@ -1,6 +1,6 @@
 # Next session: state and plan
 
-Updated 2026-10-11 (evening). Everything is merged on `main` (PRs up to #32). No experiments are running and no PRs are open.
+Updated 2026-10-11 (evening). Everything is merged on `main` (PRs up to #34). Full write-up: `docs/FULL_REPORT.md` (PDF copy on Maanas's Desktop: CBDC_Full_Results_Report.pdf). No experiments are running and no PRs are open.
 
 ## Where things stand
 
@@ -8,7 +8,7 @@ Updated 2026-10-11 (evening). Everything is merged on `main` (PRs up to #32). No
 |---|---|---|
 | H1 | Partly supported: 10× latency only at 60 blocks; gas fails per dispute | `h1-zkopml-v2/README.md`, `WRITEUP.md` |
 | H2 | FP criterion met at the 0.5 threshold, but **fails at matched recall** (Finding B, pre-registered); F1 lower than centralized; boundary channel hurts; DP kills utility | `h2-federated-aml/README.md` |
-| H3 | Deterrence supported (agent-level p ≈ 1e-6); Sybil resistance fails | `h3-abt/README.md` |
+| H3 | Deterrence supported; wears out + Sybil-fragile as designed; fixed by stake maintenance + operator-bound history (Finding C, PR #33) | `h3-abt/README.md` |
 | H4 | v3 passes all bounds: 2×2, dense, full H1/H2/H3 models, and **one composed proof of H1 → risk → H3 → committed amount** (Finding A, 1.15×/1.28×/1.77×) | `h4-pqc-stark/README.md`, `docs/h4_*.md` |
 
 The top-level `README.md` has the Final Results table and a "Cross-cutting findings" section (A, B, overhead law).
@@ -21,7 +21,6 @@ The top-level `README.md` has the Final Results table and a "Cross-cutting findi
 
 ## If more work is wanted (optional, nothing pending)
 
-- **H3 Sybil fix:** bind ABT identity to a stake history that is not transferable (for example, a registration bond that a fresh id cannot avoid). Then re-test `SYBIL_SUCCEEDED`.
 - **Finding A at scale:** batch several decisions per proof (needs a second trace segment or a wider-field fork), or bind H1's input to the transaction record.
 - **H2:** report the matched-recall test for local-only and boundary as well (the numbers are already in `results/v2_scores/matched_recall_by_method.csv`, descriptive only).
 
