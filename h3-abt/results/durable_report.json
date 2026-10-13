@@ -1,0 +1,174 @@
+{
+  "seeds": [
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52
+  ],
+  "agents_per_regime": 200,
+  "late_window": [
+    41,
+    50
+  ],
+  "break_even_bond": 14.0,
+  "primary": [
+    {
+      "test": "T1 maintained < flat, steps 41-50",
+      "n": 200,
+      "mean_first": 0.18350000000000016,
+      "mean_second": 0.4514999999999999,
+      "mann_whitney_z": -13.083173790471387,
+      "p_one_sided": 2.054588773459382e-39,
+      "permutation_p": 9.99990000099999e-06,
+      "p_holm": 2.054588773459382e-39
+    },
+    {
+      "test": "T2 escalating_operator < escalating_id (B=0), all steps",
+      "n": 200,
+      "mean_first": 0.020000000000000014,
+      "mean_second": 0.1956999999999999,
+      "mann_whitney_z": -18.508275843190656,
+      "p_one_sided": 8.853918101331898e-77,
+      "permutation_p": 9.99990000099999e-06,
+      "p_holm": 1.7707836202663797e-76
+    }
+  ],
+  "secondary": [
+    {
+      "test": "flat < control, all steps (replication)",
+      "n": 200,
+      "mean_first": 0.30560000000000015,
+      "mean_second": 0.5073000000000001,
+      "mann_whitney_z": -15.001227780943008,
+      "p_one_sided": 3.603682690732468e-51,
+      "permutation_p": 9.99990000099999e-06
+    },
+    {
+      "test": "flat < control, steps 41-50",
+      "n": 200,
+      "mean_first": 0.4514999999999999,
+      "mean_second": 0.5049999999999998,
+      "mann_whitney_z": -2.7142918754476364,
+      "p_one_sided": 0.0033208809692949876,
+      "permutation_p": 0.0007999920000799992
+    },
+    {
+      "test": "maintained < control, steps 41-50",
+      "n": 200,
+      "mean_first": 0.18350000000000016,
+      "mean_second": 0.5049999999999998,
+      "mann_whitney_z": -15.298176299891159,
+      "p_one_sided": 3.9314587849197113e-53,
+      "permutation_p": 9.99990000099999e-06
+    },
+    {
+      "test": "escalating_operator < maintained, all steps",
+      "n": 200,
+      "mean_first": 0.020000000000000014,
+      "mean_second": 0.1956999999999999,
+      "mann_whitney_z": -18.508275843190656,
+      "p_one_sided": 8.853918101331898e-77,
+      "permutation_p": 9.99990000099999e-06
+    }
+  ],
+  "descriptive": {
+    "control": {
+      "rate": 0.5073,
+      "by_window": [
+        0.498,
+        0.5015,
+        0.519,
+        0.513,
+        0.505
+      ],
+      "depleted_agents": 0,
+      "resets": 0
+    },
+    "flat": {
+      "rate": 0.3056,
+      "by_window": [
+        0.1905,
+        0.199,
+        0.281,
+        0.406,
+        0.4515
+      ],
+      "depleted_agents": 180,
+      "resets": 0
+    },
+    "maintained": {
+      "rate": 0.1957,
+      "by_window": [
+        0.1905,
+        0.187,
+        0.2015,
+        0.216,
+        0.1835
+      ],
+      "depleted_agents": 0,
+      "resets": 0
+    },
+    "escalating_id": {
+      "rate": 0.1957,
+      "by_window": [
+        0.1905,
+        0.187,
+        0.2015,
+        0.216,
+        0.1835
+      ],
+      "depleted_agents": 0,
+      "resets": 1757
+    },
+    "escalating_operator": {
+      "rate": 0.02,
+      "by_window": [
+        0.087,
+        0.0125,
+        0.0,
+        0.0005,
+        0.0
+      ],
+      "depleted_agents": 0,
+      "resets": 0
+    }
+  },
+  "bond_sweep": [
+    {
+      "bond": 0.0,
+      "rate": 0.1957,
+      "resets": 1757
+    },
+    {
+      "bond": 5.0,
+      "rate": 0.1033,
+      "resets": 833
+    },
+    {
+      "bond": 10.0,
+      "rate": 0.0376,
+      "resets": 176
+    },
+    {
+      "bond": 14.0,
+      "rate": 0.02,
+      "resets": 0
+    },
+    {
+      "bond": 20.0,
+      "rate": 0.02,
+      "resets": 0
+    },
+    {
+      "bond": 40.0,
+      "rate": 0.02,
+      "resets": 0
+    }
+  ]
+}

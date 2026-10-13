@@ -335,7 +335,7 @@ Pre-registered in `h4-pqc-stark/docs/h4_composed.md` before timing. One trace, o
 
 **Instance:** decision 1 (amount 7,558, compliant under the original rule) with the flagged H1 transaction. The risk flag turns a compliant transfer into a violation.
 
-**Width:** a narrow single-decision rule (19 register columns plus one shared 22-bit window reused across 7 rows) keeps the trace within Winterfell's 255-column limit: 207 columns classical, 219 PQ.
+**Width:** a narrow single-decision rule (19 register columns plus one shared 22-bit window reused across 7 rows) keeps the trace within Winterfell's 255-column limit: 207 columns classical, 220 main columns PQ.
 
 **Tests: 20 / 20 pass.** Each of the following is rejected:
 - a forged risk flag;

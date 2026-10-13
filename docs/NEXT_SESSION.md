@@ -1,6 +1,6 @@
 # Next session: state and plan
 
-Updated 2026-10-11 (evening). Everything is merged on `main` (PRs up to #34). Full write-up: `docs/FULL_REPORT.md` (PDF copy on Maanas's Desktop: CBDC_Full_Results_Report.pdf). No experiments are running and no PRs are open.
+Updated 2026-10-11 (evening). Everything is merged on `main` (PRs up to #34). Full write-up: `docs/FULL_REPORT.md`; exhaustive record: `docs/EXHAUSTIVE_REPORT.md` (built by `docs/exhaustive/build.py`; PDF on Desktop: CBDC_Exhaustive_Report.pdf) (PDF copy on Maanas's Desktop: CBDC_Full_Results_Report.pdf). No experiments are running and no PRs are open.
 
 ## Where things stand
 
