@@ -23,6 +23,61 @@ Caveats to report with any speedup number:
 - The gain is in proof generation, not time-to-finality (the challenge window still applies).
 - Only four depths were measured (1, 8, 24, 60). The worst-case speedups for 1, 8 and 24 blocks reuse the slowest step time measured on the 60-block model. Do not quote a specific crossover depth; it lies somewhere between 24 and 60 blocks.
 
+## Dispute contract v2 (hardened)
+
+`contracts/OptimisticInferenceV2.sol` replaces the gas-measurement mock `OptimisticInference.sol` (kept
+unchanged because the v1 gas numbers in `results/gas.json` were measured with it). v2 adds full on-chain
+adjudication:
+
+- **Prefix-consistency check.** When bisection ends at step k, the contract requires
+  P_k = keccak(P_{k-1} ‖ leaf_k). Without it, an asserter could commit honest values up to k, a garbage
+  P_k and wrong values afterwards. Bisection then lands on a step it computed honestly, and the
+  single-step proof upholds a wrong output. v1 and the original `dispute.py` did not check this.
+- **Input openings.** The disputed step's input instances must be the claimed transaction input, or
+  earlier leaves opened by a hash chain that recomputes to the agreed prefix P_{k-1}.
+- **Output binding.** The head leaf is the digest of the public output felts and must equal the claimed
+  output.
+- **Game rules:**
+  - strict turn order, with only the asserter revealing and only the challenger answering;
+  - the midpoint is enforced and Merkle paths have fixed depth;
+  - a deadline on every turn, with `timeout()` making the late party lose;
+  - asserter collateral and a challenger bond, with the loser's bond paid to the winner;
+  - delayed withdrawals that stay slashable;
+  - independent disputes per challenger, so a colluding challenger who loses on purpose cannot shield a
+    wrong claim.
+- The prefix chain and Merkle tree are now **keccak in both Solidity and Python** (`chain.py`), instead of
+  SHA-256 off-chain and keccak on-chain.
+
+**Tests:**
+- `forge test`: 17 tests, all passing. They cover:
+  - tampering at **every one of the 63 steps**, each located exactly in ≤ 6 rounds and rejected;
+  - the malformed-chain attack;
+  - forged input openings, invalid proofs, a wrong transaction input;
+  - all three timeouts;
+  - access control and turn order;
+  - collusion;
+  - collateral and withdrawal rules;
+  - a Python ↔ Solidity hashing cross-check.
+
+  Step verifiers are a mock that only accepts the honest step output, i.e. a sound proof system.
+- `python3 -m pytest test_chain.py`: 66 tests, all passing.
+
+**Gas (real transactions on anvil, `gas_game_v2.py` → `results/gas_v2.json`):**
+
+| Item | v1 (published) | v2 (hardened) |
+|---|---|---|
+| Commit per inference | 49,962 | 54,651 |
+| Undisputed saving vs monolithic (696,984) | 13.9× | **12.8×** |
+| Full dispute, typical (block step) | 1.26 M | 1.62 M |
+| Full dispute, worst (projection half) | 1.67 M | 1.90 M |
+| Max dispute rate for the 10× gas target | 1.18% worst / 1.6% typical | **0.79% worst / 0.93% typical** |
+
+What the "full dispute" figures contain:
+- **v2:** the measured challenge, opening, 5–6 reveal and response rounds and resolution, plus the
+  EZKL step-verifier gas measured in v1 (minus the 21,000 base cost an internal call does not pay).
+- **v1:** only the bisection rounds and the step verifier. It left out the challenge, opening and
+  adjudication transactions.
+
 ## Layout
 
 | File | Role |
@@ -38,7 +93,11 @@ Caveats to report with any speedup number:
 | `dispute.py` | End-to-end dispute scenarios: cheat, bisect, prove one step, verifier checks |
 | `quant_accuracy.py` | Fixed-point vs float accuracy on the full test set |
 | `check_quant.py` | Checks the emulator matches EZKL's witness exactly |
-| `gas.py`, `gas_game.py`, `contracts/` | Deploy verifiers and the game contract on anvil; measure gas |
+| `gas.py`, `gas_game.py`, `contracts/OptimisticInference.sol` | v1: deploy verifiers and the gas-measurement game on anvil; measure gas |
+| `contracts/OptimisticInferenceV2.sol` | v2 dispute game with full adjudication (see above) |
+| `chain.py`, `test_chain.py` | keccak prefix chain and Merkle tree shared with the contract, and their tests |
+| `test/`, `foundry.toml` | Foundry tests of the v2 contract (`GameHarness.sol` holds the mock verifier and trace builders) |
+| `gas_game_v2.py` | v2 gas as real transactions on anvil → `results/gas_v2.json` |
 | `make_report.py` | Builds `results/summary.json` and `results/speedup_vs_depth.png` |
 
 ## Reproduce
@@ -56,13 +115,18 @@ python3 dispute.py 60 0 1 2 3 4 5 6
 python3 gas.py 60 mono:mono_ic2 proj0:proj0_ic4 u1:u1_ic2 u2:u2_ic2 u61:u61_ic2
 python3 gas_game.py
 python3 make_report.py
+# v2 dispute contract (Foundry; forge-std: git clone https://github.com/foundry-rs/forge-std lib/forge-std)
+forge test                                  # 17 tests
+python3 -m pytest -q test_chain.py          # 66 tests
+forge build && python3 gas_game_v2.py       # results/gas_v2.json
 ```
 
 ## Notes
 
-- **Timings** in `results/` come from a single-CPU machine. Absolute times will be lower on a
-  multi-core laptop, and the speedup ratio also shrinks (14.9× to 12.6× at 60 blocks), so always
-  state the hardware alongside any speedup number.
+- **Timings.** The committed files in `results/` (`steps_B*.json`, `summary.json`) come from the
+  **multi-core** laptop run: 12.6× at 60 blocks, and 0.91× / 2.84× / 5.98× at 1 / 8 / 24 blocks. The
+  single-CPU figures quoted in WRITEUP.md (14.9×, 7.67×, 3.88×, 1.07×) have no committed raw files.
+  Always state the hardware alongside any speedup number.
 - **Monolithic proof** of the 60-block model peaks around 1.3 GB RAM.
 - **Solidity verifier.** `ezkl.create_evm_verifier` writes the Solidity file first, then tries to
   download solc to build the ABI. `gas.py` ignores that download error and compiles with the local solc.

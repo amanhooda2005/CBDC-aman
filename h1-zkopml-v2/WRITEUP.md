@@ -174,8 +174,10 @@ using the test set. A Random Forest on the same split scores F1 0.77.
    the circuit, so the committed input is the scaled feature vector.
 4. **Optimistic finality is slow.** A result only becomes final after the challenge window closes.
    The latency gain applies to proof generation, not to time-to-finality.
-5. **The dispute game is simplified.** It has no bonds or timeouts. The simulation uses SHA-256 for
-   the running hashes, while the contract uses keccak256.
+5. **The v1 dispute game was simplified.** It had no bonds or timeouts, the simulation used SHA-256
+   for the running hashes while the contract used keccak256, and it had no prefix-consistency check.
+   A malformed commitment could therefore win a dispute with a wrong output. All three are fixed in
+   v2 (section 6).
 6. **The projection halves use the more expensive column layout.** They use `num_inner_cols`=4 because
    it proves faster, and that raises their verification gas. The cheaper layout wasn't gas-measured.
 7. **The speedup depends on hardware.** It is 14.9× on a single-core machine and 12.6× on a multi-core
@@ -184,3 +186,42 @@ using the test set. A Random Forest on the same split scores F1 0.77.
    reported with the hardware.
 8. **Only four depths were measured.** The speedup curve is interpolated between 1, 8, 24 and 60
    blocks, so the depth at which the 10× threshold is crossed is unknown beyond "between 24 and 60".
+
+## 6. Dispute contract v2 (hardened, added after the results above)
+
+The original adjudication compared the single-step proof's output with the asserter's leaf_k but
+never checked that the asserter's running hash was consistent at k (P_k = H(P_{k-1} ‖ leaf_k)). The
+attack it allowed:
+1. The asserter commits honest values up to step m, a garbage P_m, and tampered values after m.
+2. The challenger agrees with every prefix before m and disagrees from m on, so bisection lands on m.
+3. leaf_m is honest, so the step proof matches the asserter, and the wrong output is upheld.
+
+`contracts/OptimisticInferenceV2.sol` closes this and completes the game:
+- the consistency check at the disputed step;
+- input leaves opened by a hash chain to the agreed prefix;
+- the head leaf bound to the claimed output;
+- turn order and per-turn deadlines;
+- collateral and bonds;
+- independent disputes per challenger.
+
+Results:
+- 17 Foundry tests pass. Tampering at each of the 63 steps is located exactly in ≤ 6 rounds and
+  rejected, and the attack above is rejected.
+- `dispute.py` now uses the same keccak chain (`chain.py`) and includes the attack as scenario 7.
+
+Gas, measured as real transactions on anvil (`results/gas_v2.json`):
+
+| Item | v1 | v2 |
+|---|---|---|
+| Commit per inference | 49,962 | 54,651 |
+| Undisputed saving vs monolithic | 13.9× | 12.8× |
+| Full dispute, typical / worst | 1.26 M / 1.67 M | 1.62 M / 1.90 M |
+| Break-even dispute rate for 10× | 1.18% (worst) | 0.79% (worst), 0.93% (typical) |
+
+v2's dispute figure includes the challenge, opening and adjudication transactions that v1's left out.
+The verdict is unchanged: the on-chain target passes only on average, now at a dispute rate below
+about 0.8%, and fails per dispute.
+
+**Status:** the contract is tested with a mock step verifier that accepts only the honest step
+output. Wiring it to the real EZKL step verifiers and re-running the scenarios on Elliptic is the next
+step.

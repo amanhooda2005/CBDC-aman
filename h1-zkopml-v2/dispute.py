@@ -2,14 +2,19 @@
 
 Protocol
   1. Asserter runs the model off-chain and posts: claimed output + Merkle root
-     over (leaf_i, P_i) for every step i, where leaf_i = Poseidon(step i output)
-     and P_i = H(P_{i-1} || leaf_i) is a prefix accumulator. No proof yet.
+     over (i, leaf_i, P_i) for every step i, where leaf_i = Poseidon(step i output)
+     (head step: keccak digest of the public output felts) and
+     P_i = keccak(P_{i-1} || leaf_i) is a prefix accumulator (chain.py, identical
+     to contracts/OptimisticInferenceV2.sol). No proof yet.
   2. A challenger recomputes the (deterministic, fixed-point) trace. If the
      claimed output differs, it opens a dispute.
   3. Bisection over P_i: prefix agreement is monotone (once any leaf differs,
      every later prefix differs), so binary search finds the FIRST step k whose
      leaf differs in ceil(log2 n) rounds. All leaves before k are agreed, so
      step k's inputs (earlier leaves or the public tx) are agreed.
+  3b. Consistency check: P_k must equal keccak(P_{k-1} || leaf_k); otherwise the
+     asserter committed a malformed chain and loses without any proof (scenario 7
+     shows the attack this blocks).
   4. One EZKL proof of step k alone, on the agreed inputs. The verifier checks
      proof validity, that its input-hash instances equal the agreed leaves, and
      compares its output instance with the asserter's leaf_k. Mismatch -> the
@@ -17,13 +22,14 @@ Protocol
      challenger's dispute is rejected.
 Usage: python3 dispute.py B scenario_id [scenario_id ...]
 """
-import hashlib, json, os, pickle, subprocess, sys, time
+import json, os, pickle, subprocess, sys, time
 import numpy as np
 import ezkl
 from data import load, temporal_split, apply_scaler
 from onnx_builder import build, build_join_block, dispute_steps
 from steps import quantize_steps, run_steps
-from commit import leaf, felts
+from commit import leaf, felts, felt_b32, felt_int, head_leaf
+import chain
 from quant import S
 
 B = int(sys.argv[1]); ids = [int(a) for a in sys.argv[2:]]
@@ -35,7 +41,6 @@ steps_bench = json.load(open(f"results/steps_B{B}.json"))
 rng = np.random.default_rng(0); cidx = rng.choice(len(Xte), 16, replace=False)
 cx, couts = run_steps(steps, Xte[cidx])
 deq = lambda a: a / 2 ** S
-H = lambda a, b: hashlib.sha256((a + b).encode()).hexdigest()
 
 # scenarios: (tx index, who cheats, cheated step, corruption)
 illicit = np.where(yte == 1)[0]; licit = np.where(yte == 0)[0]
@@ -47,14 +52,18 @@ SCEN = [
     dict(tx=int(licit[11]), cheat="asserter", step=n - 1),       # the decision itself (head)
     dict(tx=int(illicit[2]), cheat="asserter", step=40),
     dict(tx=int(licit[20]), cheat="challenger", step=33),        # false dispute against an honest asserter
+    # malformed commitment: honest values up to step 40, a garbage prefix at 40, tampered values after.
+    # Bisection lands on step 40, whose leaf is honest; only the consistency check rejects the claim.
+    dict(tx=int(illicit[7]), cheat="asserter_malformed_chain", step=40),
 ]
 
 
-def trace_commit(outs):
-    leaves = [leaf(o[0]) for o in outs]
-    P, acc = [], ""
-    for l in leaves:
-        acc = H(acc, l); P.append(acc)
+def trace_commit(outs, garbage_at=None):
+    leaves = [felt_b32(leaf(o[0])) for o in outs[:-1]] + [head_leaf(outs[-1][0])]
+    P, acc = [], chain.ZERO
+    for i, l in enumerate(leaves):
+        acc = chain.k256(b"garbage") if i == garbage_at else chain.k256(acc + l)
+        P.append(acc)
     return leaves, P
 
 
@@ -90,9 +99,12 @@ allres = json.load(open(path)) if os.path.exists(path) else {}
 for sid in ids:
     sc = SCEN[sid]; x = Xte[sc["tx"]:sc["tx"] + 1]
     xq, honest = run_steps(steps, x)
-    _, bad = run_steps(steps, x, corrupt=(sc["step"], corrupt_fn(sc["step"])))
-    A_outs, C_outs = (bad, honest) if sc["cheat"] == "asserter" else (honest, bad)
-    A_leaves, A_P = trace_commit(A_outs); C_leaves, C_P = trace_commit(C_outs)
+    malformed = sc["cheat"] == "asserter_malformed_chain"
+    bad_step = sc["step"] + 1 if malformed else sc["step"]
+    _, bad = run_steps(steps, x, corrupt=(bad_step, corrupt_fn(bad_step)))
+    A_outs, C_outs = (honest, bad) if sc["cheat"] == "challenger" else (bad, honest)
+    A_leaves, A_P = trace_commit(A_outs, garbage_at=sc["step"] if malformed else None)
+    C_leaves, C_P = trace_commit(C_outs)
     thr_logit = np.log(m["res"]["threshold"] / (1 - m["res"]["threshold"]))
     a_dec, c_dec = A_outs[-1][0, 0] / 2 ** S > thr_logit, C_outs[-1][0, 0] / 2 ** S > thr_logit
 
@@ -104,9 +116,22 @@ for sid in ids:
         if A_P[mid] == C_P[mid]: lo = mid
         else: hi = mid
     k = hi
+    consistent = chain.chain_consistent_at(A_leaves, A_P, k)
+    if not consistent:
+        # the asserter's chain is malformed at k: it loses without any proof being generated
+        res = dict(scenario=sc, n_steps=n, first_bad_step=k, cheated_step=sc["step"], located_correctly=k == sc["step"],
+                   bisection_rounds=rounds, step_name=steps[k]["name"], chain_consistent_at_k=False,
+                   asserter_claim_upheld=False, outcome_correct=sc["cheat"] != "challenger",
+                   leaf_k_is_honest=A_leaves[k] == C_leaves[k] if sc["cheat"] != "challenger" else None,
+                   asserter_decision_illicit=bool(a_dec), challenger_decision_illicit=bool(c_dec))
+        allres[str(sid)] = res
+        json.dump(allres, open(path, "w"), indent=2, default=float)
+        print(f"scenario {sid}: cheat={sc['cheat']} at step {sc['step']:2d} -> bisection found step {k:2d} in {rounds} rounds "
+              f"| malformed prefix chain -> ASSERTER SLASHED without a proof", flush=True)
+        continue
     # agreed inputs of step k
     ins = [xq if j == -1 else C_outs[j] for j in steps[k]["inputs"]]
-    agreed_in_leaves = [None if j == -1 else A_leaves[j] for j in steps[k]["inputs"]]
+    agreed_in_leaves = [None if j == -1 else A_leaves[j] for j in steps[k]["inputs"]]   # bytes32
     assert all(j == -1 or A_leaves[j] == C_leaves[j] for j in steps[k]["inputs"]), "inputs of k must be agreed"
     true_inputs = [xq if j == -1 else honest[j] for j in steps[k]["inputs"]]
     assert all((a == b).all() for a, b in zip(ins, true_inputs))
@@ -119,15 +144,15 @@ for sid in ids:
     if iv == "public":
         in_ok = inst[:xq.shape[1]] == felts(xq[0]); out_inst = inst[xq.shape[1]:]
     else:
-        nin = len(steps[k]["inputs"]); in_ok = inst[:nin] == agreed_in_leaves; out_inst = inst[nin:]
+        nin = len(steps[k]["inputs"]); in_ok = [felt_b32(v) for v in inst[:nin]] == agreed_in_leaves; out_inst = inst[nin:]
     if ov == "hashed":
-        proven_out = out_inst[0]; a_claim = A_leaves[k]
-    else:
-        proven_out = out_inst[0]; a_claim = felts(A_outs[k][0])[0]
-    asserter_wins = pr["verified"] and in_ok and proven_out == a_claim
+        proven_out = felt_b32(out_inst[0])
+    else:   # head step: public output felts, compared through their digest (= the head leaf)
+        proven_out = chain.output_digest([felt_int(v) for v in out_inst])
+    asserter_wins = pr["verified"] and in_ok and proven_out == A_leaves[k]
     correct = (asserter_wins and sc["cheat"] == "challenger") or (not asserter_wins and sc["cheat"] == "asserter")
     res = dict(scenario=sc, n_steps=n, first_bad_step=k, cheated_step=sc["step"], located_correctly=k == sc["step"],
-               bisection_rounds=rounds, step_name=steps[k]["name"], proof_verified=pr["verified"],
+               bisection_rounds=rounds, step_name=steps[k]["name"], chain_consistent_at_k=True, proof_verified=pr["verified"],
                input_instances_match_agreed=in_ok, asserter_claim_upheld=asserter_wins, outcome_correct=correct,
                asserter_decision_illicit=bool(a_dec), challenger_decision_illicit=bool(c_dec),
                prove_s=pr["prove_mean_s"], witness_s=pr["witness_s"], setup_s=pr["setup_s"], verify_s=pr["verify_s"],

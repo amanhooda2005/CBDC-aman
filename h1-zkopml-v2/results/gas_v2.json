@@ -1,0 +1,110 @@
+{
+  "commit_first": 71751,
+  "disputes": {
+    "block step (u16)": {
+      "step": 17,
+      "commit": 54651,
+      "challenge": 147122,
+      "openFinal": 101068,
+      "reveal": [
+        85687,
+        51460,
+        51484,
+        51469,
+        51442,
+        51457
+      ],
+      "respond": [
+        47012,
+        59827,
+        47012,
+        47012,
+        42727,
+        51305
+      ],
+      "resolve_mock": 104866,
+      "game_total": 990950
+    },
+    "projection half (proj0)": {
+      "step": 0,
+      "commit": 54639,
+      "challenge": 147110,
+      "openFinal": 98268,
+      "reveal": [
+        85639,
+        54260,
+        51445,
+        51430,
+        51391
+      ],
+      "respond": [
+        47000,
+        47000,
+        47000,
+        47000,
+        49174
+      ],
+      "resolve_mock": 84326,
+      "game_total": 861043
+    },
+    "join step (u1, two inputs)": {
+      "step": 2,
+      "commit": 54651,
+      "challenge": 147122,
+      "openFinal": 98304,
+      "reveal": [
+        85687,
+        51472,
+        51469,
+        51442,
+        51427,
+        51454
+      ],
+      "respond": [
+        47012,
+        47012,
+        47012,
+        49812,
+        59827,
+        49020
+      ],
+      "resolve_mock": 93933,
+      "game_total": 982005
+    },
+    "head step": {
+      "step": 62,
+      "commit": 54651,
+      "challenge": 147122,
+      "openFinal": 98292,
+      "reveal": [
+        85699,
+        51499,
+        51463,
+        51487,
+        51487,
+        51502
+      ],
+      "respond": [
+        59827,
+        42727,
+        42727,
+        42727,
+        42727,
+        49020
+      ],
+      "resolve_mock": 87966,
+      "game_total": 956272
+    }
+  },
+  "summary": {
+    "monolithic_verify": 696984,
+    "commit_per_inference": 54651,
+    "undisputed_ratio": 12.753362244057747,
+    "full_dispute_typical_est": 1615931,
+    "full_dispute_worst_est": 1897788,
+    "per_dispute_ratio_worst": 0.36726125362790785,
+    "max_dispute_rate_for_10x_worst": 0.007928915136991063,
+    "max_dispute_rate_for_10x_typical": 0.009311907501000968,
+    "note": "full dispute = measured game txs (challenge, openFinal, reveals, responds, resolve with mock verifier) + v1-measured EZKL step-verifier tx gas - 21000 base"
+  }
+}

@@ -9,3 +9,6 @@ work/
 elliptic_bitcoin_dataset/
 *.csv
 .Rhistory
+out/
+cache/
+lib/
