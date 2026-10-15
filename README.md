@@ -32,6 +32,45 @@ All four experiments are complete and merged. Each hypothesis README has the ful
 | **H3** AgentBound Tokens | **Deterrence supported; wears out and is Sybil-fragile as designed — both fixed by stake maintenance + operator-bound history (pre-registered, violations 50.7% → 2.0%)** | Staked agents violate 31.9% vs 54.2% unstaked (41% reduction). Agent-level tests: Mann–Whitney p = 1.1 × 10⁻⁶, permutation p ≤ 10⁻⁵. Majority bar: 19/20 staked vs 7/20 unstaked. | `SYBIL_SUCCEEDED`: a slashed agent re-registers under a new id with a clean history. One simulation configuration. |
 | **H4** PQ ZK-STARK | **Supported (v3)**; v2 missed one bound | Sound SIS-STARK, 125–128-bit conjectured security, statistically binding commitment (lattice estimator ≥ 2⁶¹⁵ quantum). v3 overhead vs classical: 2×2 matmul 5.0× / 14.2× / 7.4×; **complete inference of the trained H1 MLP, H2 GCN and H3 rule: ≤ 1.2× size, ≤ 1.5× prove, ≤ 2.0× verify.** One composed proof of H1 risk → H3 decision → committed amount: 1.15× / 1.28× / 1.77×. All within bounds. | v2 failed the 2×2 verify bound (14.1× > 10×); v3 was designed after that miss (disclosed). One instance per model class (one transaction, one 3-node GCN neighborhood, 64 decisions). v1 withdrawn (unsound). |
 
+## Integrated system: the four tracks as one running CBDC settlement pipeline (TRL 4)
+
+After the individual experiments, the mechanisms were joined into one system and validated in the lab
+([`integration/`](integration)). A transfer passes through all of them:
+
+1. the operator node runs the H1 risk model **inside a zero-knowledge, post-quantum-bound proof** (H4 v4,
+   Plonky3) that also proves the H3 agent's decision under the registry's **current escalated slash** and
+   binds the decision to the amount inside a lattice commitment;
+2. each of the **4 validator nodes of a Hyperledger Besu QBFT network** verifies the proof natively,
+   checks the commitment opening and the current policy against its own node, and signs;
+3. the **SettlementGate** contract acts on a 3-of-4 quorum: a compliant transfer is executed, an
+   attempted violation is blocked and the operator slashed by the on-chain **LiabilityRegistry** (H3),
+   a declined violation moves nothing.
+
+| Run | Result |
+|---|---|
+| **1,000 real Elliptic test-period transactions** | **889 / 889** honest transactions settled exactly as the rules require (4/4 signatures); **0 / 111** injected faults (forged outputs, swapped amounts, stale slash, corrupted proofs, wrong model) reached quorum or changed the ledger; **1.98 s** end to end (mean); H1's in-proof risk flag: precision 0.53, recall 0.72 (0.81 recall before time step 43, 0 after) |
+| 300 synthetic transactions, 1 Byzantine validator | 244 / 244 honest settled; 0 / 56 faults reached quorum |
+| 60 synthetic transactions, 2 Byzantine validators | 26 / 26; 0 / 34 |
+| 40 synthetic transactions, 1 crashed validator | 25 / 25 settled with 3 signatures; 0 / 15 |
+| 1,000 synthetic transactions, real node crash mid-run | 899 / 900 (one honest tx lost to a second, transient fault while a node was down; nothing moved) |
+
+Integration found two real defects, both fixed with regression tests: the composed proof was incomplete
+once H3's slash escalated (a 22-bit comparison window; now 30 bits with a stated domain), and the proven
+rule could never execute a compliant transfer.
+
+Follow-up work per track (details in each README):
+- **H1 v2/v2.1:** hardened dispute contract (on-chain adjudication, prefix-consistency check, bonds,
+  timeouts, per-challenger disputes; 17 Foundry tests) and complete on-chain games with **real EZKL
+  verifiers**: 7/7 scenarios correct on two real transactions, one shared verifier per step shape
+  (4 verifiers instead of 63: 17.2 M vs ~251 M deploy gas), measured dispute 1.58–1.91 M gas. The 10×
+  on-chain target now holds below a 0.8 % dispute rate (v1: 1.2 %).
+- **H3:** the registry is a deployed contract (soulbound ids, stake maintenance, escalating slash,
+  registration bond, slashable delayed withdrawals; 9 tests) and a pre-registered study with **learning
+  agents under imperfect detection** (p = 0.5, 0.8) supports all 4 primary tests (Holm p ≤ 3.2 × 10⁻⁷).
+- **H4 v4/v4.1:** the composed proof is now **zero-knowledge** (Plonky3 hiding FRI and salted Merkle
+  trees); end-to-end security 124-bit conjectured / 111-bit proven classical, ≈ 62-bit quantum under the
+  conservative QROM bound; post-quantum binding under ZK costs 1.07× size and 1.10× prove time.
+
 ## Cross-cutting findings
 
 1. **One post-quantum proof for a whole CBDC transaction decision.** A single STARK proves four things:

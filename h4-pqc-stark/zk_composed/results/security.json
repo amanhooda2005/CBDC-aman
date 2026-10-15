@@ -1,0 +1,31 @@
+{
+  "pq": {
+    "conjectured_bits": 124,
+    "fri": {
+      "log_blowup": 4,
+      "num_queries": 48,
+      "query_pow_bits": 16
+    },
+    "max_constraint_degree": 3,
+    "num_batched_functions": 550,
+    "num_constraints": 499,
+    "num_quotient_chunks": 2,
+    "proven_list_decoding_bits": 111,
+    "proven_unique_decoding_bits": 59
+  },
+  "pq_zk": {
+    "conjectured_bits": 124,
+    "fri": {
+      "log_blowup": 4,
+      "num_queries": 48,
+      "query_pow_bits": 16
+    },
+    "max_constraint_degree": 3,
+    "num_batched_functions": 640,
+    "num_constraints": 499,
+    "num_quotient_chunks": 8,
+    "proven_list_decoding_bits": 111,
+    "proven_unique_decoding_bits": 59
+  },
+  "sis_log2_expected_collisions": -294.70356404127597
+}

@@ -3,7 +3,7 @@
 **Project:** CBDC – AI – Blockchain research (proposal: `docs/CBDC_AI_Blockchain_Research_Proposal.pdf`)
 **Repository:** github.com/maanas1234/CBDC (all results on `main`, PRs #1–#34)
 **Team:** Aman (H1), Indrakshi (H2), Anjali (H3), Simran (H4); mentor Maanas Tyagi
-**Status:** all experiments complete. This document collects every result, how it was obtained, what it does and does not show, and where the raw evidence lives.
+**Status:** all experiments complete. This document collects every result, how it was obtained, what it does and does not show, and where the raw evidence lives. **October 2026 update:** the four mechanisms now run as one integrated system on a Byzantine-fault-tolerant ledger, validated on 1,000 real Elliptic transactions (§6A); sections 2–5 describe the original experiments and §6A lists what changed in each track.
 
 ---
 
@@ -406,6 +406,71 @@ The negative results define where the design must change:
 - federation needs a recall-anchored target, and more than three parties for DP to be usable (H2);
 - liability needs stake maintenance and operator-bound identity (H3);
 - on-chain dispute settlement only pays off at low dispute rates (H1).
+
+---
+
+## 6A. Integrated system and follow-up work (October 2026; technology readiness level 4)
+
+Code: `integration/` (README there has every table), `h1-zkopml-v2/` (v2, v2.1), `h3-abt/contracts/`,
+`h3-abt/docs/PREREGISTRATION_learning.md`, `h4-pqc-stark/zk_composed/`, `h4-pqc-stark/docs/h4_zk_composed.md`.
+
+### System
+- **Ledger:** Hyperledger Besu 25.10, 4 validators, QBFT (tolerates 1 faulty), 1-second blocks.
+- **Operator node:** for each transfer it proves, in one zero-knowledge Plonky3 STARK, the H1 inference
+  (W32_B1), the risk flag, the H3 decision under public policy values (limit, sanctioned id, the
+  registry's current escalated slash) and the link between the decided amount and an SIS commitment.
+- **Validators:** each verifies the proof natively (not in the EVM), the model digest, the commitment
+  opening against the settled amount, the outputs and the current policy read from its own node, and
+  signs (EIP-191).
+- **Contracts:** `SettlementGate` (3-of-4 quorum, customer mandates; outcomes Executed / AgentRefused /
+  Blocked + slash / NotCovered) and H3's `LiabilityRegistry`.
+
+### Results
+| Run | Honest settled as required | Faulty reaching quorum / changing ledger | End to end |
+|---|---|---|---|
+| 1,000 real Elliptic test-period tx, 4 honest validators | 889 / 889 | 0 / 111 · 0 | 1.98 s mean |
+| 300 synthetic, 1 Byzantine validator | 244 / 244 | 0 / 56 · 0 | 1.96 s |
+| 60 synthetic, 2 Byzantine | 26 / 26 | 0 / 34 · 0 | 1.61 s |
+| 40 synthetic, 1 crashed | 25 / 25 | 0 / 15 · 0 | 1.66 s |
+| 1,000 synthetic, real node crash (OOM) mid-run | 899 / 900 | 0 / 100 · 0 | 2.51 s |
+
+In the Elliptic run, H1's in-proof risk flag had precision 0.53 and recall 0.72 (69 illicit among 889):
+recall 0.81 on time steps 35–42 and 0 on 43–49, the known post-shutdown collapse of Elliptic models. 61 of
+69 illicit transfers were not executed; the 8 executed were all model misses. Settle gas: Executed
+103 k, AgentRefused 84 k, Blocked incl. slash 108 k; proof ≈ 170 KB off-chain, only its hash on-chain.
+
+### Defects found by integration (fixed, with regression tests)
+1. The composed proof's 22-bit comparison window could not hold the decision term once the registry
+   escalated the slash; honest proofs failed (145/244 in the first run). Now 30 bits with a stated
+   domain (policy values and stake < 2²⁰) checked by prover and verifier.
+2. The proven rule refused every compliant transfer (H3 refuse-on-tie) and the gate slashed declined
+   violations. Now compliant transfers execute and only attempted violations are slashed.
+
+### Follow-up work per track
+- **H1 v2 / v2.1.** Hardened dispute contract with full on-chain adjudication: prefix-consistency check
+  (blocks a malformed-chain attack that v1 allowed), bonds, per-turn deadlines, per-challenger disputes,
+  slashable delayed withdrawals (17 Foundry + 66 Python tests). Complete games with real EZKL verifiers on
+  a local chain: 7/7 scenarios correct on two real transactions. Steps of one shape share a verifier
+  (weights as a hashed instance checked by the contract): 4 verifiers, 17.2 M deploy gas instead of
+  ~251 M; a valid proof of another block's weights is rejected. Measured dispute 1.58–1.91 M gas;
+  undisputed saving 12.8×; the 10× target holds below a 0.79 % (worst) / 0.93 % (typical) dispute rate.
+- **H3.** On-chain `LiabilityRegistry` (9 tests). Pre-registered learning-agent study (ε-greedy,
+  detection p = 0.5 and 0.8, 10 seeds, 500 steps): stake maintenance beats a flat stake late in the run
+  (20.9 % vs 25.7 % at p = 0.5; 16.1 % vs 26.2 % at p = 0.8) and operator-bound history beats ID-keyed
+  history (4.3 % vs 11.5 %; 3.3 % vs 8.6 %), all four Holm-corrected p ≤ 3.2 × 10⁻⁷; a bond at the
+  break-even B* removes strategic resets (only exploration resets remain).
+- **H4 v4 / v4.1.** The composed proof is re-implemented on Plonky3 with hiding (zero-knowledge; the v3
+  Winterfell proof was not). SIS re-derived for BabyBear (48 rows, statistical binding 2⁻²⁹⁴·⁷), opening
+  checked row by row. Security of the whole proof: 124-bit conjectured / 111-bit proven classical, ≈ 62
+  bits quantum under the conservative QROM bound (the earlier "2⁶¹⁵" figure described only the
+  commitment). Overhead of post-quantum binding under ZK: 1.07× size, 1.10× prove, 0.98× verify; deployed
+  proof 170 KB, ≈ 0.6 s prove, 15 ms verify. 17 tests.
+
+### Readiness
+Technology validated in a lab (TRL 4): the components run together on a BFT ledger with real data and
+injected faults. Not yet shown: a relevant environment (multiple machines and organisations, network
+delays, a real central-bank ledger, real amounts), throughput beyond one sequential operator, and
+privacy of amounts towards validators.
 
 ---
 

@@ -1,0 +1,122 @@
+{
+ "source": "elliptic",
+ "n": 1000,
+ "faults_injected": 111,
+ "wall_s": 1872.4,
+ "throughput_tx_per_min": 32.0,
+ "honest": {
+  "n": 889,
+  "outcomes": {
+   "AgentRefused": 581,
+   "Blocked": 1,
+   "Executed": 307
+  },
+  "settled_with_expected_outcome": 889,
+  "settled": 889,
+  "all_signatures": 889
+ },
+ "faulty": {
+  "n": 111,
+  "by_type": {
+   "amount_swap": 20,
+   "corrupt_proof": 21,
+   "flip_viol": 23,
+   "stale_slash": 24,
+   "wrong_model": 23
+  },
+  "outcomes": {
+   "NotSubmitted": 111
+  },
+  "reached_quorum": 0,
+  "ledger_changed": 0
+ },
+ "risk_flags": {
+  "viol_1": 582,
+  "h1_risk_1": 94,
+  "labelled": 889,
+  "illicit": 69,
+  "tp": 50,
+  "fp": 44,
+  "fn": 19,
+  "tn": 776,
+  "precision": 0.5319,
+  "recall": 0.7246,
+  "f1": 0.6135,
+  "illicit_blocked": 0,
+  "illicit_executed": 8,
+  "time_steps_35_42": {
+   "labelled": 562,
+   "illicit": 62,
+   "tp": 50,
+   "fp": 28,
+   "fn": 12,
+   "tn": 472,
+   "precision": 0.641,
+   "recall": 0.8065,
+   "f1": 0.7143,
+   "illicit_blocked": 0,
+   "illicit_executed": 6
+  },
+  "time_steps_43_49": {
+   "labelled": 327,
+   "illicit": 7,
+   "tp": 0,
+   "fp": 16,
+   "fn": 7,
+   "tn": 304,
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0,
+   "illicit_blocked": 0,
+   "illicit_executed": 2
+  }
+ },
+ "timing_ms": {
+  "prove_ms": {
+   "mean": 789.55,
+   "median": 759.77,
+   "p95": 1106.65
+  },
+  "attest_ms": {
+   "mean": 290.5,
+   "median": 266.46,
+   "p95": 472.64
+  },
+  "validator_check_ms": {
+   "mean": 207.56,
+   "median": 193.07,
+   "p95": 337.41
+  },
+  "settle_ms": {
+   "mean": 845.97,
+   "median": 875.79,
+   "p95": 1106.08
+  },
+  "end_to_end_ms": {
+   "mean": 1982.9,
+   "median": 1994.69,
+   "p95": 2201.88
+  }
+ },
+ "gas": {
+  "settle": {
+   "mean": 90642.26,
+   "median": 84021,
+   "p95": 103099
+  },
+  "top_up": {
+   "mean": 28863,
+   "median": 28863,
+   "p95": 28863
+  }
+ },
+ "proof_bytes": {
+  "mean": 169903.98,
+  "median": 170029,
+  "p95": 172717
+ },
+ "operator_final": {
+  "violations_k": 1,
+  "stake_units": 25600
+ }
+}

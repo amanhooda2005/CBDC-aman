@@ -20,7 +20,7 @@ def run(onnx_path, input_vec, workdir, input_vis="hashed", output_vis="public",
     ra = ezkl.PyRunArgs()
     ra.input_visibility = input_vis
     ra.output_visibility = output_vis
-    ra.param_visibility = param_vis
+    ra.param_visibility = os.environ.get("ZK_PARAM_VIS", param_vis)   # "hashed": one circuit per step shape
     ra.input_scale = SCALE
     ra.param_scale = SCALE
     ra.num_inner_cols = int(os.environ.get("ZK_INNER_COLS", 2))
