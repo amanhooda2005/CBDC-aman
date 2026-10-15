@@ -30,6 +30,17 @@ import sis  # noqa: E402
 RULE_SCALE = 256            # H3 rule fixed-point scale (payoffs, amounts, stake, slash)
 
 
+def retry(fn, attempts=3, pause=0.3):
+    """Chain reads: retry transient node errors (a JSON-RPC 'Internal error', a restarting node)."""
+    for i in range(attempts):
+        try:
+            return fn()
+        except Exception:
+            if i == attempts - 1:
+                raise
+            time.sleep(pause)
+
+
 def keccak_words(values):
     return Web3.keccak(b"".join(int(v).to_bytes(32, "big") for v in values))
 
@@ -66,8 +77,8 @@ class Validator:
             return "request outputs differ from proven outputs"
         if m != self.policy["max_compliant"] or sid != self.policy["sanctioned_id"]:
             return "policy limit or sanctioned list differs from the current policy"
-        op = self.registry.functions.operatorOf(Web3.to_bytes(hexstr=req["agentId"])).call()
-        expected_slash = self.registry.functions.nextSlash(op).call() * RULE_SCALE // self.unit
+        op = retry(lambda: self.registry.functions.operatorOf(Web3.to_bytes(hexstr=req["agentId"])).call())
+        expected_slash = retry(lambda: self.registry.functions.nextSlash(op).call()) * RULE_SCALE // self.unit
         if slash != expected_slash:
             return f"proof used slash {slash}, registry requires {expected_slash}"
         with tempfile.TemporaryDirectory() as d:
@@ -83,7 +94,7 @@ class Validator:
 
     def wait_for_block(self, n: int, timeout: float = 10.0):
         end = time.time() + timeout
-        while self.w3.eth.block_number < n and time.time() < end:
+        while retry(lambda: self.w3.eth.block_number) < n and time.time() < end:
             time.sleep(0.05)
 
     def attest(self, body: dict) -> dict:
@@ -95,7 +106,7 @@ class Validator:
         ms = (time.time() - t) * 1e3
         if reason:
             return {"validator": self.key.address, "signed": False, "reason": reason, "check_ms": ms}
-        rid = self.gate.functions.requestId(tuple_request(req)).call()
+        rid = retry(lambda: self.gate.functions.requestId(tuple_request(req)).call())
         sig = Account.sign_message(encode_defunct(primitive=rid), self.key.key)
         return {"validator": self.key.address, "signed": True, "signature": sig.signature.hex(), "check_ms": ms}
 

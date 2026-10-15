@@ -42,9 +42,19 @@ node together. All runs use the deployed variant (post-quantum + zero-knowledge)
 
 | Run | Validators | Tx | Honest tx settled as the rules require | Faulty tx | Faulty tx reaching quorum | Ledger changes from faulty tx |
 |---|---|---|---|---|---|---|
+| `runs/synthetic_1000` | 4 honest; one node crashed mid-run and was restarted (see below) | 1,000 | **899 / 900** | 100 | **0** | **0** |
 | `runs/synthetic_300_byz3` | 3 honest + 1 Byzantine (signs everything) | 300 | **244 / 244** | 56 | **0** | **0** |
 | `runs/synthetic_60_byz23` | 2 honest + 2 Byzantine | 60 | 26 / 26 | 34 | 0 | 0 |
 | `runs/synthetic_40_down1` | 3 honest, 1 crashed | 40 | 25 / 25 (3 signatures each) | 15 | 0 | 0 |
+
+**The 1,000-transaction run had a real crash.** Before it started, Besu node 3 had been killed by the
+kernel's out-of-memory killer while an EZKL proving job ran on the same 8 GB machine. The chain kept
+finalizing blocks with 3 of 4 validators, and validator 3 (which reads from node 3) refused to sign, so
+transactions 0–372 settled with 3 signatures. Node 3 was then restarted, re-synced within seconds, and
+from transaction 373 every honest transaction got 4 signatures. One honest transaction (no. 77) did not
+settle: while node 3 was down, a second node answered one read with a transient JSON-RPC "Internal
+error", leaving 2 of 4 signatures, beyond the one fault the network tolerates. Nothing moved (a safe
+failure). Validators now retry transient read errors (3 attempts).
 
 Injected faults (each refused by every honest validator, with the reason recorded per transaction):
 
@@ -60,20 +70,21 @@ Honest outcomes in the 300-transaction run: 97 Executed, 146 AgentRefused (viola
 1 Blocked (the operator's first violation; after the escalation to 2s the agents decline every violating
 offer they are given).
 
-Timing and cost (300-transaction run, honest transactions, mean):
+Timing and cost (honest transactions, mean):
 
-| Stage | Time |
-|---|---|
-| Prove (operator node) | 720 ms |
-| Attest (4 validators in parallel, incl. network and native verification) | 277 ms |
-| Settle (transaction included in a 1 s QBFT block) | 903 ms |
-| **End to end** | **1.96 s** (p95 2.20 s) |
+| Stage | 300-tx run (all nodes up) | 1,000-tx run (incl. the node outage) |
+|---|---|---|
+| Prove (operator node) | 720 ms | 697 ms |
+| Attest (4 validators in parallel, incl. network and native verification) | 277 ms | 239 ms |
+| Settle (transaction included in a 1 s QBFT block) | 903 ms | 1,527 ms |
+| **End to end** | **1.96 s** (p95 2.20 s) | **2.51 s** (median 2.01 s, p95 5.12 s) |
+| Throughput (sequential driver, one operator) | 34 tx/min | 26 tx/min |
 
 | | |
 |---|---|
-| Settle gas | Executed 103,261 · AgentRefused 84,009 · Blocked (incl. slash) 107,773 |
+| Settle gas (300-tx run) | Executed 103,261 · AgentRefused 84,009 · Blocked (incl. slash) 107,773 |
+| Settle gas (1,000-tx run) | Executed 99,973 · AgentRefused 81,209 |
 | Proof size | ~170 KB (sent to validators off-chain; only its hash goes on-chain) |
-| Throughput (sequential driver, one operator) | 34 tx/min |
 
 ### Defects found by the integrated runs (fixed)
 
@@ -121,4 +132,7 @@ accounts are the well-known Anvil/Hardhat development keys: lab use only.
   validators (they see the opening).
 - The driver is sequential with one operator; throughput is not optimized (proving is the bottleneck,
   and proofs for different transactions can run in parallel).
-- Synthetic inputs never trigger the H1 risk flag; the Elliptic run exercises it.
+- Synthetic inputs never trigger the H1 risk flag; the Elliptic run exercises it (pending: the Elliptic
+  CSVs were not in this workspace).
+- The prover, the four nodes, the validators and other jobs share one 8 GB machine; that is what let an
+  unrelated proving job take down a node.
