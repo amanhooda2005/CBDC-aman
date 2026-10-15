@@ -1,0 +1,31 @@
+[package]
+name = "zk_composed"
+version = "0.1.0"
+edition = "2024"
+description = "Zero-knowledge (hiding) composed CBDC decision proof on Plonky3: H1 risk inference -> risk flag -> H3 agent decision -> amount bound to a lattice (SIS) commitment"
+
+[dependencies]
+p3-air         = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-baby-bear   = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-challenger  = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-commit      = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-dft         = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-field       = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-fri         = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-matrix      = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-symmetric   = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-maybe-rayon = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+p3-uni-stark   = { git = "https://github.com/Plonky3/Plonky3", rev = "f98331687e47106a64ab82a77e2e1d0d66c9161b" }
+rand = "0.10.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+postcard = { version = "1", features = ["alloc"] }
+sha2 = "0.10"
+
+[features]
+default = ["parallel"]
+parallel = ["p3-uni-stark/parallel", "p3-maybe-rayon/parallel"]
+
+[profile.release]
+debug = false

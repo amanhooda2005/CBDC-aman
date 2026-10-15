@@ -1,0 +1,173 @@
+# H4 v4: zero-knowledge composed decision proof on Plonky3, with an end-to-end security estimate
+
+Code: `h4-pqc-stark/zk_composed/`
+Results: `zk_composed/results/` (`bench_zk_composed.csv`, `bench_summary.json`, `security.json`, `info.json`)
+
+## Why v4
+
+The v3 composed proof (`benchmark_v2/src/compose.rs`, Winterfell fork v0.4) is **not zero-knowledge**.
+Winterfell's own README states: "NOT perfect zero-knowledge … may not be suitable for use cases where
+proofs must not leak any info about secret inputs". So the earlier claim that "the risk score stays
+private" was only true in a narrower sense: the score was not a public input, but the proof still leaks
+information about it.
+
+v4 re-implements the same statement on Plonky3, using its hiding mode:
+- hiding FRI with random codewords;
+- salted (hiding) Merkle trees.
+
+## Statement (unchanged semantics, one execution trace of 256 rows)
+
+1. **Model inference.** Exact integer inference of the trained H1 model (W32_B1, `specs/h1_spec.json`),
+   using the same streaming layout and constraints as `h1mlp.rs`:
+   - range-checked private inputs;
+   - every requantization and ReLU proven;
+   - interval-bounded accumulators.
+2. **Risk flag.** RISK = [logit > T_q] by the two-sided sign window. Over BabyBear (p ≈ 2³¹) the
+   window is unique for every in-range logit, because p > 2²³.
+3. **Agent decision.** The H3 decision rule with RISK as a violation condition:
+   VIOL = (A > M) ∨ (D = sid) ∨ RISK.
+   - **Change from v3:** M, sid and the slash are **public inputs**, not constants. The settlement layer
+     can then pass the registry's escalated slash s·(1+k).
+4. **Amount binding (post-quantum variant).** The decision's amount A equals the amount inside the SIS
+   commitment c, which is published as public input:
+   - A = Σ 2ⁱ·bitᵢ over bits 0–19;
+   - bits 20–63 are forced to zero.
+
+Public values: M, sid, slash, EXEC, VIOL and c (48 coordinates). The features, logit, payoffs, stake and
+opening stay private, and in the ZK variant they are also hidden by the proof.
+
+**How the SIS opening is checked.** It is checked directly, row by row. The public matrix enters the
+AIR as 96 verifier-computed periodic columns, and there are 48 accumulators, each forced equal to cⱼ in
+the last row.
+
+Why not v3's random linear combination: it needs a verifier challenge drawn after the opening is
+committed, and Plonky3's single-trace STARK (uni-stark) has no such round. Deriving the challenge from
+c alone would be unsound: the prover would then face a dimension-5 SIS instance it can solve. The direct
+check proves the same statement without that shortcut.
+
+## SIS parameters re-derived for BabyBear
+
+c = G·bits + B·r (mod p), with:
+- p = 2³¹ − 2²⁷ + 1;
+- bits ∈ {0,1}⁶⁴ and r ∈ {−1,0,1}⁴⁴⁸ (512 coordinates);
+- **n = 48** rows.
+
+**Binding is statistical.** There are at most 5⁵¹² ≈ 2^1188.8 short difference vectors and
+p⁴⁸ ≈ 2^1483.5 syndromes, so for a uniform matrix the expected number of short collisions is
+**2^−294.7** (test `sis_parameters_are_statistically_binding`). The matrix is expanded by the verifier
+from a public seed.
+
+The commitment is binding, not hiding. The amount itself is disclosed to the validator nodes, which
+check the opening before attesting; see `integration/`.
+
+## Tests (`cargo test --release`, 14/14 pass)
+
+- **Honest traces** satisfy every constraint for 8 different H3 decisions, in both variants.
+- **Prove and verify** work in all four variants (classical, pq, classical_zk, pq_zk).
+- **The proof is randomized:** two ZK proofs of the same statement differ, and both verify.
+- **Each forgery is rejected:**
+  - a forged risk flag;
+  - a forged EXEC or VIOL;
+  - a decision on an amount different from the committed one (accepted by the classical circuit,
+    rejected by the PQ circuit);
+  - committed high bits set;
+  - non-ternary randomness;
+  - a register changed mid-trace;
+  - tampered inference cells;
+  - an out-of-range input.
+- **Mismatched public data is rejected by the verifier:**
+  - flipped EXEC or VIOL;
+  - a changed policy;
+  - a changed commitment;
+  - a different model digest.
+- **The reference forward pass** reproduces the spec's logit (11,040) and the v3 instance's outcome
+  (RISK = 1, VIOL = 1).
+
+## Performance (30 runs after 3 warm-ups, 2-vCPU cloud VM, parallel prover)
+
+| Variant | Proof size | Prove (ms) | Verify (ms) |
+|---|---|---|---|
+| classical (no commitment, not ZK) | 97,589 B | 126.7 ± 2.8 | 6.83 ± 0.32 |
+| pq (SIS + link, not ZK) | 109,324 B | 251.1 ± 6.7 | 7.85 ± 0.19 |
+| classical_zk | 155,221 B | 380.0 ± 46.3 | 9.54 ± 0.16 |
+| **pq_zk (deployed)** | **170,317 B** | **452.8 ± 37.5** | **10.87 ± 1.04** |
+
+| Ratio | Size | Prove | Verify | Pre-registered bound |
+|---|---|---|---|---|
+| pq / classical (as in v3) | 1.12× | 1.98× | 1.15× | ≤ 20× / ≤ 200× / ≤ 10× |
+| **pq_zk / classical_zk** (cost of PQ binding under ZK) | **1.10×** | **1.19×** | **1.14×** | same |
+| classical_zk / classical (cost of ZK) | 1.59× | 3.00× | 1.40× | none |
+
+All within bounds. These ratios replace v3's 1.15× / 1.28× / 1.77× for the deployed (ZK) setting.
+
+## Security estimate (whole proof, not only the commitment)
+
+### Classical
+From Plonky3's p3-security report (`zk_composed security`, `results/security.json`). Parameters:
+- BabyBear⁵ challenge field (≈ 154.5 bits);
+- FRI blowup 16, 48 queries, 16-bit query grinding;
+- Poseidon2 Merkle trees with an 8-element (248-bit) digest.
+
+| Measure | Bits |
+|---|---|
+| Low-degree test alone (ethSTARK conjecture: 4·48 + 16) | 208 |
+| **End-to-end, conjectured** (capped by the 124-bit collision resistance of the digest) | **124** |
+| **End-to-end, proven** (list-decoding regime) | **111** |
+| End-to-end, proven (unique-decoding regime) | 59 |
+
+How the parameters were chosen:
+
+| Blowup / queries | Conjectured | Proven (list decoding) | Prove time | Note |
+|---|---|---|---|---|
+| 8× / 38 | 124 | 72 | — | rejected: too few proven bits |
+| **16× / 48** | **124** | **111** | — | **chosen** |
+| 32× / 40 | 124 | 113 | ~2× the chosen setting | rejected: double the prove time for 2 bits |
+
+A degree-4 challenge field gave only 103 conjectured bits, which is why the field is degree 5.
+
+### Quantum
+The proof uses no number-theoretic assumption: only hashing, polynomial identity testing and SIS.
+
+- **Commitment binding.** Statistical (2^−294.7). It holds against unbounded, including quantum,
+  adversaries.
+- **Hash.** The 248-bit Poseidon2 digest has these quantum collision costs:
+  - about 2^82.7 with Brassard–Høyer–Tapp, which needs about 2^83 quantum-accessible memory;
+  - about 2^99.2 with the Chailloux–Naya-Plasencia–Schrottenloher algorithm, without quantum memory;
+  - about 2^124 for Grover second preimages.
+- **Fiat–Shamir in the quantum random-oracle model.** For hash-based (BCS) arguments the generic
+  bound loses a square (Chiesa–Manohar–Spooner, TCC 2019). A t-query quantum adversary succeeds with
+  probability about t²·ε, so the quantum bits are about half the classical bits. Grinding is covered by
+  the same factor: Grover halves the 16-bit proof of work.
+
+| End-to-end, against a quantum adversary | Bits |
+|---|---|
+| Conservative (generic QROM loss applied to the 124-bit conjectured figure) | **≈ 62** |
+| Conservative (generic QROM loss applied to the 111-bit proven figure) | ≈ 55 |
+| Without the QROM loss, limited by the best quantum collision attack on the hash | ≈ 99 |
+
+**Single number to state:** **124-bit classical (conjectured) / 111-bit proven**, and **≈ 62-bit
+quantum security under the conservative generic QROM bound.** The lattice commitment's binding is
+unconditional.
+
+The earlier "≥ 2⁶¹⁵ quantum" figure described only the commitment and should not be quoted as the
+security of the proof. v3's Winterfell configuration (126-bit conjectured, 23-bit field, Blake3-256)
+would get about 63 bits under the same QROM argument.
+
+### Upgrade path to ~128-bit quantum (not implemented)
+The QROM argument needs about 2λ classical bits for λ quantum bits:
+1. **Challenge field:** BabyBear⁸, 247 bits (supported by Plonky3).
+2. **Low-degree test:** ≥ 256 bits, e.g. blowup 16 with 60 queries and 16-bit grinding.
+3. **Hash:** a Merkle hash and transcript hash with ≥ 512-bit output, e.g. SHA-512 or BLAKE3 in
+   extended-output mode wired into Plonky3's byte-hash commitment scheme (MMCS). This requires custom
+   hasher and compression-function implementations.
+
+Expected cost: roughly 1.3–1.6× proof size and verify time. This is a parameter change only; the AIR
+is unchanged.
+
+## Limitations
+
+- **One proof per transaction.** There is no batching or recursion yet.
+- **The amount is visible to validators.** The commitment binds the amount but does not hide it.
+- **Model features are not bound to an on-chain transaction record.** Elliptic has no amounts, and
+  the pipeline pairs features with decisions.
+- **Timings come from one 2-vCPU VM.** Ratios are the reported quantity.

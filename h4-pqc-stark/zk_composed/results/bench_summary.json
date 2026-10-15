@@ -1,0 +1,66 @@
+{
+ "variants": {
+  "classical": {
+   "proof_bytes": 97589,
+   "runs": 30,
+   "prove_ms_mean": 126.6976,
+   "prove_ms_sd": 2.7903227918573563,
+   "prove_ms_median": 126.238,
+   "verify_ms_mean": 6.827966666666667,
+   "verify_ms_sd": 0.3180012452082899,
+   "verify_ms_median": 6.753
+  },
+  "pq": {
+   "proof_bytes": 109324,
+   "runs": 30,
+   "prove_ms_mean": 251.1057,
+   "prove_ms_sd": 6.722330969650134,
+   "prove_ms_median": 249.79149999999998,
+   "verify_ms_mean": 7.8488999999999995,
+   "verify_ms_sd": 0.18757809408166592,
+   "verify_ms_median": 7.811
+  },
+  "classical_zk": {
+   "proof_bytes": 155221,
+   "runs": 30,
+   "prove_ms_mean": 379.9687333333333,
+   "prove_ms_sd": 46.28768071970333,
+   "prove_ms_median": 368.3515,
+   "verify_ms_mean": 9.5374,
+   "verify_ms_sd": 0.15937758246724504,
+   "verify_ms_median": 9.559000000000001
+  },
+  "pq_zk": {
+   "proof_bytes": 170317,
+   "runs": 30,
+   "prove_ms_mean": 452.7914333333333,
+   "prove_ms_sd": 37.45314362910407,
+   "prove_ms_median": 451.9065,
+   "verify_ms_mean": 10.8679,
+   "verify_ms_sd": 1.0431075373530565,
+   "verify_ms_median": 10.674
+  }
+ },
+ "ratios": {
+  "pq/classical": {
+   "size": 1.12,
+   "prove": 1.98,
+   "verify": 1.15
+  },
+  "pq_zk/classical_zk": {
+   "size": 1.1,
+   "prove": 1.19,
+   "verify": 1.14
+  },
+  "classical_zk/classical": {
+   "size": 1.59,
+   "prove": 3.0,
+   "verify": 1.4
+  },
+  "pq_zk/classical": {
+   "size": 1.75,
+   "prove": 3.57,
+   "verify": 1.59
+  }
+ }
+}
