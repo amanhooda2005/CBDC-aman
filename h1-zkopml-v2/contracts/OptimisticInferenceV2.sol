@@ -41,6 +41,11 @@ contract OptimisticInferenceV2 {
     uint32 public immutable txInputLen;   // number of public input felts of a transaction-input step
     uint32 public immutable treeDepth;    // Merkle depth, ceil(log2(nSteps))
     address[] public stepVerifier;        // verifier contract per step (may repeat for identical steps)
+    /// Per step: Poseidon hash of the step's weights when its verifier is SHARED across steps of the
+    /// same shape (EZKL param_visibility = "hashed"; the hash is a public instance after the hashed
+    /// inputs and before any public transaction input), or 0 when the weights are fixed inside a
+    /// step-specific verifier.
+    bytes32[] public stepParamHash;
     int32[][] internal stepInputs;        // per step: -1 = transaction input, j >= 0 = output of step j
 
     // ------------------------------------------------------------------ economics and timing
@@ -90,6 +95,7 @@ contract OptimisticInferenceV2 {
     struct Params {
         uint32 txInputLen;
         address[] verifiers;
+        bytes32[] paramHashes;   // empty = every verifier has its weights fixed in the circuit
         int32[][] inputs;
         uint256 asserterBond;
         uint256 challengerBond;
@@ -116,6 +122,7 @@ contract OptimisticInferenceV2 {
     constructor(Params memory p) {
         uint256 n = p.verifiers.length;
         require(n >= 2 && n == p.inputs.length, "model shape");
+        require(p.paramHashes.length == 0 || p.paramHashes.length == n, "param hashes");
         require(p.withdrawDelay >= p.challengeWindow, "withdraw delay < window");
         require(p.turnTimeout > 0 && p.challengeWindow > 0, "timing");
         require(p.asserterBond < 2 ** 128 && p.challengerBond < 2 ** 128, "bond size");
@@ -128,10 +135,15 @@ contract OptimisticInferenceV2 {
             require(p.verifiers[k] != address(0), "verifier");
             require(p.inputs[k].length > 0, "inputs");
             stepVerifier.push(p.verifiers[k]);
+            stepParamHash.push(p.paramHashes.length == 0 ? bytes32(0) : p.paramHashes[k]);
+            bool sawTx;
             stepInputs.push();
             for (uint256 t; t < p.inputs[k].length; t++) {
                 int32 j = p.inputs[k][t];
                 require(j >= -1 && j < int32(int256(k)), "inputs must be earlier steps");
+                // hashed inputs precede the public transaction input in EZKL's instance layout
+                require(!(sawTx && j >= 0 && stepParamHash[k] != bytes32(0)), "hashed inputs must come first");
+                if (j == -1) sawTx = true;
                 stepInputs[k].push(j);
             }
         }
@@ -400,10 +412,13 @@ contract OptimisticInferenceV2 {
         private view returns (uint256 pos)
     {
         bytes32 agreedPrev = d.lo1 == 0 ? bytes32(0) : d.loPrefix;
+        // EZKL instance layout: [hashed inputs][weight hash, if shared verifier][public inputs][outputs]
+        bytes32 ph = stepParamHash[k];
         uint256 o;
         int32[] storage ins = stepInputs[k];
         for (uint256 t; t < ins.length; t++) {
             if (ins[t] == -1) {
+                if (ph != bytes32(0)) { pos = _checkParam(ph, instances, pos); ph = bytes32(0); }
                 require(_hashSlice(instances, pos, txInputLen) == inputHash, "tx input != claimed input");
                 pos += txInputLen;
             } else {
@@ -414,6 +429,13 @@ contract OptimisticInferenceV2 {
             }
         }
         require(o == ops.length, "extra openings");
+        if (ph != bytes32(0)) pos = _checkParam(ph, instances, pos);
+    }
+
+    /// A shared verifier proves "some weights with this hash": the hash must be step k's registered one.
+    function _checkParam(bytes32 ph, uint256[] calldata instances, uint256 pos) private pure returns (uint256) {
+        require(pos < instances.length && bytes32(instances[pos]) == ph, "params instance != step weights");
+        return pos + 1;
     }
 
     function _checkOpening(InputOpening calldata op, uint256 j, uint256 k, uint256[] calldata instances, uint256 pos, bytes32 agreedPrev)

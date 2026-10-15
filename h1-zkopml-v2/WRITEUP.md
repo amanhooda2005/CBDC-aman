@@ -213,7 +213,7 @@ Gas, measured as real transactions on anvil (`results/gas_v2.json`):
 
 | Item | v1 | v2 |
 |---|---|---|
-| Commit per inference | 49,962 | 54,651 |
+| Commit per inference | 49,962 | 54,673 |
 | Undisputed saving vs monolithic | 13.9× | 12.8× |
 | Full dispute, typical / worst | 1.26 M / 1.67 M | 1.62 M / 1.90 M |
 | Break-even dispute rate for 10× | 1.18% (worst) | 0.79% (worst), 0.93% (typical) |
@@ -222,6 +222,11 @@ v2's dispute figure includes the challenge, opening and adjudication transaction
 The verdict is unchanged: the on-chain target passes only on average, now at a dispute rate below
 about 0.8%, and fails per dispute.
 
-**Status:** the contract is tested with a mock step verifier that accepts only the honest step
-output. Wiring it to the real EZKL step verifiers and re-running the scenarios on Elliptic is the next
-step.
+**Status (v2.1):** the game now runs end to end with real EZKL step verifiers on a local chain
+(`onchain_dispute.py`, details and table in the README). Steps of the same shape share one verifier, with
+the step's weight hash as a public instance checked by the contract, so the 60-block model needs 4
+verifiers (17.2 M deploy gas) instead of 63 (about 251 M). All 7 scenarios end correctly, including a
+valid proof made with another block's weights, which the weight-hash check rejects. Measured dispute
+cost with the real verifier: 1.58 M gas (typical) to 1.91 M (projection step), matching the earlier
+estimate. Remaining: the scenarios on more Elliptic transactions (the CSVs were not in the workspace;
+one stored test transaction was used), and the projection verifier is 68 bytes over EIP-170.

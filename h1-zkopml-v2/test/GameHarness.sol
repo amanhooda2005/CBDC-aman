@@ -76,7 +76,7 @@ abstract contract GameHarness {
         }
         txInput = [uint256(11), 22, 33, 44];
         p = OptimisticInferenceV2.Params({
-            txInputLen: TXLEN, verifiers: vs, inputs: inputs,
+            txInputLen: TXLEN, verifiers: vs, paramHashes: new bytes32[](0), inputs: inputs,
             asserterBond: ABOND, challengerBond: CBOND,
             challengeWindow: WINDOW, turnTimeout: TURN, withdrawDelay: 2 days
         });

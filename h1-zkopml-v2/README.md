@@ -59,14 +59,15 @@ adjudication:
   - collateral and withdrawal rules;
   - a Python ↔ Solidity hashing cross-check.
 
-  Step verifiers are a mock that only accepts the honest step output, i.e. a sound proof system.
+  In these tests the step verifiers are a mock that only accepts the honest step output, i.e. a sound
+  proof system; the real verifiers are exercised by `onchain_dispute.py` (v2.1 below).
 - `python3 -m pytest test_chain.py`: 66 tests, all passing.
 
 **Gas (real transactions on anvil, `gas_game_v2.py` → `results/gas_v2.json`):**
 
 | Item | v1 (published) | v2 (hardened) |
 |---|---|---|
-| Commit per inference | 49,962 | 54,651 |
+| Commit per inference | 49,962 | 54,673 |
 | Undisputed saving vs monolithic (696,984) | 13.9× | **12.8×** |
 | Full dispute, typical (block step) | 1.26 M | 1.62 M |
 | Full dispute, worst (projection half) | 1.67 M | 1.90 M |
@@ -77,6 +78,58 @@ What the "full dispute" figures contain:
   EZKL step-verifier gas measured in v1 (minus the 21,000 base cost an internal call does not pay).
 - **v1:** only the bisection rounds and the step verifier. It left out the challenge, opening and
   adjudication transactions.
+
+
+### v2.1: the dispute game with real EZKL step verifiers on-chain (`onchain_dispute.py`)
+
+The mock is gone from the end-to-end path. `onchain_dispute.py` plays complete games on a local chain
+(anvil) against the deployed contract, with EZKL-generated Solidity verifiers and real step proofs.
+
+**One verifier per step shape.** Each step's weights are a hashed public instance (EZKL
+`param_visibility = "hashed"`), so steps of the same shape share one circuit and one verifier. The
+contract stores each step's weight hash and rejects a proof whose weight-hash instance is not that
+step's (`stepParamHash`, checked at the position EZKL uses: after the hashed inputs, before any public
+transaction input). The 60-block model needs 4 verifiers instead of 63:
+
+| Shape | Steps served | logrows | Deploy gas | Bytecode |
+|---|---|---|---|---|
+| projection half (public tx input) | 2 | 17 | 5.38 M | 24.07 KB |
+| join block (two inputs) | 1 | 16 | 3.94 M | 17.60 KB |
+| residual block | 59 | 16 | 3.94 M | 17.60 KB |
+| head (public output) | 1 | 12 | 3.96 M | 17.66 KB |
+| **total** | **63** | | **17.2 M** | |
+
+A verifier per step (weights fixed in each circuit) would cost about 251 M gas to deploy. The price is
+proving time in a dispute: a block step takes 21 s with hashed weights against 2.3 s with fixed weights
+(the circuit also hashes the 1,056 weights); a projection half takes 74 s. Only one step is proved
+per dispute.
+
+**Results (input: an illicit Elliptic test-period transaction, `results/onchain_disputes_B60.json`):**
+
+| Scenario | Located step | Bisection rounds | Step proof | Winner | Correct | Game gas (real verifier) |
+|---|---|---|---|---|---|---|
+| asserter cheats at a projection half | 0 (proj0) | 5 | 74 s | challenger | yes | 1.91 M |
+| asserter cheats at the join step | 2 (u1) | 6 | 22 s | challenger | yes | 1.61 M |
+| asserter cheats at a middle block | 30 (u29) | 6 | 21 s | challenger | yes | 1.58 M |
+| asserter cheats at the head (the decision) | 62 (u61) | 6 | 1.6 s | challenger | yes | 1.58 M |
+| false challenge against an honest asserter | 33 (u32) | 6 | 22 s | asserter | yes | 1.61 M |
+| malformed prefix chain | 40 | 6 | none needed | challenger | yes | 0.91 M |
+| a valid proof made with another block's weights | 20 (u19) | 6 | 21 s | rejected (`params instance != step weights`), then challenger | yes | 1.60 M |
+
+The last row is the attack a shared verifier opens: the proof verifies, but it proves the wrong layer.
+The weight-hash check refuses it.
+
+The measured dispute costs (1.58 M typical, 1.91 M worst, including `resolve` with the real verifier at
+0.71–1.14 M) match the estimate in the gas table above (1.62 M / 1.90 M), which added v1's separately
+measured verifier gas to a mock-verifier game.
+
+Limits:
+- The projection verifier's bytecode is 24,644 bytes, just over the 24,576-byte EIP-170 limit. A
+  permissioned chain can raise the limit (Besu `contractSizeLimit`), or the projection can be split in
+  three instead of two.
+- The input is the one test transaction stored in the H4 specification, because the Elliptic CSVs were
+  not in this workspace. With `--data` (the arrays from `prepare_data.py`) the script takes a test
+  transaction from the data instead.
 
 ## Layout
 
@@ -98,6 +151,7 @@ What the "full dispute" figures contain:
 | `chain.py`, `test_chain.py` | keccak prefix chain and Merkle tree shared with the contract, and their tests |
 | `test/`, `foundry.toml` | Foundry tests of the v2 contract (`GameHarness.sol` holds the mock verifier and trace builders) |
 | `gas_game_v2.py` | v2 gas as real transactions on anvil → `results/gas_v2.json` |
+| `onchain_dispute.py` | v2.1: complete games on anvil with real EZKL step verifiers, one per step shape → `results/onchain_disputes_B60.json` |
 | `make_report.py` | Builds `results/summary.json` and `results/speedup_vs_depth.png` |
 
 ## Reproduce
@@ -119,6 +173,7 @@ python3 make_report.py
 forge test                                  # 17 tests
 python3 -m pytest -q test_chain.py          # 66 tests
 forge build && python3 gas_game_v2.py       # results/gas_v2.json
+python3 onchain_dispute.py --blocks 60      # real verifiers; first run sets up the 4 circuits (~3 min, ~3 GB of keys)
 ```
 
 ## Notes

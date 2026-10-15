@@ -12,7 +12,8 @@ import json, os, subprocess, time
 from chain import k256, to_b32, digest, prefix_chain, merkle_levels, merkle_proof
 
 BIN = os.environ.get("FOUNDRY_BIN", os.path.expanduser("~/.foundry/bin"))
-RPC = "http://127.0.0.1:8545"
+PORT = os.environ.get("ANVIL_PORT", "8646")
+RPC = f"http://127.0.0.1:{PORT}"
 PK_A = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"   # anvil account 0: asserter
 PK_C = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"   # anvil account 1: challenger
 N, TXLEN = 63, 4
@@ -139,15 +140,15 @@ def dispute(game, H, k):
 def main():
     for d in ("out/OptimisticInferenceV2.sol/OptimisticInferenceV2.json", "out/GameHarness.sol/MockStepVerifier.json"):
         assert os.path.exists(d), "run `forge build` first"
-    anvil = subprocess.Popen([f"{BIN}/anvil", "--silent"])
+    anvil = subprocess.Popen([f"{BIN}/anvil", "--port", PORT, "--silent"])
     time.sleep(2)
     try:
         verifiers = [create(PK_A, "out/GameHarness.sol/MockStepVerifier.json", "constructor(uint256,int32[],uint32)",
                             str(k), arr(str(j) for j in INPUTS[k]), str(TXLEN)) for k in range(N)]
-        params = "(" + ",".join([str(TXLEN), arr(verifiers), arr(arr(str(j) for j in ins) for ins in INPUTS),
+        params = "(" + ",".join([str(TXLEN), arr(verifiers), "[]", arr(arr(str(j) for j in ins) for ins in INPUTS),
                                  str(ABOND), str(CBOND), "86400", "3600", "172800"]) + ")"
         game = create(PK_A, "out/OptimisticInferenceV2.sol/OptimisticInferenceV2.json",
-                      "constructor((uint32,address[],int32[][],uint256,uint256,uint64,uint64,uint64))", params)
+                      "constructor((uint32,address[],bytes32[],int32[][],uint256,uint256,uint64,uint64,uint64))", params)
         send(PK_A, game, "depositBond()", value=20 * 10**18)
         H = trace()
         first = send(PK_A, game, "commit(bytes32,bytes32,bytes32)", hx(H["root"]), hx(H["out"]), hx(H["inp"]))

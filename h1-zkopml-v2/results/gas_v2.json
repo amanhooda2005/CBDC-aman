@@ -1,110 +1,110 @@
 {
-  "commit_first": 71751,
+  "commit_first": 71773,
   "disputes": {
     "block step (u16)": {
       "step": 17,
-      "commit": 54651,
-      "challenge": 147122,
-      "openFinal": 101068,
+      "commit": 54673,
+      "challenge": 147144,
+      "openFinal": 98290,
       "reveal": [
-        85687,
-        51460,
-        51484,
-        51469,
-        51442,
-        51457
+        88509,
+        51482,
+        51506,
+        54291,
+        51464,
+        51479
       ],
       "respond": [
-        47012,
-        59827,
-        47012,
-        47012,
-        42727,
-        51305
+        47034,
+        59849,
+        47034,
+        47034,
+        42749,
+        51327
       ],
-      "resolve_mock": 104866,
-      "game_total": 990950
+      "resolve_mock": 109268,
+      "game_total": 998460
     },
     "projection half (proj0)": {
       "step": 0,
-      "commit": 54639,
-      "challenge": 147110,
-      "openFinal": 98268,
+      "commit": 54661,
+      "challenge": 147132,
+      "openFinal": 98290,
       "reveal": [
-        85639,
-        54260,
-        51445,
-        51430,
-        51391
+        85661,
+        51482,
+        54267,
+        51452,
+        51413
       ],
       "respond": [
-        47000,
-        47000,
-        47000,
-        47000,
-        49174
+        47022,
+        47022,
+        47022,
+        47022,
+        49196
       ],
-      "resolve_mock": 84326,
-      "game_total": 861043
+      "resolve_mock": 88731,
+      "game_total": 865712
     },
     "join step (u1, two inputs)": {
       "step": 2,
-      "commit": 54651,
-      "challenge": 147122,
-      "openFinal": 98304,
+      "commit": 54673,
+      "challenge": 147144,
+      "openFinal": 98326,
       "reveal": [
-        85687,
-        51472,
-        51469,
-        51442,
-        51427,
-        51454
+        85709,
+        51494,
+        51491,
+        54264,
+        51449,
+        51476
       ],
       "respond": [
-        47012,
-        47012,
-        47012,
-        49812,
-        59827,
-        49020
+        47034,
+        47034,
+        47034,
+        47034,
+        59849,
+        49042
       ],
-      "resolve_mock": 93933,
-      "game_total": 982005
+      "resolve_mock": 98332,
+      "game_total": 986712
     },
     "head step": {
       "step": 62,
-      "commit": 54651,
-      "challenge": 147122,
-      "openFinal": 98292,
+      "commit": 54673,
+      "challenge": 147144,
+      "openFinal": 98314,
       "reveal": [
-        85699,
-        51499,
-        51463,
-        51487,
-        51487,
-        51502
+        85721,
+        54321,
+        51485,
+        51509,
+        51509,
+        51524
       ],
       "respond": [
-        59827,
-        42727,
-        42727,
-        42727,
-        42727,
-        49020
+        59849,
+        42749,
+        42749,
+        42749,
+        42749,
+        49042
       ],
-      "resolve_mock": 87966,
-      "game_total": 956272
+      "resolve_mock": 92368,
+      "game_total": 963782
     }
   },
   "summary": {
     "monolithic_verify": 696984,
-    "commit_per_inference": 54651,
-    "undisputed_ratio": 12.753362244057747,
-    "full_dispute_typical_est": 1615931,
-    "full_dispute_worst_est": 1897788,
-    "per_dispute_ratio_worst": 0.36726125362790785,
-    "max_dispute_rate_for_10x_worst": 0.007928915136991063,
-    "max_dispute_rate_for_10x_typical": 0.009311907501000968,
+    "commit_per_inference": 54673,
+    "undisputed_ratio": 12.74823038794286,
+    "full_dispute_typical_est": 1623441,
+    "full_dispute_worst_est": 1902457,
+    "per_dispute_ratio_worst": 0.36635992298380465,
+    "max_dispute_rate_for_10x_worst": 0.007897892041712372,
+    "max_dispute_rate_for_10x_typical": 0.009255279372641196,
     "note": "full dispute = measured game txs (challenge, openFinal, reveals, responds, resolve with mock verifier) + v1-measured EZKL step-verifier tx gas - 21000 base"
   }
 }
