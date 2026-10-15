@@ -42,12 +42,46 @@ node together. All runs use the deployed variant (post-quantum + zero-knowledge)
 
 | Run | Validators | Tx | Honest tx settled as the rules require | Faulty tx | Faulty tx reaching quorum | Ledger changes from faulty tx |
 |---|---|---|---|---|---|---|
+| **`runs/elliptic_1000`** | **4 honest** | **1,000 real Elliptic test-period transactions** | **889 / 889** (all with 4 signatures) | **111** | **0** | **0** |
 | `runs/synthetic_1000` | 4 honest; one node crashed mid-run and was restarted (see below) | 1,000 | **899 / 900** | 100 | **0** | **0** |
 | `runs/synthetic_300_byz3` | 3 honest + 1 Byzantine (signs everything) | 300 | **244 / 244** | 56 | **0** | **0** |
 | `runs/synthetic_60_byz23` | 2 honest + 2 Byzantine | 60 | 26 / 26 | 34 | 0 | 0 |
 | `runs/synthetic_40_down1` | 3 honest, 1 crashed | 40 | 25 / 25 (3 signatures each) | 15 | 0 | 0 |
 
-**The 1,000-transaction run had a real crash.** Before it started, Besu node 3 had been killed by the
+### Real transactions: 1,000 Elliptic test-period transactions (`runs/elliptic_1000`)
+
+Each transaction is a random labelled transaction from the H1 test period (time steps 35–49, never seen
+in training), scaled with the H1 scaler and quantized exactly as in the proof's model specification;
+the transfer offer around it comes from the H3 opportunity generator (Elliptic has no amounts or
+destinations). The deployed H1 model (W32_B1) runs inside the zero-knowledge proof for every
+transaction; its risk flag is private to the operator and enters the decision as a violation condition.
+
+| | Result |
+|---|---|
+| Honest transactions settled as the rules require | **889 / 889**, every one with 4 of 4 validator signatures |
+| Outcomes | 307 Executed, 581 AgentRefused (violating offers declined: over the limit, sanctioned destination or flagged by H1), 1 Blocked + slashed (the operator's first attempted violation) |
+| Injected faults (11 %) reaching quorum / changing the ledger | **0 / 111** / **0** |
+| End to end (mean, p95) | **1.98 s**, 2.20 s (prove 790 ms · attest 291 ms · settle 846 ms) |
+| Throughput (sequential driver) | 32 tx/min |
+| Settle gas | Executed 103,142 · AgentRefused 84,008 · Blocked (incl. slash) 107,809 |
+
+H1's risk flag, computed inside the proof, against the Elliptic labels (889 honest transactions, 69
+illicit):
+
+| Test time steps | Illicit | Flagged and illicit | Missed | Falsely flagged | Precision | Recall | F1 |
+|---|---|---|---|---|---|---|---|
+| 35–42 | 62 | 50 | 12 | 28 | 0.64 | 0.81 | 0.71 |
+| 43–49 (after the dark-market shutdown) | 7 | 0 | 7 | 16 | 0.00 | 0.00 | 0.00 |
+| **all** | **69** | **50** | **19** | **44** | **0.53** | **0.72** | **0.61** |
+
+61 of the 69 illicit transactions were not executed (50 flagged by H1, 11 declined because the offer
+broke the transfer policy anyway); 8 were executed, all of them H1 misses, 2 from time steps 43–49. This
+is the known weakness of the Elliptic models after time step 43 (H1's full-test-set F1 is 0.505
+quantized; 0.04 on steps 43–49), not an integration effect: the in-proof flag reproduces the model
+exactly. The 44 false flags were declined by the agent, not slashed (a declined violation costs
+nothing), so a false positive delays a payment but does not penalize the operator.
+
+**The synthetic 1,000-transaction run had a real crash.** Before it started, Besu node 3 had been killed by the
 kernel's out-of-memory killer while an EZKL proving job ran on the same 8 GB machine. The chain kept
 finalizing blocks with 3 of 4 validators, and validator 3 (which reads from node 3) refused to sign, so
 transactions 0–372 settled with 3 signatures. Node 3 was then restarted, re-synced within seconds, and
@@ -132,7 +166,9 @@ accounts are the well-known Anvil/Hardhat development keys: lab use only.
   validators (they see the opening).
 - The driver is sequential with one operator; throughput is not optimized (proving is the bottleneck,
   and proofs for different transactions can run in parallel).
-- Synthetic inputs never trigger the H1 risk flag; the Elliptic run exercises it (pending: the Elliptic
-  CSVs were not in this workspace).
+- Synthetic inputs never trigger the H1 risk flag; the Elliptic run exercises it. Elliptic has no
+  amounts or destinations, so those come from the H3 offer generator.
+- Detection quality is the trained model's (precision 0.53, recall 0.72 on this sample, collapsing after
+  time step 43); the system guarantees that the deployed model was run, not that the model is good.
 - The prover, the four nodes, the validators and other jobs share one 8 GB machine; that is what let an
   unrelated proving job take down a node.

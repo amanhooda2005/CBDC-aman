@@ -228,5 +228,5 @@ the step's weight hash as a public instance checked by the contract, so the 60-b
 verifiers (17.2 M deploy gas) instead of 63 (about 251 M). All 7 scenarios end correctly, including a
 valid proof made with another block's weights, which the weight-hash check rejects. Measured dispute
 cost with the real verifier: 1.58 M gas (typical) to 1.91 M (projection step), matching the earlier
-estimate. Remaining: the scenarios on more Elliptic transactions (the CSVs were not in the workspace;
-one stored test transaction was used), and the projection verifier is 68 bytes over EIP-170.
+estimate. The scenarios were run on two real Elliptic test transactions (the stored example and a random
+illicit one), with identical outcomes. Remaining: the projection verifier is 68 bytes over EIP-170.

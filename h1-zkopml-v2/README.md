@@ -116,6 +116,13 @@ per dispute.
 | malformed prefix chain | 40 | 6 | none needed | challenger | yes | 0.91 M |
 | a valid proof made with another block's weights | 20 (u19) | 6 | 21 s | rejected (`params instance != step weights`), then challenger | yes | 1.60 M |
 
+**Rerun on a second real transaction** (`--data`, a random illicit test-period transaction, index 3,915 of
+the test set; `results/onchain_disputes_B60_elliptic.json`): all 7 scenarios again end correctly, with
+the same bisection rounds and game gas within 0.5 % (1.58 M–1.91 M). Step-proof times were 25–70 s for
+block and join steps, 196 s for a projection half and 5 s for the head; the machine was slower during
+this run (the same block-step proof took 21 s in the first run), so the timings above are the
+representative ones.
+
 The last row is the attack a shared verifier opens: the proof verifies, but it proves the wrong layer.
 The weight-hash check refuses it.
 
@@ -127,9 +134,9 @@ Limits:
 - The projection verifier's bytecode is 24,644 bytes, just over the 24,576-byte EIP-170 limit. A
   permissioned chain can raise the limit (Besu `contractSizeLimit`), or the projection can be split in
   three instead of two.
-- The input is the one test transaction stored in the H4 specification, because the Elliptic CSVs were
-  not in this workspace. With `--data` (the arrays from `prepare_data.py`) the script takes a test
-  transaction from the data instead.
+- Two real transactions were disputed (the H4 specification's example and one random illicit test
+  transaction), each through all 7 scenarios; the earlier Python-only `dispute.py` runs cover more
+  transactions but without the on-chain verifier.
 
 ## Layout
 
@@ -174,6 +181,7 @@ forge test                                  # 17 tests
 python3 -m pytest -q test_chain.py          # 66 tests
 forge build && python3 gas_game_v2.py       # results/gas_v2.json
 python3 onchain_dispute.py --blocks 60      # real verifiers; first run sets up the 4 circuits (~3 min, ~3 GB of keys)
+python3 onchain_dispute.py --data .         # same, on a random illicit test transaction (needs X.npy, y.npy, ts.npy)
 ```
 
 ## Notes

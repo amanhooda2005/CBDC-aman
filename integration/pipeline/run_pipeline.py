@@ -71,13 +71,13 @@ def elliptic_inputs(data_dir: str, n: int, seed: int):
     Xs = ((np.clip(X, sc["lo"], sc["hi"]) - sc["center"]) / sc["scale"]).astype(np.float32)
     xq = np.clip(np.round(Xs * 2.0 ** H1_SPEC["ax"]).astype(np.int64), H1_SPEC["x_lo"], H1_SPEC["x_hi"])
     labels = (df["class"].astype(str) == "1").astype(int).values
-    return [(row.tolist(), int(lab), int(tx)) for row, lab, tx in zip(xq, labels, df["tx_id"].values)]
+    return [(row.tolist(), int(lab), int(tx), int(t)) for row, lab, tx, t in zip(xq, labels, df["tx_id"].values, df["time_step"].values)]
 
 
 def synthetic_inputs(n: int, seed: int):
     rng = np.random.default_rng(seed)
     lo, hi = np.array(H1_SPEC["x_lo"]), np.array(H1_SPEC["x_hi"])
-    return [(rng.integers(lo, hi + 1).tolist(), -1, -1) for _ in range(n)]
+    return [(rng.integers(lo, hi + 1).tolist(), -1, -1, -1) for _ in range(n)]
 
 
 # ------------------------------------------------------------------ helpers
@@ -123,6 +123,7 @@ def main():
     dep = json.load(open(HERE / "deployment.json"))
     out = Path(a.out or HERE / f"runs/{a.source}_{a.n}_seed{a.seed}")
     out.mkdir(parents=True, exist_ok=True)
+    (out / "transactions.partial.csv").unlink(missing_ok=True)
     ch = Chain(dep["rpc"][0])
     w3 = ch.w3
     gate = w3.eth.contract(address=dep["gate"], abi=dep["abi"]["gate"])
@@ -141,7 +142,7 @@ def main():
     rows = []
     pool = cf.ThreadPoolExecutor(len(vurls))
     t_run = time.time()
-    for i, (x, label, tx_id) in enumerate(txs):
+    for i, (x, label, tx_id, time_step) in enumerate(txs):
         t0 = time.time()
         agent = dep["agents"][i % len(dep["agents"])]
         customer = dep["customers"][i % len(dep["customers"])]
@@ -217,7 +218,7 @@ def main():
                 reverted = "quorum not reached" if "quorum" in str(e) else str(e)[:120]
         settle_ms = (time.time() - t2) * 1e3
         rows.append({
-            "i": i, "tx_id": tx_id, "label_illicit": label, "fault": fault or "", "agent": agent[:10],
+            "i": i, "tx_id": tx_id, "time_step": time_step, "label_illicit": label, "fault": fault or "", "agent": agent[:10],
             "amount": amount, "sanctioned": int(sanctioned), "over_limit": int(amount > dep["policy"]["max_compliant"]),
             "offer_violates_policy": int(is_violation(opp.transfer, h3cfg)),
             "h1_risk": risk,
@@ -228,6 +229,11 @@ def main():
             "settle_ms": round(settle_ms, 2), "settle_gas": settle_gas, "top_up_gas": top_up_gas,
             "outcome": outcome, "gate_rejection": reverted, "end_to_end_ms": round((time.time() - t0) * 1e3, 2),
         })
+        with open(out / "transactions.partial.csv", "a", newline="") as f:   # survives an interrupted run
+            w = csv.DictWriter(f, fieldnames=list(rows[0]))
+            if i == 0:
+                w.writeheader()
+            w.writerow(rows[-1])
         if (i + 1) % 25 == 0 or i + 1 == len(txs):
             print(f"{i + 1}/{len(txs)}  last: {outcome:12s} sigs={len(sigs)} fault={fault}  {rows[-1]['end_to_end_ms']:.0f} ms", flush=True)
     wall = time.time() - t_run
@@ -235,15 +241,25 @@ def main():
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader()
         w.writerows(rows)
+    (out / "transactions.partial.csv").unlink(missing_ok=True)
     summary = summarize(rows, wall, a, dep, registry, op)
     json.dump(summary, open(out / "summary.json", "w"), indent=1)
     print(json.dumps(summary, indent=1))
 
 
 def risk_metrics(rows):
-    """H1 risk flag (operator-local, from the prover) against the Elliptic label, where one exists."""
+    """H1 risk flag (operator-local, from the prover) against the Elliptic label, where one exists;
+    also split at time step 43 (the dark-market shutdown after which H1's recall collapses)."""
     out = {"viol_1": sum(r["viol"] for r in rows), "h1_risk_1": sum(r["h1_risk"] == 1 for r in rows)}
-    lab = [r for r in rows if r["label_illicit"] in (0, 1)]
+    out.update(_confusion([r for r in rows if r["label_illicit"] in (0, 1)]))
+    if any(r["time_step"] > 0 for r in rows):
+        out["time_steps_35_42"] = _confusion([r for r in rows if r["label_illicit"] in (0, 1) and 35 <= r["time_step"] <= 42])
+        out["time_steps_43_49"] = _confusion([r for r in rows if r["label_illicit"] in (0, 1) and r["time_step"] >= 43])
+    return out
+
+
+def _confusion(lab):
+    out = {}
     if lab:
         tp = sum(r["h1_risk"] == 1 and r["label_illicit"] == 1 for r in lab)
         fp = sum(r["h1_risk"] == 1 and r["label_illicit"] == 0 for r in lab)

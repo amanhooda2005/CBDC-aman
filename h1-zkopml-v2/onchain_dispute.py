@@ -18,7 +18,7 @@ prepare_data.py) a labelled test transaction is used; without it, the H4 specifi
 transaction (an illicit test-period transaction, stored quantized at 8 fractional bits) is used.
 
 Usage: python3 onchain_dispute.py [--blocks 60] [--data DIR] [--scenarios 0,1,2,...]
-Writes results/onchain_disputes_B{B}.json
+Writes results/onchain_disputes_B{B}.json (with --data: ..._elliptic.json)
 """
 import argparse
 import asyncio
@@ -75,7 +75,7 @@ def load_input(data_dir, seed=0):
         X, y, ts = load(data_dir)
         _, _, (Xte, yte), _ = temporal_split(X, y, ts)
         Xte = apply_scaler(Xte, m["scaler"])
-        i = int(np.where(yte == 1)[0][0])
+        i = int(rng.choice(np.where(yte == 1)[0]))   # a random illicit test transaction (seeded)
         x = Xte[i:i + 1].astype(np.float64)
         calib = Xte[rng.choice(len(Xte), 15, replace=False)].astype(np.float64)
         return x, np.vstack([x, calib]), {"source": "Elliptic test period", "index_in_test": i, "label_illicit": int(yte[i])}
@@ -367,7 +367,7 @@ def main():
             out["scenarios"][str(sid)] = r
             print(json.dumps({k: v for k, v in r.items() if k != "gas"}), "| game gas", r["gas"]["game_total"], flush=True)
         out["all_correct"] = all(r["outcome_correct"] for r in out["scenarios"].values())
-        json.dump(out, open(HERE / f"results/onchain_disputes_B{a.blocks}.json", "w"), indent=2, default=str)
+        json.dump(out, open(HERE / f"results/onchain_disputes_B{a.blocks}{'_elliptic' if a.data else ''}.json", "w"), indent=2, default=str)
         print("all outcomes correct:", out["all_correct"])
     finally:
         anvil.terminate()
