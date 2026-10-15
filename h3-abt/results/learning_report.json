@@ -1,0 +1,369 @@
+{
+  "design": {
+    "seeds": [
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62
+    ],
+    "steps": 500,
+    "agents_per_seed": 20,
+    "p_values": [
+      0.5,
+      0.8
+    ],
+    "epsilon": 0.1,
+    "window": 50
+  },
+  "by_p": {
+    "0.5": {
+      "secondary": [
+        {
+          "test": "maintained < control, all steps (p=0.5)",
+          "n": 200,
+          "mean_first": 0.1476,
+          "mean_second": 0.23203,
+          "mann_whitney_z": -12.350162024579891,
+          "p_one_sided": 2.4306711766187113e-35,
+          "permutation_p": 9.99990000099999e-06
+        },
+        {
+          "test": "flat < control, steps 451-500 (p=0.5)",
+          "n": 200,
+          "mean_first": 0.25670000000000004,
+          "mean_second": 0.32880000000000004,
+          "mann_whitney_z": -6.750845803940899,
+          "p_one_sided": 7.349287376628611e-12,
+          "permutation_p": 9.99990000099999e-06
+        }
+      ],
+      "descriptive": {
+        "control": {
+          "rate": 0.23203,
+          "by_window": [
+            0.0716,
+            0.1237,
+            0.1703,
+            0.2094,
+            0.2402,
+            0.2679,
+            0.284,
+            0.3062,
+            0.3182,
+            0.3288
+          ],
+          "resets": 0,
+          "agents_depleted": 0,
+          "slashed_per_agent": 0.0
+        },
+        "flat": {
+          "rate": 0.14357,
+          "by_window": [
+            0.0576,
+            0.0743,
+            0.0744,
+            0.0857,
+            0.11,
+            0.1485,
+            0.1768,
+            0.2173,
+            0.2344,
+            0.2567
+          ],
+          "resets": 0,
+          "agents_depleted": 200,
+          "slashed_per_agent": 100.0
+        },
+        "maintained": {
+          "rate": 0.1476,
+          "by_window": [
+            0.0577,
+            0.0835,
+            0.1067,
+            0.1295,
+            0.1491,
+            0.1673,
+            0.1782,
+            0.1972,
+            0.1976,
+            0.2092
+          ],
+          "resets": 0,
+          "agents_depleted": 0,
+          "slashed_per_agent": 554.55
+        },
+        "escalating_id": {
+          "rate": 0.11453,
+          "by_window": [
+            0.0596,
+            0.0706,
+            0.0892,
+            0.1004,
+            0.1136,
+            0.1275,
+            0.1329,
+            0.1477,
+            0.1466,
+            0.1572
+          ],
+          "resets": 12745,
+          "agents_depleted": 0,
+          "slashed_per_agent": 516.675
+        },
+        "escalating_operator": {
+          "rate": 0.04294,
+          "by_window": [
+            0.0442,
+            0.0406,
+            0.0393,
+            0.0462,
+            0.0455,
+            0.0494,
+            0.0438,
+            0.0449,
+            0.0388,
+            0.0367
+          ],
+          "resets": 0,
+          "agents_depleted": 0,
+          "slashed_per_agent": 1038.825
+        }
+      },
+      "bond_sweep": {
+        "break_even": 21.5,
+        "rows": [
+          {
+            "bond": 0.0,
+            "rate": 0.11453,
+            "resets": 12745,
+            "exploration_only_resets_expected": 3333
+          },
+          {
+            "bond": 22.0,
+            "rate": 0.06649,
+            "resets": 3466,
+            "exploration_only_resets_expected": 3333
+          },
+          {
+            "bond": 44.0,
+            "rate": 0.06499,
+            "resets": 3332,
+            "exploration_only_resets_expected": 3333
+          }
+        ]
+      },
+      "myopic_best_response": {
+        "control": 0.50735,
+        "maintained": 0.351335
+      },
+      "capital_topped_up_per_agent": {
+        "control": 0.0,
+        "flat": 0.0,
+        "maintained": 552.825,
+        "escalating_id": 515.2,
+        "escalating_operator": 1117.125
+      }
+    },
+    "0.8": {
+      "secondary": [
+        {
+          "test": "maintained < control, all steps (p=0.8)",
+          "n": 200,
+          "mean_first": 0.11643,
+          "mean_second": 0.23203,
+          "mann_whitney_z": -15.368337611866572,
+          "p_one_sided": 1.3346531935132423e-53,
+          "permutation_p": 9.99990000099999e-06
+        },
+        {
+          "test": "flat < control, steps 451-500 (p=0.8)",
+          "n": 200,
+          "mean_first": 0.2618,
+          "mean_second": 0.32880000000000004,
+          "mann_whitney_z": -6.4029177705815385,
+          "p_one_sided": 7.621765094592445e-11,
+          "permutation_p": 9.99990000099999e-06
+        }
+      ],
+      "descriptive": {
+        "control": {
+          "rate": 0.23203,
+          "by_window": [
+            0.0716,
+            0.1237,
+            0.1703,
+            0.2094,
+            0.2402,
+            0.2679,
+            0.284,
+            0.3062,
+            0.3182,
+            0.3288
+          ],
+          "resets": 0,
+          "agents_depleted": 0,
+          "slashed_per_agent": 0.0
+        },
+        "flat": {
+          "rate": 0.14417,
+          "by_window": [
+            0.0502,
+            0.0538,
+            0.0574,
+            0.0814,
+            0.1204,
+            0.1604,
+            0.188,
+            0.2245,
+            0.2438,
+            0.2618
+          ],
+          "resets": 0,
+          "agents_depleted": 200,
+          "slashed_per_agent": 100.0
+        },
+        "maintained": {
+          "rate": 0.11643,
+          "by_window": [
+            0.0507,
+            0.069,
+            0.0846,
+            0.1039,
+            0.1178,
+            0.131,
+            0.1392,
+            0.1551,
+            0.1519,
+            0.1611
+          ],
+          "resets": 0,
+          "agents_depleted": 0,
+          "slashed_per_agent": 700.65
+        },
+        "escalating_id": {
+          "rate": 0.08568,
+          "by_window": [
+            0.0506,
+            0.053,
+            0.0637,
+            0.0744,
+            0.0867,
+            0.0938,
+            0.0993,
+            0.1102,
+            0.1084,
+            0.1167
+          ],
+          "resets": 11238,
+          "agents_depleted": 0,
+          "slashed_per_agent": 629.925
+        },
+        "escalating_operator": {
+          "rate": 0.03325,
+          "by_window": [
+            0.0355,
+            0.0306,
+            0.03,
+            0.0366,
+            0.0344,
+            0.0356,
+            0.0322,
+            0.0353,
+            0.0319,
+            0.0304
+          ],
+          "resets": 0,
+          "agents_depleted": 0,
+          "slashed_per_agent": 1546.65
+        }
+      },
+      "bond_sweep": {
+        "break_even": 17.0,
+        "rows": [
+          {
+            "bond": 0.0,
+            "rate": 0.08568,
+            "resets": 11238,
+            "exploration_only_resets_expected": 3333
+          },
+          {
+            "bond": 17.0,
+            "rate": 0.05007,
+            "resets": 3424,
+            "exploration_only_resets_expected": 3333
+          },
+          {
+            "bond": 34.0,
+            "rate": 0.04926,
+            "resets": 3332,
+            "exploration_only_resets_expected": 3333
+          }
+        ]
+      },
+      "myopic_best_response": {
+        "control": 0.50735,
+        "maintained": 0.257805
+      },
+      "capital_topped_up_per_agent": {
+        "control": 0.0,
+        "flat": 0.0,
+        "maintained": 698.625,
+        "escalating_id": 628.55,
+        "escalating_operator": 1661.95
+      }
+    }
+  },
+  "primary": [
+    {
+      "test": "T1(p=0.5) maintained < flat, steps 451-500",
+      "n": 200,
+      "mean_first": 0.20920000000000002,
+      "mean_second": 0.25670000000000004,
+      "mann_whitney_z": -4.977887273761013,
+      "p_one_sided": 3.214103682345828e-07,
+      "permutation_p": 9.99990000099999e-06,
+      "p_holm": 3.214103682345828e-07,
+      "supported": true
+    },
+    {
+      "test": "T2(p=0.5) escalating_operator < escalating_id (B=0), all steps",
+      "n": 200,
+      "mean_first": 0.04294,
+      "mean_second": 0.11452999999999999,
+      "mann_whitney_z": -16.66394143186523,
+      "p_one_sided": 1.1984735468828744e-62,
+      "permutation_p": 9.99990000099999e-06,
+      "p_holm": 3.5954206406486233e-62,
+      "supported": true
+    },
+    {
+      "test": "T1(p=0.8) maintained < flat, steps 451-500",
+      "n": 200,
+      "mean_first": 0.1611,
+      "mean_second": 0.2618,
+      "mann_whitney_z": -10.207901393294016,
+      "p_one_sided": 9.138758257160521e-25,
+      "permutation_p": 9.99990000099999e-06,
+      "p_holm": 1.8277516514321042e-24,
+      "supported": true
+    },
+    {
+      "test": "T2(p=0.8) escalating_operator < escalating_id (B=0), all steps",
+      "n": 200,
+      "mean_first": 0.03325,
+      "mean_second": 0.08567999999999999,
+      "mann_whitney_z": -16.99882612351056,
+      "p_one_sided": 4.18904250636118e-65,
+      "permutation_p": 9.99990000099999e-06,
+      "p_holm": 1.675617002544472e-64,
+      "supported": true
+    }
+  ],
+  "finding_supported": true
+}
