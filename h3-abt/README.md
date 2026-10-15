@@ -353,3 +353,57 @@ Cost to honest-ish agents: under operator-bound escalation, each operator loses 
 ## Next milestone
 
 Majority-clean bar (still separate from the z-test). On-chain Solidity remains optional and unimplemented. The Sybil probe is already a separate runner and must stay separate from the treatment/control comparison.
+
+## Learning agents under imperfect detection (pre-registered, `docs/PREREGISTRATION_learning.md`)
+
+**Why.** The durable-liability agents compute their best response exactly, and detection there is
+certain. So every violation rate in that study is a closed-form expectation: it shows the code is right,
+not how agents behave.
+
+**What this study changes:**
+- Agents are ε-greedy learners (ε = 0.1) that do not know the payoffs, the slash, the detection
+  probability or the bond.
+- Detection is imperfect: p = 0.5 and p = 0.8.
+- In the id-keyed regime, agents can *learn* to reset their identity instead of following a built-in
+  rule.
+- Scale: 500 steps, 10 new seeds (53–62) × 20 agents = 200 agents per regime and per p.
+
+Code: `src/h3_abt/learning.py`, `run_learning.py`, `tests/test_learning.py`.
+Results: `results/learning_report.json`, `learning_agents.csv`, `learning_figure.png`.
+
+**Primary tests** (agent-level one-sided Mann–Whitney, Holm across all four; permutation p ≤ 10⁻⁵ for each):
+
+| Test | p = 0.5 | p = 0.8 | Holm p | Verdict |
+|---|---|---|---|---|
+| T1 maintained < flat, steps 451–500 | 20.9% vs 25.7% (z = −5.0) | 16.1% vs 26.2% (z = −10.2) | 3.2·10⁻⁷ / 1.8·10⁻²⁴ | supported |
+| T2 operator-bound < id-keyed (B = 0), all steps | 4.3% vs 11.5% (z = −16.7) | 3.3% vs 8.6% (z = −17.0) | < 10⁻⁶⁰ | supported |
+
+**Pre-registered finding supported:** stake maintenance and operator-bound history still work when agents
+learn and detection is imperfect.
+
+**Secondary:**
+- Deterrence holds under imperfect detection: maintained < control over all steps (14.8% vs 23.2% at
+  p = 0.5; 11.6% vs 23.2% at p = 0.8; p < 10⁻³⁴).
+- Wear-out appears with learners too. Flat stakes deter early but cross above maintained stakes around
+  step 250–300, once all 200 flat agents have been slashed to zero.
+
+**Descriptive:**
+- *Learning is slow.* With values initialised at zero, control learners reach only 33% violations by
+  step 500, against the 50.7% myopic optimum. Measured gaps to control are therefore conservative.
+- *The operator-bound regime sits at the exploration floor* (about 3–4%). Escalation never decays, so
+  exploratory violations are punished ever harder: operators topped up 1,117 (p = 0.5) and 1,662
+  (p = 0.8) per agent over 500 steps.
+  - **Design implication:** a deployed registry should let k decay, or cap it.
+- *Learned identity resets collapse at the break-even bond.*
+
+  | p | Resets at B = 0 | Resets at B = ⌈B*⌉ | Resets at B = 2⌈B*⌉ | Expected from random exploration alone |
+  |---|---|---|---|---|
+  | 0.5 | 12,745 | 3,466 (B* = 21.5) | 3,332 | ≈ 3,333 |
+  | 0.8 | 11,238 | 3,424 (B* = 17) | 3,332 | ≈ 3,333 |
+
+  So at B ≥ B* almost all remaining resets are random exploration, not learned behaviour.
+
+**Limitations.**
+- Tabular bandit learners only, not LLM agents. Their exploration rate is fixed.
+- Detection is independent of the agent's behaviour.
+- Operators still have unlimited capital to top up.

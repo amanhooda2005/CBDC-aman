@@ -7,3 +7,6 @@ venv/
 results/*.json
 results/*.csv
 
+out/
+cache/
+lib/
