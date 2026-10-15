@@ -175,3 +175,65 @@ fn out_of_range_input_rejected() {
 fn sis_parameters_are_statistically_binding() {
     assert!(sis::log2_expected_collisions() < -128.0, "{}", sis::log2_expected_collisions());
 }
+
+#[test]
+fn escalated_slash_and_extreme_payoffs_stay_complete() {
+    // regression: with a 22-bit window, EXV - q*CP fell outside it once the escalated slash reached
+    // 2-4x the base slash (the honest prover clamped and produced proofs that failed verification)
+    let base = honest();
+    let mut checked = 0;
+    for slash in [3840, 7680, 15360, 3840 * 20, (1 << POLICY_BITS) - 1] {
+        for stake in [1, 25600, (1 << POLICY_BITS) - 1] {
+            for (cp, vp) in [(0, (1 << VB) - 1), ((1 << CB) - 1, 0), ((1 << CB) - 1, (1 << VB) - 1)] {
+                for (amount, dest) in [(100, 3), (20000, 3), (100, 1000)] {
+                    let mut w = base.clone();
+                    w.policy.slash = slash;
+                    w.decision = model::Decision { amount, dest, compliant: cp, violation: vp, staked: 1, stake };
+                    assert!(trace::domain_check(&w).is_ok());
+                    assert!(constraints_hold(&w, true, &Tamper::default(), None), "slash {slash} stake {stake} cp {cp} vp {vp} a {amount}");
+                    checked += 1;
+                }
+            }
+        }
+    }
+    assert_eq!(checked, 135);
+    let mut w = base.clone();
+    w.policy.slash = 15360;
+    w.decision.stake = 25600;
+    let (proof, st) = prove(&w, Variant { pq: true, zk: true }, Some(3), &Tamper::default());
+    verify(&proof, &st).expect("escalated-slash proof verifies");
+}
+
+#[test]
+fn out_of_domain_witnesses_and_statements_are_refused() {
+    let mut w = honest();
+    w.policy.slash = 1 << POLICY_BITS;
+    assert!(trace::domain_check(&w).is_err());
+    let w = honest();
+    let (proof, mut st) = prove(&w, Variant { pq: true, zk: true }, Some(4), &Tamper::default());
+    st.public[PV_SLASH] = 1 << POLICY_BITS;
+    assert!(verify(&proof, &st).unwrap_err().contains("domain"));
+}
+
+#[test]
+fn compliant_transfers_execute_and_violating_ones_follow_the_rule() {
+    let base = honest();
+    let mut w = base.clone();
+    // compliant: small amount, ordinary destination, input not flagged -> EXEC = 1, VIOL = 0
+    let spec = model::h1();
+    w.x = spec.x_lo.iter().zip(&spec.x_hi).map(|(lo, hi)| (lo + hi) / 2).collect();
+    w.decision = model::Decision { amount: 100, dest: 3, compliant: 500, violation: 4000, staked: 1, stake: 25600 };
+    let (exec, viol, risk) = model::decide(&w.x, &w.decision, &w.policy);
+    assert_eq!((exec, viol, risk), (1, 0, 0));
+    assert!(constraints_hold(&w, true, &Tamper::default(), None));
+    assert!(!constraints_hold(&w, true, &Tamper { exec: Some(0), ..Default::default() }, None));
+    // violating with a payoff that beats the expected slash -> EXEC = 1 (and the gate blocks + slashes)
+    w.decision = model::Decision { amount: 20000, dest: 3, compliant: 100, violation: 8000, staked: 1, stake: 25600 };
+    w.policy.slash = 3840;
+    assert_eq!(model::decide(&w.x, &w.decision, &w.policy).0, 1);
+    assert!(constraints_hold(&w, true, &Tamper::default(), None));
+    // the same offer with an escalated slash -> the agent refuses
+    w.policy.slash = 3840 * 4;
+    assert_eq!(model::decide(&w.x, &w.decision, &w.policy).0, 0);
+    assert!(constraints_hold(&w, true, &Tamper::default(), None));
+}

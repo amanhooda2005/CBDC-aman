@@ -14,10 +14,12 @@ import "h3/LiabilityRegistry.sol";
 /// not executed in the EVM, which keeps verification hash-based and post-quantum).
 ///
 /// Outcome per request:
-///   VIOL = 1                 -> transfer blocked, operator slashed through the LiabilityRegistry
+///   EXEC = 1, VIOL = 1       -> transfer blocked, operator slashed through the LiabilityRegistry
+///   EXEC = 0, VIOL = 1       -> agent declined the violating transfer; nothing moves, no slash
 ///   agent not covered        -> transfer refused (stake maintenance: the operator must top up)
 ///   EXEC = 1, VIOL = 0       -> transfer executed on the CBDC ledger
 ///   EXEC = 0, VIOL = 0       -> agent refused the transfer; nothing moves
+/// (The proven rule executes every compliant transfer, so the last case only arises from other provers.)
 contract SettlementGate {
     LiabilityRegistry public immutable registry;
     address public immutable centralBank;       // mints CBDC (lab ledger)
@@ -86,9 +88,11 @@ contract SettlementGate {
         _checkQuorum(id, sigs);
         require(mandate[r.from][r.agentId], "no mandate");
 
-        if (r.viol) {
-            registry.slash(r.agentId, r.proofHash);
+        if (r.viol && r.exec) {
+            registry.slash(r.agentId, r.proofHash);      // the agent chose to execute a violating transfer
             out = Outcome.Blocked;
+        } else if (r.viol) {
+            out = Outcome.AgentRefused;                  // violating offer declined by the agent: no transfer, no slash
         } else if (!registry.isCovered(r.agentId)) {
             out = Outcome.NotCovered;
         } else if (r.exec) {

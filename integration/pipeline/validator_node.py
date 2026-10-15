@@ -1,0 +1,136 @@
+"""Validator attestation service (one process per validator node).
+
+A validator co-signs a settlement request only if, independently and against its OWN view of the chain:
+  1. the zero-knowledge composed proof verifies (native Rust verifier, `zk_composed verify`);
+  2. the statement is about the expected model (model digest) and is the deployed variant (pq + zk);
+  3. the SIS commitment in the statement opens to the amount being settled (opening sent privately);
+  4. the request's EXEC / VIOL equal the proven outputs, its commitment and proof hashes match;
+  5. the policy inside the proof is the current one: limit M, sanctioned id, and the operator's
+     escalated slash read from the LiabilityRegistry (stake maintenance / escalation are on-chain).
+Then it signs requestId(r) (EIP-191) with its validator key; the SettlementGate needs 3 of 4.
+
+Usage: python validator_node.py <index> <deployment.json> [port] [--byzantine]
+"""
+import base64
+import json
+import subprocess
+import sys
+import tempfile
+import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+from eth_account import Account
+from eth_account.messages import encode_defunct
+from web3 import Web3
+
+sys.path.insert(0, str(Path(__file__).parent))
+import sis  # noqa: E402
+
+RULE_SCALE = 256            # H3 rule fixed-point scale (payoffs, amounts, stake, slash)
+
+
+def keccak_words(values):
+    return Web3.keccak(b"".join(int(v).to_bytes(32, "big") for v in values))
+
+
+class Validator:
+    def __init__(self, index: int, dep: dict):
+        self.index = index
+        self.dep = dep
+        self.key = Account.from_key(dep["validators"][index]["key"])
+        self.w3 = Web3(Web3.HTTPProvider(dep["rpc"][index]))      # this validator's own node
+        self.gate = self.w3.eth.contract(address=dep["gate"], abi=dep["abi"]["gate"])
+        self.registry = self.w3.eth.contract(address=dep["registry"], abi=dep["abi"]["registry"])
+        self.prover = dep["prover_bin"]
+        self.model = dep["model_digest"]
+        self.policy = dep["policy"]
+        self.unit = dep["registry_unit"]
+
+    def check(self, req: dict, proof: bytes, st: dict, opening: dict) -> str | None:
+        if st.get("model") != self.model:
+            return "statement is about a different model"
+        if st.get("variant") != {"pq": True, "zk": True}:
+            return "not the deployed (post-quantum, zero-knowledge) variant"
+        pub = st["public"]
+        m, sid, slash, exec_, viol, c = pub[0], pub[1], pub[2], pub[3], pub[4], pub[5:]
+        if Web3.keccak(proof).hex() != Web3.to_bytes(hexstr=req["proofHash"]).hex():
+            return "proof hash mismatch"
+        if keccak_words(c).hex() != Web3.to_bytes(hexstr=req["commitmentHash"]).hex():
+            return "commitment hash mismatch"
+        if sis.commit(int(opening["amount"]), opening["r"]) != c:
+            return "commitment does not open to the stated amount"
+        if int(opening["amount"]) != int(req["amount"]):
+            return "settled amount differs from committed amount"
+        if bool(exec_) != bool(req["exec"]) or bool(viol) != bool(req["viol"]):
+            return "request outputs differ from proven outputs"
+        if m != self.policy["max_compliant"] or sid != self.policy["sanctioned_id"]:
+            return "policy limit or sanctioned list differs from the current policy"
+        op = self.registry.functions.operatorOf(Web3.to_bytes(hexstr=req["agentId"])).call()
+        expected_slash = self.registry.functions.nextSlash(op).call() * RULE_SCALE // self.unit
+        if slash != expected_slash:
+            return f"proof used slash {slash}, registry requires {expected_slash}"
+        with tempfile.TemporaryDirectory() as d:
+            pp, sp = Path(d) / "p.bin", Path(d) / "s.json"
+            pp.write_bytes(proof)
+            sp.write_text(json.dumps(st))
+            out = subprocess.run([self.prover, "verify", str(pp), str(sp)], capture_output=True, text=True)
+        if out.returncode != 0:
+            return "zero-knowledge proof does not verify: " + out.stdout.strip()[:200]
+        return None
+
+    byzantine = False   # fault-injection mode: sign everything without checking
+
+    def wait_for_block(self, n: int, timeout: float = 10.0):
+        end = time.time() + timeout
+        while self.w3.eth.block_number < n and time.time() < end:
+            time.sleep(0.05)
+
+    def attest(self, body: dict) -> dict:
+        t = time.time()
+        self.wait_for_block(int(body.get("policy_block", 0)))   # read the registry at least at the operator's block
+        req = body["request"]
+        proof = base64.b64decode(body["proof_b64"])
+        reason = None if self.byzantine else self.check(req, proof, body["statement"], body["opening"])
+        ms = (time.time() - t) * 1e3
+        if reason:
+            return {"validator": self.key.address, "signed": False, "reason": reason, "check_ms": ms}
+        rid = self.gate.functions.requestId(tuple_request(req)).call()
+        sig = Account.sign_message(encode_defunct(primitive=rid), self.key.key)
+        return {"validator": self.key.address, "signed": True, "signature": sig.signature.hex(), "check_ms": ms}
+
+
+def tuple_request(req: dict):
+    return (Web3.to_bytes(hexstr=req["agentId"]), Web3.to_checksum_address(req["from"]), Web3.to_checksum_address(req["to"]),
+            int(req["amount"]), Web3.to_bytes(hexstr=req["commitmentHash"]), Web3.to_bytes(hexstr=req["proofHash"]),
+            bool(req["exec"]), bool(req["viol"]), int(req["nonce"]))
+
+
+def serve(index: int, dep_path: str, port: int, byzantine: bool = False):
+    v = Validator(index, json.load(open(dep_path)))
+    v.byzantine = byzantine
+
+    class H(BaseHTTPRequestHandler):
+        def do_POST(self):
+            body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            try:
+                res = v.attest(body)
+            except Exception as e:  # malformed request: refuse, never crash
+                res = {"validator": v.key.address, "signed": False, "reason": f"error: {e}"}
+            data = json.dumps(res).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def log_message(self, *a):
+            pass
+
+    ThreadingHTTPServer(("127.0.0.1", port), H).serve_forever()
+
+
+if __name__ == "__main__":
+    i = int(sys.argv[1])
+    args = [a for a in sys.argv[3:] if not a.startswith("--")]
+    serve(i, sys.argv[2], int(args[0]) if args else 9100 + i, "--byzantine" in sys.argv)

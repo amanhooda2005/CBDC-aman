@@ -23,15 +23,26 @@ v4 re-implements the same statement on Plonky3, using its hiding mode:
    - every requantization and ReLU proven;
    - interval-bounded accumulators.
 2. **Risk flag.** RISK = [logit > T_q] by the two-sided sign window. Over BabyBear (p ≈ 2³¹) the
-   window is unique for every in-range logit, because p > 2²³.
+   window is unique for every in-range logit (|logit| < 2²², far below p − 2³⁰).
 3. **Agent decision.** The H3 decision rule with RISK as a violation condition:
-   VIOL = (A > M) ∨ (D = sid) ∨ RISK.
+   VIOL = (A > M) ∨ (D = sid) ∨ RISK; EXEC = 1 when VIOL = 0 (a compliant transfer is executed), otherwise
+   EXEC = [q·VP − p·min(S, slash) > q·CP] (the H3 rule). Before v4.1 the H3 refuse-on-tie also refused every
+   compliant transfer, so nothing could ever execute; the integrated runs exposed it.
    - **Change from v3:** M, sid and the slash are **public inputs**, not constants. The settlement layer
      can then pass the registry's escalated slash s·(1+k).
 4. **Amount binding (post-quantum variant).** The decision's amount A equals the amount inside the SIS
    commitment c, which is published as public input:
    - A = Σ 2ⁱ·bitᵢ over bits 0–19;
    - bits 20–63 are forced to zero.
+
+**Domain (v4.1).** Comparisons share one 30-bit signed window. It is sound and complete when M, sid,
+slash and the stake are below 2²⁰ (amount below 2²⁰ via its bits, payoffs below 2¹²/2¹³ via their
+windows): the largest compared term, q·VP + p·min(S, slash) + q·CP, then stays below 2²⁹, and every window
+value stays below p − 2³⁰, so each sign decomposition is unique. The verifier rejects statements whose
+public M, sid or slash are outside this domain; the prover refuses such witnesses rather than clamping.
+v4 used a 22-bit window, which only covered the unescalated slash: with the registry's escalated slash
+s(1+k) at 2–4× the base value, honest proofs failed verification (found in the integrated runs,
+`integration/README.md`).
 
 Public values: M, sid, slash, EXEC, VIOL and c (48 coordinates). The features, logit, payoffs, stake and
 opening stay private, and in the ZK variant they are also hidden by the proof.
@@ -60,7 +71,7 @@ from a public seed.
 The commitment is binding, not hiding. The amount itself is disclosed to the validator nodes, which
 check the opening before attesting; see `integration/`.
 
-## Tests (`cargo test --release`, 14/14 pass)
+## Tests (`cargo test --release`, 17/17 pass)
 
 - **Honest traces** satisfy every constraint for 8 different H3 decisions, in both variants.
 - **Prove and verify** work in all four variants (classical, pq, classical_zk, pq_zk).
@@ -80,23 +91,32 @@ check the opening before attesting; see `integration/`.
   - a changed policy;
   - a changed commitment;
   - a different model digest.
+- **Completeness over the whole policy domain** (v4.1): 135 combinations of escalated slash (up to
+  2²⁰ − 1), stake and extreme payoffs satisfy every constraint, and an escalated-slash proof verifies.
+- **Out-of-domain** witnesses and statements are refused.
+- **EXEC rule:** compliant transfers execute (EXEC = 0 is rejected for them); a violating offer is executed
+  under the base slash and declined under a 4× escalated slash.
 - **The reference forward pass** reproduces the spec's logit (11,040) and the v3 instance's outcome
   (RISK = 1, VIOL = 1).
 
-## Performance (30 runs after 3 warm-ups, 2-vCPU cloud VM, parallel prover)
+## Performance (v4.1; 30 runs after 3 warm-ups, 2-vCPU cloud VM, parallel prover)
 
 | Variant | Proof size | Prove (ms) | Verify (ms) |
 |---|---|---|---|
-| classical (no commitment, not ZK) | 97,589 B | 126.7 ± 2.8 | 6.83 ± 0.32 |
-| pq (SIS + link, not ZK) | 109,324 B | 251.1 ± 6.7 | 7.85 ± 0.19 |
-| classical_zk | 155,221 B | 380.0 ± 46.3 | 9.54 ± 0.16 |
-| **pq_zk (deployed)** | **170,317 B** | **452.8 ± 37.5** | **10.87 ± 1.04** |
+| classical (no commitment, not ZK) | 99,573 B | 179.8 ± 9.3 | 8.75 ± 1.44 |
+| pq (SIS + link, not ZK) | 113,037 B | 227.3 ± 21.0 | 10.37 ± 2.10 |
+| classical_zk | 159,349 B | 540.3 ± 69.0 | 15.43 ± 4.41 |
+| **pq_zk (deployed)** | **170,157 B** | **594.1 ± 82.7** | **15.15 ± 3.97** |
 
 | Ratio | Size | Prove | Verify | Pre-registered bound |
 |---|---|---|---|---|
-| pq / classical (as in v3) | 1.12× | 1.98× | 1.15× | ≤ 20× / ≤ 200× / ≤ 10× |
-| **pq_zk / classical_zk** (cost of PQ binding under ZK) | **1.10×** | **1.19×** | **1.14×** | same |
-| classical_zk / classical (cost of ZK) | 1.59× | 3.00× | 1.40× | none |
+| pq / classical (as in v3) | 1.14× | 1.26× | 1.19× | ≤ 20× / ≤ 200× / ≤ 10× |
+| **pq_zk / classical_zk** (cost of PQ binding under ZK) | **1.07×** | **1.10×** | **0.98×** | same |
+| classical_zk / classical (cost of ZK) | 1.60× | 3.01× | 1.76× | none |
+
+Absolute times are higher than the v4 table (pq_zk 452.8 ms) because this VM was slower and noisier on
+the day; on one machine, back to back, the 22-bit (v4) and 30-bit (v4.1) layouts took 528 ms and 537 ms
+for pq_zk, and the proof grew by about 1 %. Constraint count 491 → 499.
 
 All within bounds. These ratios replace v3's 1.15× / 1.28× / 1.77× for the deployed (ZK) setting.
 

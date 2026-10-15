@@ -1,0 +1,85 @@
+{
+ "source": "synthetic",
+ "n": 300,
+ "faults_injected": 56,
+ "wall_s": 532.0,
+ "throughput_tx_per_min": 33.8,
+ "honest": {
+  "n": 244,
+  "outcomes": {
+   "AgentRefused": 146,
+   "Blocked": 1,
+   "Executed": 97
+  },
+  "settled_with_expected_outcome": 244,
+  "settled": 244,
+  "all_signatures": 244
+ },
+ "faulty": {
+  "n": 56,
+  "by_type": {
+   "amount_swap": 11,
+   "corrupt_proof": 13,
+   "flip_viol": 11,
+   "stale_slash": 9,
+   "wrong_model": 12
+  },
+  "outcomes": {
+   "NotSubmitted": 56
+  },
+  "reached_quorum": 0,
+  "ledger_changed": 0
+ },
+ "risk_flags": {
+  "viol_1": 147,
+  "h1_risk_1": 0
+ },
+ "timing_ms": {
+  "prove_ms": {
+   "mean": 719.78,
+   "median": 675.78,
+   "p95": 961.2
+  },
+  "attest_ms": {
+   "mean": 277.2,
+   "median": 249.85,
+   "p95": 431.6
+  },
+  "validator_check_ms": {
+   "mean": 157.84,
+   "median": 142.89,
+   "p95": 252.89
+  },
+  "settle_ms": {
+   "mean": 902.62,
+   "median": 898.24,
+   "p95": 1174.19
+  },
+  "end_to_end_ms": {
+   "mean": 1963.94,
+   "median": 1993.45,
+   "p95": 2195.4
+  }
+ },
+ "gas": {
+  "settle": {
+   "mean": 91760.17,
+   "median": 84021.0,
+   "p95": 103111
+  },
+  "top_up": {
+   "mean": 28863,
+   "median": 28863,
+   "p95": 28863
+  }
+ },
+ "proof_bytes": {
+  "mean": 169861.07,
+  "median": 169932.0,
+  "p95": 172493
+ },
+ "operator_final": {
+  "violations_k": 1,
+  "stake_units": 25600
+ }
+}

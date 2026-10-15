@@ -1,66 +1,66 @@
 {
  "variants": {
   "classical": {
-   "proof_bytes": 97589,
+   "proof_bytes": 99573,
    "runs": 30,
-   "prove_ms_mean": 126.6976,
-   "prove_ms_sd": 2.7903227918573563,
-   "prove_ms_median": 126.238,
-   "verify_ms_mean": 6.827966666666667,
-   "verify_ms_sd": 0.3180012452082899,
-   "verify_ms_median": 6.753
+   "prove_ms_mean": 179.7818,
+   "prove_ms_sd": 9.264042267338512,
+   "prove_ms_median": 176.998,
+   "verify_ms_mean": 8.747866666666667,
+   "verify_ms_sd": 1.4376328660236117,
+   "verify_ms_median": 8.308
   },
   "pq": {
-   "proof_bytes": 109324,
+   "proof_bytes": 113037,
    "runs": 30,
-   "prove_ms_mean": 251.1057,
-   "prove_ms_sd": 6.722330969650134,
-   "prove_ms_median": 249.79149999999998,
-   "verify_ms_mean": 7.8488999999999995,
-   "verify_ms_sd": 0.18757809408166592,
-   "verify_ms_median": 7.811
+   "prove_ms_mean": 227.2904,
+   "prove_ms_sd": 21.034201055456784,
+   "prove_ms_median": 223.1275,
+   "verify_ms_mean": 10.369933333333334,
+   "verify_ms_sd": 2.1024038283525037,
+   "verify_ms_median": 9.469
   },
   "classical_zk": {
-   "proof_bytes": 155221,
+   "proof_bytes": 159349,
    "runs": 30,
-   "prove_ms_mean": 379.9687333333333,
-   "prove_ms_sd": 46.28768071970333,
-   "prove_ms_median": 368.3515,
-   "verify_ms_mean": 9.5374,
-   "verify_ms_sd": 0.15937758246724504,
-   "verify_ms_median": 9.559000000000001
+   "prove_ms_mean": 540.2592333333333,
+   "prove_ms_sd": 68.96325525293604,
+   "prove_ms_median": 532.245,
+   "verify_ms_mean": 15.427833333333334,
+   "verify_ms_sd": 4.407591633278556,
+   "verify_ms_median": 14.008
   },
   "pq_zk": {
-   "proof_bytes": 170317,
+   "proof_bytes": 170157,
    "runs": 30,
-   "prove_ms_mean": 452.7914333333333,
-   "prove_ms_sd": 37.45314362910407,
-   "prove_ms_median": 451.9065,
-   "verify_ms_mean": 10.8679,
-   "verify_ms_sd": 1.0431075373530565,
-   "verify_ms_median": 10.674
+   "prove_ms_mean": 594.1471333333334,
+   "prove_ms_sd": 82.69853221510847,
+   "prove_ms_median": 591.6725,
+   "verify_ms_mean": 15.150033333333333,
+   "verify_ms_sd": 3.9665150384909307,
+   "verify_ms_median": 13.0345
   }
  },
  "ratios": {
   "pq/classical": {
-   "size": 1.12,
-   "prove": 1.98,
-   "verify": 1.15
+   "size": 1.14,
+   "prove": 1.26,
+   "verify": 1.19
   },
   "pq_zk/classical_zk": {
-   "size": 1.1,
-   "prove": 1.19,
-   "verify": 1.14
+   "size": 1.07,
+   "prove": 1.1,
+   "verify": 0.98
   },
   "classical_zk/classical": {
-   "size": 1.59,
-   "prove": 3.0,
-   "verify": 1.4
+   "size": 1.6,
+   "prove": 3.01,
+   "verify": 1.76
   },
   "pq_zk/classical": {
-   "size": 1.75,
-   "prove": 3.57,
-   "verify": 1.59
+   "size": 1.71,
+   "prove": 3.3,
+   "verify": 1.73
   }
  }
 }

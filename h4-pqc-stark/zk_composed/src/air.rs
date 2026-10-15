@@ -3,7 +3,7 @@
 //!      (range-checked inputs, every requantization and ReLU proven, interval-bounded accumulators);
 //!   2. RISK = [logit > T] by a two-sided sign window (unique for every in-range logit);
 //!   3. the H3 agent decision with RISK as a violation condition:
-//!      VIOL = (A > M) OR (D == sanctioned) OR RISK, EXEC = [expected execute payoff > refuse payoff];
+//!      VIOL = (A > M) OR (D == sanctioned) OR RISK, EXEC = 1 if VIOL = 0, else [expected execute payoff > refuse payoff];
 //!   4. (post-quantum variant) the decision's amount A equals the amount inside the SIS commitment c
 //!      published as public input, and the opening (bits, r) is short (bits boolean, r ternary).
 //! Public values: policy (M, sanctioned id, slash), the outputs EXEC and VIOL, and (PQ) c.
@@ -253,7 +253,8 @@ impl<AB: AirBuilder<F = BabyBear>> Air<AB> for ComposedAir {
         builder.assert_zero(per[PE_SEL + 2].clone() * (reg(CGE) - top.clone()));
         builder.assert_zero(per[PE_SEL + 3].clone() * high(CB));
         builder.assert_zero(per[PE_SEL + 4].clone() * high(VB));
-        builder.assert_zero(per[PE_SEL + 5].clone() * (reg(EX) - top));
+        // EXEC = 1 - VIOL + VIOL * [EXV > q*CP]: compliant transfers execute; violating ones follow the H3 rule
+        builder.assert_zero(per[PE_SEL + 5].clone() * (reg(EX) - AB::Expr::ONE + reg(VIOL) - reg(VIOL) * top));
         {
             let mut first = builder.when_first_row();
             first.assert_eq(reg(EX), pv[PV_EXEC].clone());

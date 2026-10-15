@@ -55,6 +55,27 @@ pub fn public_values(w: &Witness, pq: bool) -> Vec<BabyBear> {
     pv
 }
 
+/// The proof's domain: policy values and stake in [0, 2^POLICY_BITS), amount in [0, 2^AMOUNT_BITS),
+/// payoffs inside their windows, input inside the model's clipping box.
+pub fn domain_check(w: &Witness) -> Result<(), String> {
+    let lim = 1i64 << POLICY_BITS;
+    let (d, p) = (&w.decision, &w.policy);
+    let s = h1();
+    for (name, v, hi) in [
+        ("policy.max_compliant", p.max_compliant, lim), ("policy.slash", p.slash, lim), ("policy.sanctioned_id", p.sanctioned_id, lim),
+        ("decision.stake", d.stake, lim), ("decision.amount", d.amount, 1 << AMOUNT_BITS), ("decision.dest", d.dest, lim),
+        ("decision.compliant", d.compliant, 1 << CB), ("decision.violation", d.violation, 1 << VB), ("decision.staked", d.staked, 2),
+    ] {
+        if !(0..hi).contains(&v) {
+            return Err(format!("{name} = {v} outside [0, {hi})"));
+        }
+    }
+    if w.x.len() != s.x_lo.len() || w.x.iter().zip(s.x_lo.iter().zip(&s.x_hi)).any(|(x, (lo, hi))| x < lo || x > hi) {
+        return Err("model input outside the clipping box".into());
+    }
+    Ok(())
+}
+
 pub fn build(w: &Witness, pq: bool, tamper: &Tamper) -> RowMajorMatrix<BabyBear> {
     let width = ComposedAir::width_of(pq);
     let mut t = vec![BabyBear::ZERO; ROWS * width];
@@ -139,7 +160,7 @@ pub fn build(w: &Witness, pq: bool, tamper: &Tamper) -> RowMajorMatrix<BabyBear>
     let v0 = gt + fl - gt * fl;
     let viol = tamper.viol.unwrap_or(v0 + risk - v0 * risk);
     let exv = viol * (ru.q * vp - ru.p_detect * es - ru.q * cp) + ru.q * cp;
-    let ex = tamper.exec.unwrap_or((exv > ru.q * cp) as i64);
+    let ex = tamper.exec.unwrap_or(1 - viol + viol * (exv > ru.q * cp) as i64);
     let inv = if fl == 1 { BabyBear::ZERO } else { felt(d - pol.sanctioned_id).inverse() };
     let mut regs = [BabyBear::ZERO; REGS];
     for (i, v) in [
@@ -160,6 +181,13 @@ pub fn build(w: &Witness, pq: bool, tamper: &Tamper) -> RowMajorMatrix<BabyBear>
         (5, exv - ru.q * cp - 1 + OFF),
         (ROW_RISK, (2 * risk - 1) * dd - (1 - risk)),
     ];
+    let honest = tamper.risk.is_none() && tamper.exec.is_none() && tamper.viol.is_none() && tamper.cell.is_none();
+    if honest {
+        // an honest prover never clamps: a value outside the window would give a proof that fails to verify
+        for (row, v) in windows {
+            assert!((0..1i64 << WB).contains(&v), "witness outside the proof domain: comparison window {row} = {v}");
+        }
+    }
     for row in 0..ROWS {
         let r = &mut t[row * width..(row + 1) * width];
         r[RB..RB + REGS].copy_from_slice(&regs);

@@ -44,7 +44,9 @@ fn main() {
             let ms = t.elapsed().as_secs_f64() * 1e3;
             std::fs::write(&args[3], &proof).expect("write proof");
             std::fs::write(&args[4], serde_json::to_string(&st).unwrap()).expect("write statement");
-            println!("{}", serde_json::json!({"prove_ms": ms, "proof_bytes": proof.len(), "exec": st.exec(), "viol": st.viol()}));
+            // `risk` (the H1 flag) is private to the operator: it is printed locally, never put in the statement
+            let risk = model::decide(&w.x, &w.decision, &w.policy).2;
+            println!("{}", serde_json::json!({"prove_ms": ms, "proof_bytes": proof.len(), "exec": st.exec(), "viol": st.viol(), "risk": risk}));
         }
         "verify" => {
             let proof = std::fs::read(&args[2]).expect("proof");

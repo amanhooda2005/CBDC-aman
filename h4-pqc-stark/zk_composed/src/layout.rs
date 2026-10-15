@@ -59,9 +59,16 @@ pub const EXV: usize = 17; // execute payoff
 pub const EX: usize = 18; // EXEC
 pub const REGS: usize = 19;
 pub const WIN: usize = REGS;
-pub const WB: usize = 22;
+/// Shared comparison window: 30 bits, signed values in [-2^29, 2^29). It must hold EXV - q*CP - 1,
+/// whose magnitude reaches q*VP + p_detect*min(S, slash) + q*CP; with slash < 2^POLICY_BITS and
+/// q = p_detect = 256 that is < 2^29. (22 bits only covered the unescalated slash.) Every window value
+/// stays below p - 2^30 in magnitude, so its sign decomposition is unique in BabyBear.
+pub const WB: usize = 30;
 pub const TOP: usize = WB - 1;
 pub const OFF: i64 = 1 << TOP;
+/// Public policy values (limit M, slash) and the private stake are in [0, 2^POLICY_BITS); the verifier
+/// rejects statements outside this domain and the prover refuses witnesses outside it.
+pub const POLICY_BITS: usize = 20;
 pub const CB: usize = 12; // compliant payoff in [0, 2^12)
 pub const VB: usize = 13; // violation payoff in [0, 2^13)
 pub const RULE_WIDTH: usize = REGS + WB;

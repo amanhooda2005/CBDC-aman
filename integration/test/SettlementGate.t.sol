@@ -79,6 +79,15 @@ contract SettlementGateTest is Test {
         assertEq(uint256(gate.settle(r3, _sigs(r3, 3))), uint256(SettlementGate.Outcome.Executed));
     }
 
+    function test_declinedViolation_neitherMovesNorSlashes() public {
+        SettlementGate.Request memory r = _req(20_000, false, true, 7);
+        assertEq(uint256(gate.settle(r, _sigs(r, 3))), uint256(SettlementGate.Outcome.AgentRefused));
+        assertEq(gate.balanceOf(bob), 0);
+        (, uint32 k, uint128 stake,,) = reg.operators(op);
+        assertEq(k, 0);
+        assertEq(stake, 100 * U);
+    }
+
     function test_agentRefusal_movesNothing() public {
         SettlementGate.Request memory r = _req(500, false, false, 5);
         assertEq(uint256(gate.settle(r, _sigs(r, 3))), uint256(SettlementGate.Outcome.AgentRefused));

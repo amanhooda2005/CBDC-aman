@@ -127,7 +127,10 @@ pub fn decide(x: &[i64], d: &Decision, policy: &Policy) -> (i64, i64, i64) {
     let viol = (d.amount > policy.max_compliant || d.dest == policy.sanctioned_id || risk == 1) as i64;
     let es = (d.staked == 1 && d.stake > 0) as i64 * d.stake.min(policy.slash);
     let exv = if viol == 1 { r.q * d.violation - r.p_detect * es } else { r.q * d.compliant };
-    ((exv > r.q * d.compliant) as i64, viol, risk)
+    // EXEC: a compliant transfer is executed (it is the agent's job; H3's refuse-on-tie only matters for
+    // violating offers); a violating one only if its expected payoff beats complying (the H3 rule)
+    let exec = if viol == 1 { (exv > r.q * d.compliant) as i64 } else { 1 };
+    (exec, viol, risk)
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]

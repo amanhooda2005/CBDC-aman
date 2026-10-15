@@ -62,6 +62,11 @@ fn to_felts(v: &[u64]) -> Vec<BabyBear> {
 
 /// Proves the witness; `hiding_seed = None` uses OS randomness. Returns (proof bytes, statement).
 pub fn prove(w: &Witness, variant: Variant, hiding_seed: Option<u64>, tamper: &Tamper) -> (Vec<u8>, Statement) {
+    let honest = tamper.risk.is_none() && tamper.exec.is_none() && tamper.viol.is_none() && tamper.cell.is_none()
+        && tamper.committed_amount.is_none();
+    if honest {
+        trace::domain_check(w).unwrap_or_else(|e| panic!("witness outside the proof domain: {e}"));
+    }
     let air = ComposedAir::new(variant.pq);
     let pv = trace::public_values(w, variant.pq);
     let tr = trace::build(w, variant.pq, tamper);
@@ -83,6 +88,11 @@ pub fn verify(proof: &[u8], st: &Statement) -> Result<(), String> {
     let air = ComposedAir::new(st.variant.pq);
     if st.public.len() != ComposedAir::num_public_values_of(st.variant.pq) {
         return Err("wrong number of public values".into());
+    }
+    // statement domain (layout::POLICY_BITS): the comparison windows are sound only for these ranges
+    let lim = 1u64 << layout::POLICY_BITS;
+    if st.public[layout::PV_M] >= lim || st.public[layout::PV_SLASH] >= lim || st.public[layout::PV_SID] >= lim {
+        return Err("policy value outside the proof domain".into());
     }
     let pv = to_felts(&st.public);
     if st.variant.zk {
