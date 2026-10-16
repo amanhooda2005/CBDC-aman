@@ -139,6 +139,10 @@ Timing and cost (honest transactions, mean):
 3. Validators now wait until their own node has reached the block at which the operator read the policy,
    so a node that imports a block a few milliseconds late does not reject a correct proof.
 
+## Evidence
+
+Raw logs, the exported ledger and an audit that reconciles every run with the chain itself: see [`docs/EVIDENCE.md`](../docs/EVIDENCE.md) (`pipeline/audit_chain.py`, results in `pipeline/audit/`).
+
 ## Running it
 
 Requirements: Besu 25.x (Java 21), Foundry, Python 3.11+ with `web3`, `eth-account`, `numpy`, `pandas`;
