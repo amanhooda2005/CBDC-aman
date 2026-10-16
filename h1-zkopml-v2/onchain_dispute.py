@@ -25,6 +25,8 @@ import asyncio
 import json
 import os
 import pickle
+import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -46,6 +48,7 @@ HERE = Path(__file__).parent
 BIN = os.environ.get("FOUNDRY_BIN", os.path.expanduser("~/.foundry/bin"))
 SOLC = os.environ.get("SOLC", "/root/.solc/solc-0.8.24")
 PORT = int(os.environ.get("ANVIL_PORT", 8645))
+RECORD = None   # --record DIR: transaction log, proofs and a dump of the chain state for independent checking
 RPC = f"http://127.0.0.1:{PORT}"
 KEYS = {"deployer": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
         "asserter": "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
@@ -167,9 +170,19 @@ def setup(steps, calib_q, wd):
 
 # ===================================================================== chain helpers
 class Chain:
-    def __init__(self):
+    def __init__(self, record=None):
         self.w3 = Web3(Web3.HTTPProvider(RPC, request_kwargs={"timeout": 120}))
         self.acct = {n: Account.from_key(k) for n, k in KEYS.items()}
+        self.log = open(Path(record) / "transactions.jsonl", "a") if record else None
+        self.context = ""
+
+    def _record(self, who, fn, rc, tx_hash):
+        if self.log:
+            name = "deploy" if fn is None else fn.fn_name
+            self.log.write(json.dumps({"scenario": self.context, "who": who, "function": name, "tx": "0x" + bytes(tx_hash).hex(),
+                                       "block": rc.blockNumber, "status": rc.status, "gas": rc.gasUsed,
+                                       "contract": rc.contractAddress or rc.to}) + "\n")
+            self.log.flush()
 
     def send(self, who, fn=None, *, deploy=None, value=0, gas=25_000_000):
         a = self.acct[who]
@@ -178,6 +191,7 @@ class Chain:
         tx = (self.w3.eth.contract(abi=deploy[0], bytecode=deploy[1]).constructor(*deploy[2]) if deploy else fn).build_transaction(base)
         h = self.w3.eth.send_raw_transaction(a.sign_transaction(tx).raw_transaction)
         rc = self.w3.eth.wait_for_transaction_receipt(h)
+        self._record(who, fn, rc, h)
         return rc
 
     def must(self, who, fn, **kw):
@@ -234,6 +248,10 @@ def prove_step(man, k, inputs, wd, tag, compiled_override=None):
     prove_s = time.time() - t
     ok = ezkl.verify(str(prf), str(d / "settings.json"), str(d / "vk.key"), srs_path=g["srs"])
     cd = bytes(ezkl.encode_evm_calldata(str(prf), str(wd / f"{tag}_calldata.bytes")))
+    if RECORD:   # the exact verifyProof calldata, so anyone can re-run the verifier on the recorded chain state
+        (Path(RECORD) / "proofs").mkdir(exist_ok=True)
+        shutil.copy(wd / f"{tag}_calldata.bytes", Path(RECORD) / "proofs" / f"{tag}_verifyProof_calldata.bin")
+        shutil.copy(prf, Path(RECORD) / "proofs" / f"{tag}_proof.json")
     proof_bytes, instances = abi_decode(["bytes", "uint256[]"], cd[4:])
     return proof_bytes, list(instances), {"prove_s": prove_s, "verified_offchain": bool(ok), "proof_bytes": len(proof_bytes)}
 
@@ -313,6 +331,9 @@ def play(ch, game, man, steps, x, sc, wd, sid):
                 msg = str(e)
                 res["wrong_weights_proof"] = {"verified_offchain": pinfo["verified_offchain"],
                                               "rejected_onchain": msg[msg.find("params"):][:60] if "params" in msg else msg[:120]}
+                if RECORD:   # also put the rejected attempt on the chain, so it is visible as a reverted transaction
+                    rc = ch.send("asserter", game.functions.resolve(did, claim, proof, inst, ops), gas=15_000_000)
+                    res["wrong_weights_proof"]["onchain_tx_status"] = rc.status
         proof, inst, pinfo = prove_step(man, k, ins, wd, f"s{sid}")
         res.update(step_name=steps[k]["name"], shape=man["steps"][k]["shape"], n_instances=len(inst), **pinfo)
         fn = game.functions.resolve(did, claim, proof, inst, ops)
@@ -334,7 +355,12 @@ def main():
     ap.add_argument("--blocks", type=int, default=60)
     ap.add_argument("--data", default=None)
     ap.add_argument("--scenarios", default=",".join(str(i) for i in range(len(SCENARIOS))))
+    ap.add_argument("--record", default=None, help="directory for transactions.jsonl, proofs/ and anvil_state.json")
     a = ap.parse_args()
+    global RECORD
+    if a.record:
+        RECORD = str(Path(a.record).resolve())
+        Path(RECORD).mkdir(parents=True, exist_ok=True)
     wd = HERE / f"work/onchain_S{a.blocks}"
     wd.mkdir(parents=True, exist_ok=True)
     m = pickle.load(open(HERE / f"models/W32_B{a.blocks}.pkl", "rb"))
@@ -342,10 +368,11 @@ def main():
     x, calib, src = load_input(a.data)
     man = setup(steps, run_steps(steps, calib), wd)
 
-    anvil = subprocess.Popen([f"{BIN}/anvil", "--port", str(PORT), "--code-size-limit", "1000000", "--gas-limit", "300000000", "--silent"])
+    dump = ["--dump-state", str(Path(RECORD) / "anvil_state.json")] if RECORD else []
+    anvil = subprocess.Popen([f"{BIN}/anvil", "--port", str(PORT), "--code-size-limit", "1000000", "--gas-limit", "300000000", "--silent", *dump])
     time.sleep(2)
     try:
-        ch = Chain()
+        ch = Chain(RECORD)
         out = {"model": f"W32_B{a.blocks}", "n_steps": len(steps), "input": src, "verifiers": {}, "scenarios": {}}
         vaddr = {}
         for shape, gr in man["groups"].items():
@@ -363,14 +390,24 @@ def main():
         out["verifier_deploy_gas_total"] = sum(v["deploy_gas"] for v in out["verifiers"].values())
         ch.must("asserter", game.functions.depositBond(), value=20 * 10**18)
         for sid in [int(s) for s in a.scenarios.split(",")]:
+            ch.context = str(sid)
             r = play(ch, game, man, steps, x, SCENARIOS[sid], wd, sid)
+            r["dispute_id"] = "0x" + bytes(game.functions.disputeId(game.functions.nClaims().call() - 1, ch.acct["challenger"].address).call()).hex()
             out["scenarios"][str(sid)] = r
             print(json.dumps({k: v for k, v in r.items() if k != "gas"}), "| game gas", r["gas"]["game_total"], flush=True)
         out["all_correct"] = all(r["outcome_correct"] for r in out["scenarios"].values())
-        json.dump(out, open(HERE / f"results/onchain_disputes_B{a.blocks}{'_elliptic' if a.data else ''}.json", "w"), indent=2, default=str)
+        if not RECORD:   # a recorded re-run goes to its own folder and leaves the committed result files alone
+            json.dump(out, open(HERE / f"results/onchain_disputes_B{a.blocks}{'_elliptic' if a.data else ''}.json", "w"), indent=2, default=str)
         print("all outcomes correct:", out["all_correct"])
+        if RECORD:
+            out["contracts"] = {"game": game.address, "verifiers": vaddr}
+            json.dump(out, open(Path(RECORD) / "result.json", "w"), indent=2, default=str)
     finally:
-        anvil.terminate()
+        anvil.send_signal(signal.SIGINT)   # graceful stop, so --dump-state writes the chain state
+        try:
+            anvil.wait(60)
+        except subprocess.TimeoutExpired:
+            anvil.kill()
 
 
 if __name__ == "__main__":

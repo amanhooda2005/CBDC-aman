@@ -1,0 +1,121 @@
+25/1000  last: AgentRefused sigs=3 fault=None  4997 ms
+50/1000  last: Executed     sigs=3 fault=None  2049 ms
+75/1000  last: AgentRefused sigs=3 fault=None  1071 ms
+100/1000  last: AgentRefused sigs=3 fault=None  1998 ms
+125/1000  last: Executed     sigs=3 fault=None  5061 ms
+150/1000  last: AgentRefused sigs=3 fault=None  2026 ms
+175/1000  last: AgentRefused sigs=3 fault=None  5174 ms
+200/1000  last: NotSubmitted sigs=0 fault=flip_viol  803 ms
+225/1000  last: Executed     sigs=3 fault=None  4340 ms
+250/1000  last: AgentRefused sigs=3 fault=None  4962 ms
+275/1000  last: AgentRefused sigs=3 fault=None  1918 ms
+300/1000  last: AgentRefused sigs=3 fault=None  5074 ms
+325/1000  last: NotSubmitted sigs=0 fault=stale_slash  716 ms
+350/1000  last: AgentRefused sigs=3 fault=None  4339 ms
+375/1000  last: Executed     sigs=4 fault=None  2450 ms
+400/1000  last: AgentRefused sigs=4 fault=None  2002 ms
+425/1000  last: AgentRefused sigs=4 fault=None  2170 ms
+450/1000  last: AgentRefused sigs=4 fault=None  1988 ms
+475/1000  last: Executed     sigs=4 fault=None  2142 ms
+500/1000  last: Executed     sigs=4 fault=None  2040 ms
+525/1000  last: Executed     sigs=4 fault=None  1945 ms
+550/1000  last: AgentRefused sigs=4 fault=None  1947 ms
+575/1000  last: AgentRefused sigs=4 fault=None  2020 ms
+600/1000  last: AgentRefused sigs=4 fault=None  2018 ms
+625/1000  last: Executed     sigs=4 fault=None  2042 ms
+650/1000  last: AgentRefused sigs=4 fault=None  2119 ms
+675/1000  last: AgentRefused sigs=4 fault=None  2083 ms
+700/1000  last: AgentRefused sigs=4 fault=None  1987 ms
+725/1000  last: Executed     sigs=4 fault=None  1852 ms
+750/1000  last: AgentRefused sigs=4 fault=None  1988 ms
+775/1000  last: NotSubmitted sigs=0 fault=stale_slash  843 ms
+800/1000  last: AgentRefused sigs=4 fault=None  2038 ms
+825/1000  last: NotSubmitted sigs=0 fault=stale_slash  746 ms
+850/1000  last: Executed     sigs=4 fault=None  1927 ms
+875/1000  last: Executed     sigs=4 fault=None  1903 ms
+900/1000  last: Executed     sigs=4 fault=None  1899 ms
+925/1000  last: AgentRefused sigs=4 fault=None  2042 ms
+950/1000  last: Executed     sigs=4 fault=None  1759 ms
+975/1000  last: Executed     sigs=4 fault=None  2389 ms
+1000/1000  last: AgentRefused sigs=4 fault=None  1103 ms
+{
+ "source": "synthetic",
+ "n": 1000,
+ "faults_injected": 100,
+ "wall_s": 2352.3,
+ "throughput_tx_per_min": 25.5,
+ "honest": {
+  "n": 900,
+  "outcomes": {
+   "AgentRefused": 555,
+   "Executed": 344,
+   "NotSubmitted": 1
+  },
+  "settled_with_expected_outcome": 899,
+  "settled": 899,
+  "all_signatures": 568
+ },
+ "faulty": {
+  "n": 100,
+  "by_type": {
+   "amount_swap": 17,
+   "corrupt_proof": 19,
+   "flip_viol": 26,
+   "stale_slash": 24,
+   "wrong_model": 14
+  },
+  "outcomes": {
+   "NotSubmitted": 100
+  },
+  "reached_quorum": 0,
+  "ledger_changed": 0
+ },
+ "risk_flags": {
+  "viol_1": 556,
+  "h1_risk_1": 0
+ },
+ "timing_ms": {
+  "prove_ms": {
+   "mean": 696.64,
+   "median": 663.24,
+   "p95": 955.65
+  },
+  "attest_ms": {
+   "mean": 238.76,
+   "median": 223.54,
+   "p95": 327.71
+  },
+  "validator_check_ms": {
+   "mean": 149.92,
+   "median": 145.07,
+   "p95": 230.91
+  },
+  "settle_ms": {
+   "mean": 1526.5,
+   "median": 1065.94,
+   "p95": 4225.53
+  },
+  "end_to_end_ms": {
+   "mean": 2511.6,
+   "median": 2009.17,
+   "p95": 5116.14
+  }
+ },
+ "gas": {
+  "settle": {
+   "mean": 88389.06,
+   "median": 84021,
+   "p95": 103099
+  },
+  "top_up": null
+ },
+ "proof_bytes": {
+  "mean": 170008.9,
+  "median": 170092.0,
+  "p95": 173005
+ },
+ "operator_final": {
+  "violations_k": 1,
+  "stake_units": 25600
+ }
+}

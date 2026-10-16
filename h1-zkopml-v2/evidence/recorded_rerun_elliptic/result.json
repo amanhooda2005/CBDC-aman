@@ -1,0 +1,347 @@
+{
+  "model": "W32_B60",
+  "n_steps": 63,
+  "input": {
+    "source": "Elliptic test period",
+    "index_in_test": 3915,
+    "label_illicit": 1
+  },
+  "verifiers": {
+    "proj": {
+      "steps_served": 2,
+      "logrows": 17,
+      "deploy_gas": 5376345,
+      "bytecode_kb": 24.06640625,
+      "setup_s": 100.71842885017395,
+      "pk_mb": 1820.806723
+    },
+    "join": {
+      "steps_served": 1,
+      "logrows": 16,
+      "deploy_gas": 3943098,
+      "bytecode_kb": 17.595703125,
+      "setup_s": 41.507290840148926,
+      "pk_mb": 658.663971
+    },
+    "block": {
+      "steps_served": 59,
+      "logrows": 16,
+      "deploy_gas": 3943386,
+      "bytecode_kb": 17.5966796875,
+      "setup_s": 23.239781379699707,
+      "pk_mb": 658.663971
+    },
+    "head": {
+      "steps_served": 1,
+      "logrows": 12,
+      "deploy_gas": 3957182,
+      "bytecode_kb": 17.6591796875,
+      "setup_s": 3.0069191455841064,
+      "pk_mb": 41.168931
+    }
+  },
+  "scenarios": {
+    "0": {
+      "scenario": "asserter cheats at a projection step",
+      "cheat": "asserter",
+      "cheated_step": 0,
+      "n_steps": 63,
+      "bisection_rounds": 5,
+      "found_step": 0,
+      "located_correctly": true,
+      "step_name": "proj0",
+      "shape": "proj",
+      "n_instances": 167,
+      "prove_s": 152.76199746131897,
+      "verified_offchain": true,
+      "proof_bytes": 6016,
+      "winner": "challenger",
+      "decided_by": "step proof contradicts asserter leaf",
+      "gas": {
+        "commit": 71788,
+        "challenge": 147147,
+        "openFinal": 98341,
+        "reveal": [
+          85712,
+          54309,
+          51494,
+          51479,
+          51452
+        ],
+        "respond": [
+          47037,
+          47037,
+          47037,
+          47037,
+          49211
+        ],
+        "resolve": 1132035,
+        "game_total": 1909328
+      },
+      "outcome_correct": true,
+      "dispute_id": "0xd8fe93615b7385692347b37ddfe99f5a80ce47c99f05d95ec62db85763c7c835"
+    },
+    "1": {
+      "scenario": "asserter cheats at the join step",
+      "cheat": "asserter",
+      "cheated_step": 2,
+      "n_steps": 63,
+      "bisection_rounds": 6,
+      "found_step": 2,
+      "located_correctly": true,
+      "step_name": "u1",
+      "shape": "join",
+      "n_instances": 4,
+      "prove_s": 51.6585636138916,
+      "verified_offchain": true,
+      "proof_bytes": 3840,
+      "winner": "challenger",
+      "decided_by": "step proof contradicts asserter leaf",
+      "gas": {
+        "commit": 54688,
+        "challenge": 147159,
+        "openFinal": 98341,
+        "reveal": [
+          85712,
+          51509,
+          51482,
+          51467,
+          51452,
+          54279
+        ],
+        "respond": [
+          47037,
+          47037,
+          47037,
+          47037,
+          59852,
+          49045
+        ],
+        "resolve": 717955,
+        "game_total": 1606401
+      },
+      "outcome_correct": true,
+      "dispute_id": "0x5b2cfa0797886aa5406f4077678c1869b3ee15fbb4179caecd91a7d8c9ffe628"
+    },
+    "2": {
+      "scenario": "asserter cheats at a middle block",
+      "cheat": "asserter",
+      "cheated_step": 30,
+      "n_steps": 63,
+      "bisection_rounds": 6,
+      "found_step": 30,
+      "located_correctly": true,
+      "step_name": "u29",
+      "shape": "block",
+      "n_instances": 3,
+      "prove_s": 53.15649914741516,
+      "verified_offchain": true,
+      "proof_bytes": 3840,
+      "winner": "challenger",
+      "decided_by": "step proof contradicts asserter leaf",
+      "gas": {
+        "commit": 54688,
+        "challenge": 147159,
+        "openFinal": 98329,
+        "reveal": [
+          88500,
+          51509,
+          51509,
+          51485,
+          51473,
+          51488
+        ],
+        "respond": [
+          47037,
+          59852,
+          42752,
+          42752,
+          42752,
+          49045
+        ],
+        "resolve": 711411,
+        "game_total": 1587053
+      },
+      "outcome_correct": true,
+      "dispute_id": "0xda77e37872bfd8c86620a8673d8fbca847071f6e195555ba58e4472667f149f1"
+    },
+    "3": {
+      "scenario": "asserter cheats at the head (the decision)",
+      "cheat": "asserter",
+      "cheated_step": 62,
+      "n_steps": 63,
+      "bisection_rounds": 6,
+      "found_step": 62,
+      "located_correctly": true,
+      "step_name": "u61",
+      "shape": "head",
+      "n_instances": 3,
+      "prove_s": 3.505275249481201,
+      "verified_offchain": true,
+      "proof_bytes": 3840,
+      "winner": "challenger",
+      "decided_by": "step proof contradicts asserter leaf",
+      "gas": {
+        "commit": 54676,
+        "challenge": 147147,
+        "openFinal": 98329,
+        "reveal": [
+          85712,
+          51524,
+          51512,
+          51524,
+          51524,
+          51527
+        ],
+        "respond": [
+          59852,
+          42752,
+          42752,
+          42752,
+          42752,
+          49045
+        ],
+        "resolve": 711346,
+        "game_total": 1580050
+      },
+      "outcome_correct": true,
+      "dispute_id": "0x417201b0bb9f7faa02277d46d461a59821380affadab5e0e37a338fde8d385c9"
+    },
+    "4": {
+      "scenario": "false challenge against an honest asserter",
+      "cheat": "challenger",
+      "cheated_step": 33,
+      "n_steps": 63,
+      "bisection_rounds": 6,
+      "found_step": 33,
+      "located_correctly": true,
+      "step_name": "u32",
+      "shape": "block",
+      "n_instances": 3,
+      "prove_s": 15.142296314239502,
+      "verified_offchain": true,
+      "proof_bytes": 3840,
+      "winner": "asserter",
+      "decided_by": "step proof matches asserter leaf",
+      "gas": {
+        "commit": 54688,
+        "challenge": 147159,
+        "openFinal": 98329,
+        "reveal": [
+          85712,
+          54312,
+          51485,
+          51470,
+          51467,
+          54282
+        ],
+        "respond": [
+          59852,
+          47037,
+          47037,
+          47037,
+          42752,
+          51330
+        ],
+        "resolve": 722751,
+        "game_total": 1612012
+      },
+      "outcome_correct": true,
+      "dispute_id": "0xa18eef87bcb5c829331b036f721ef6989390dec85759e538630c81bab9b47f67"
+    },
+    "5": {
+      "scenario": "malformed prefix chain (honest leaf at the disputed step)",
+      "cheat": "asserter_malformed_chain",
+      "cheated_step": 40,
+      "n_steps": 63,
+      "bisection_rounds": 6,
+      "found_step": 40,
+      "located_correctly": true,
+      "winner": "challenger",
+      "decided_by": "prefix-chain consistency check, no proof",
+      "gas": {
+        "commit": 54688,
+        "challenge": 147159,
+        "openFinal": 98305,
+        "reveal": [
+          85712,
+          51524,
+          51473,
+          51509,
+          51482,
+          54276
+        ],
+        "respond": [
+          59852,
+          47037,
+          42752,
+          47037,
+          47037,
+          70434
+        ],
+        "game_total": 905589
+      },
+      "outcome_correct": true,
+      "dispute_id": "0xae049abee47d452b17b04bd03a46f025050be127b46c0c503f6abb6ece94bd87"
+    },
+    "6": {
+      "scenario": "attack: valid proof made with another block's weights",
+      "cheat": "asserter",
+      "cheated_step": 20,
+      "n_steps": 63,
+      "bisection_rounds": 6,
+      "found_step": 20,
+      "located_correctly": true,
+      "wrong_weights_proof": {
+        "verified_offchain": true,
+        "rejected_onchain": "params instance != step weights', '0x08c379a0000000000000000",
+        "onchain_tx_status": 0
+      },
+      "step_name": "u19",
+      "shape": "block",
+      "n_instances": 3,
+      "prove_s": 15.369460344314575,
+      "verified_offchain": true,
+      "proof_bytes": 3840,
+      "winner": "challenger",
+      "decided_by": "step proof contradicts asserter leaf",
+      "gas": {
+        "commit": 54688,
+        "challenge": 147159,
+        "openFinal": 98293,
+        "reveal": [
+          85712,
+          51509,
+          51497,
+          51494,
+          51494,
+          54309
+        ],
+        "respond": [
+          49837,
+          59852,
+          47037,
+          42752,
+          47037,
+          49045
+        ],
+        "resolve": 711555,
+        "game_total": 1598582
+      },
+      "outcome_correct": true,
+      "dispute_id": "0xbd757e691b2918dde0531b9215c04136494b7aa785963bff8637ebe9a53aee4a"
+    }
+  },
+  "game_deploy_gas": 8527528,
+  "verifier_deploy_gas_total": 17220011,
+  "all_correct": true,
+  "contracts": {
+    "game": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "verifiers": {
+      "proj": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "join": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "block": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "head": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+    }
+  }
+}

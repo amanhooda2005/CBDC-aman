@@ -58,6 +58,8 @@ Integration found two real defects, both fixed with regression tests: the compos
 once H3's slash escalated (a 22-bit comparison window; now 30 bits with a stated domain), and the proven
 rule could never execute a compliant transfer.
 
+Reviewers: the raw logs, the exported ledger and scripts that check every number against the chain are described in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
+
 Follow-up work per track (details in each README):
 - **H1 v2/v2.1:** hardened dispute contract (on-chain adjudication, prefix-consistency check, bonds,
   timeouts, per-challenger disputes; 17 Foundry tests) and complete on-chain games with **real EZKL
