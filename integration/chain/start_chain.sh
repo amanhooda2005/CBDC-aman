@@ -24,7 +24,7 @@ for i in 0 1 2 3; do
   nohup "$BESU" --data-path=data/node$i --genesis-file=networkFiles/genesis.json \
     --p2p-port=$((30303+i)) --rpc-http-enabled --rpc-http-port=$((8545+i)) \
     --rpc-http-api=ETH,NET,QBFT,WEB3,TXPOOL --host-allowlist="*" --rpc-http-cors-origins="all" \
-    --min-gas-price=0 --sync-min-peers=0 --logging=WARN "${extra[@]}" > logs/node$i.log 2>&1 &
+    --min-gas-price=0 --sync-min-peers=0 --logging=WARN ${extra[@]+"${extra[@]}"} > logs/node$i.log 2>&1 &
   echo $! > data/node$i.pid
   [ "$i" -eq 0 ] && sleep 8
 done
