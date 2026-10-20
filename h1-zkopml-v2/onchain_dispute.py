@@ -174,9 +174,15 @@ class Chain:
         self.w3 = Web3(Web3.HTTPProvider(RPC, request_kwargs={"timeout": 120}))
         self.acct = {n: Account.from_key(k) for n, k in KEYS.items()}
         self.log = open(Path(record) / "transactions.jsonl", "a") if record else None
+        # signed transactions + block timestamps: lets anyone rebuild the chain with any Foundry version
+        self.raw = open(Path(record) / "raw_transactions.jsonl", "a") if record else None
         self.context = ""
 
-    def _record(self, who, fn, rc, tx_hash):
+    def _record(self, who, fn, rc, tx_hash, raw=None):
+        if self.raw is not None and raw is not None:
+            self.raw.write(json.dumps({"tx": "0x" + bytes(tx_hash).hex(), "block": rc.blockNumber, "raw": "0x" + bytes(raw).hex(),
+                                       "timestamp": self.w3.eth.get_block(rc.blockNumber).timestamp}) + "\n")
+            self.raw.flush()
         if self.log:
             name = "deploy" if fn is None else fn.fn_name
             self.log.write(json.dumps({"scenario": self.context, "who": who, "function": name, "tx": "0x" + bytes(tx_hash).hex(),
@@ -189,9 +195,10 @@ class Chain:
         base = {"from": a.address, "nonce": self.w3.eth.get_transaction_count(a.address), "value": value, "gas": gas,
                 "gasPrice": self.w3.eth.gas_price, "chainId": self.w3.eth.chain_id}
         tx = (self.w3.eth.contract(abi=deploy[0], bytecode=deploy[1]).constructor(*deploy[2]) if deploy else fn).build_transaction(base)
-        h = self.w3.eth.send_raw_transaction(a.sign_transaction(tx).raw_transaction)
+        raw = a.sign_transaction(tx).raw_transaction
+        h = self.w3.eth.send_raw_transaction(raw)
         rc = self.w3.eth.wait_for_transaction_receipt(h)
-        self._record(who, fn, rc, h)
+        self._record(who, fn, rc, h, raw)
         return rc
 
     def must(self, who, fn, **kw):
@@ -355,7 +362,7 @@ def main():
     ap.add_argument("--blocks", type=int, default=60)
     ap.add_argument("--data", default=None)
     ap.add_argument("--scenarios", default=",".join(str(i) for i in range(len(SCENARIOS))))
-    ap.add_argument("--record", default=None, help="directory for transactions.jsonl, proofs/ and anvil_state.json")
+    ap.add_argument("--record", default=None, help="directory for transactions.jsonl, raw_transactions.jsonl, proofs/ and anvil_state.json")
     a = ap.parse_args()
     global RECORD
     if a.record:

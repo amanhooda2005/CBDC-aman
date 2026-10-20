@@ -9,7 +9,17 @@ deployed game contract and the four step verifiers it finds there:
      returns true, including the "other block's weights" proof, which the verifier accepts and the
      game rejected (its resolve transaction is on the chain with status 0).
 
-Usage: python3 verify_dispute_record.py DIR      (needs Foundry's anvil and web3)
+Two ways to rebuild the chain:
+  --state  load DIR/anvil_state.json. The state-file format is Foundry-version specific: it was
+           written by Foundry 1.5.1-stable (commit b0a9dd9, Dec 2025) and newer releases may refuse it.
+  --replay (default) start an empty anvil (hardfork Prague, chain id 31337, the recorded block gas limit) and send
+           the recorded signed transactions (DIR/raw_transactions.jsonl) in their original order. This
+           works with any Foundry version that supports Prague: the transactions are signed, so their hashes
+           and the contract addresses are reproduced exactly, and every contract call is re-executed by your
+           own EVM. Tested with Foundry 1.5.1-stable and 1.8.5 (both give identical results; 1.8.5
+           cannot load the state file).
+
+Usage: python3 verify_dispute_record.py DIR [--state]      (needs Foundry's anvil and web3)
 """
 import json
 import os
@@ -26,17 +36,45 @@ PORT = int(os.environ.get("ANVIL_PORT", 8655))
 PHASES = {5: "asserter", 6: "challenger"}
 
 
-def main(d):
+def replay(w3, d):
+    """Send the recorded signed transactions in order; one transaction per block, as in the original run."""
+    sent = 0
+    for line in open(d / "raw_transactions.jsonl"):
+        t = json.loads(line)
+        # same block timestamps as the original run: the game commits to the commit-block time (claim digest)
+        r = w3.provider.make_request("evm_setNextBlockTimestamp", [t["timestamp"]])
+        assert "error" not in r, r
+        h = w3.eth.send_raw_transaction(t["raw"])
+        assert "0x" + bytes(h).hex() == t["tx"], "replayed transaction hash differs"
+        w3.eth.wait_for_transaction_receipt(h)
+        sent += 1
+    return sent
+
+
+def main(d, mode="replay"):
     d = Path(d)
     res = json.load(open(d / "result.json"))
     txs = [json.loads(l) for l in open(d / "transactions.jsonl")]
-    anvil = subprocess.Popen([f"{BIN}/anvil", "--port", str(PORT), "--silent", "--code-size-limit", "1000000",
-                              "--gas-limit", "300000000", "--load-state", str(d / "anvil_state.json")])
+    base = [f"{BIN}/anvil", "--port", str(PORT), "--silent", "--code-size-limit", "1000000", "--gas-limit", "300000000"]
+    if mode == "state":
+        cmd = base + ["--load-state", str(d / "anvil_state.json")]
+    else:
+        first = json.loads(open(d / "raw_transactions.jsonl").readline())["timestamp"]
+        # genesis just before the first recorded block, so the original block timestamps can be replayed
+        cmd = base + ["--hardfork", "prague", "--chain-id", "31337", "--timestamp", str(first - 1)]
+    anvil = subprocess.Popen(cmd)
     time.sleep(3)
-    report = {"transactions": len(txs), "tx_found_with_logged_status_and_gas": 0, "tx_missing_or_different": [],
+    if anvil.poll() is not None:
+        sys.exit("anvil could not start" + (" from the state file (written by Foundry 1.5.1-stable; newer Foundry "
+                 "versions use another format). Run without --state to replay the signed transactions instead."
+                 if mode == "state" else "."))
+    version = subprocess.run([f"{BIN}/anvil", "--version"], capture_output=True, text=True).stdout.splitlines()[0]
+    report = {"mode": mode, "anvil": version, "transactions": len(txs), "tx_found_with_logged_status_and_gas": 0, "tx_missing_or_different": [],
               "scenarios": {}, "proofs": {}}
     try:
         w3 = Web3(Web3.HTTPProvider(f"http://127.0.0.1:{PORT}"))
+        if mode == "replay":
+            report["replayed_transactions"] = replay(w3, d)
         for t in txs:
             try:
                 rc = w3.eth.get_transaction_receipt(t["tx"])
@@ -71,9 +109,9 @@ def main(d):
     report["all_transactions_match"] = not report["tx_missing_or_different"]
     report["all_winners_match"] = all(s["agrees"] for s in report["scenarios"].values())
     report["all_proofs_verify_onchain"] = all(p["verifyProof_returns_true"] for p in report["proofs"].values())
-    json.dump(report, open(d / "verification_report.json", "w"), indent=1)
+    json.dump(report, open(d / f"verification_report{'_replay' if mode == 'replay' else ''}.json", "w"), indent=1)
     print(json.dumps(report, indent=1))
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], "state" if "--state" in sys.argv[2:] else "replay")

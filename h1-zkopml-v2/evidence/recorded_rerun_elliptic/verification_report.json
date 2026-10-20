@@ -1,4 +1,6 @@
 {
+ "mode": "state",
+ "anvil": "anvil Version: 1.5.1-stable",
  "transactions": 116,
  "tx_found_with_logged_status_and_gas": 116,
  "tx_missing_or_different": [],
