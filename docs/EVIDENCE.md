@@ -8,6 +8,7 @@ each check, from cheapest to strongest.
 |---|---|---|
 | Integrated runs (Elliptic 1,000 tx and the four synthetic runs): every honest request settled as recorded, no faulty request settled | `integration/pipeline/runs/*/transactions.csv` (driver record) | **Level 2:** replay the exported Besu chain and run `audit_chain.py` (10 min) |
 | H1 on-chain disputes with real EZKL verifiers: 7/7 scenarios correct | `h1-zkopml-v2/results/onchain_disputes_B60*.json` | **Level 2:** load the recorded chain state and run `verify_dispute_record.py` (2 min); **Level 3:** re-run `onchain_dispute.py --record` |
+| Independent validator (20–21 Oct 2026): a validator key and Besu node on a second person's machine, 4-of-4 gate; its validator signed exactly the 166 honest transfers, refused all 34 falsified ones, and nothing settled without it | `integration/evidence/independent_validator/` (both sides' records) | `python3 cross_check.py` in that folder (seconds); the reviewer's own-ledger check is `reviewer/my_check.json` |
 | Test suites | the repository | `forge test`, `pytest`, `cargo test` (already confirmed by the reviewer) |
 
 ## Level 1 – the raw records
@@ -155,6 +156,15 @@ python audit_chain.py /tmp/review-audit
 ```
 For an even stronger check, have someone outside the team run one validator on their own machine:
 see [`docs/INDEPENDENT_VALIDATOR.md`](INDEPENDENT_VALIDATOR.md).
+
+**Done once, 20–21 Oct 2026.** The network, the contract deployment and three validator keys ran on the
+MacBook of a person outside the team; the fourth key and a separate Besu node were on Aman's MacBook Air,
+connected over Tailscale, with the gate requiring all 4 signatures. Of 200 real Elliptic transfers (34
+deliberately falsified), the fourth validator signed exactly the 166 honest ones and refused all 34
+falsified ones, each for the matching reason; the ledger holds exactly those 166 settlements, each with 4
+signatures, and its own-ledger checks are all `true`. A first attempt in which that validator could not be
+reached settled nothing. Records, results and a cross-check script are in
+[`integration/evidence/independent_validator/`](../integration/evidence/independent_validator/README.md).
 
 ## Why `docs/EXHAUSTIVE_REPORT.md` changes when rebuilt
 Five generated parts depend on when and where the build runs: the commit count (read from `git log`; the

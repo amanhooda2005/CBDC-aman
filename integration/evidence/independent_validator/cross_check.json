@@ -1,0 +1,34 @@
+{
+ "reviewer_decisions": 200,
+ "reviewer_signed": 166,
+ "reviewer_refused": 34,
+ "host_honest": 166,
+ "host_falsified": 34,
+ "host_settled": 166,
+ "settled_equals_reviewer_signed": true,
+ "settled_equals_honest": true,
+ "signatures_on_settled": {
+  "4": 166
+ },
+ "signatures_on_falsified": {
+  "0": 34
+ },
+ "reason_matches_falsification": true,
+ "refusals_by_falsification": {
+  "wrong_model": 10,
+  "flip_viol": 4,
+  "stale_slash": 6,
+  "amount_swap": 8,
+  "corrupt_proof": 6
+ },
+ "host_validator_0_same_request_ids_and_decisions": true,
+ "host_validator_1_same_request_ids_and_decisions": true,
+ "host_validator_2_same_request_ids_and_decisions": true,
+ "first_attempt_reviewer_unreachable_settled": 0,
+ "reviewer_own_ledger_check": {
+  "check1_every_settlement_with_my_signature_was_signed_by_me": true,
+  "check2_no_settlement_with_my_signature_for_a_request_i_refused": true,
+  "check3_strict_gate_nothing_settled_without_me": true
+ },
+ "all_ok": true
+}

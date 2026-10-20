@@ -58,7 +58,7 @@ Integration found two real defects, both fixed with regression tests: the compos
 once H3's slash escalated (a 22-bit comparison window; now 30 bits with a stated domain), and the proven
 rule could never execute a compliant transfer.
 
-Reviewers: the raw logs, the exported ledger and scripts that check every number against the chain are described in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
+Reviewers: the raw logs, the exported ledger and scripts that check every number against the chain are described in [`docs/EVIDENCE.md`](docs/EVIDENCE.md). A run with one validator key and Besu node on a second person's machine (4-of-4 gate, 200 Elliptic transfers, all 34 falsified ones refused, nothing settled without that validator) is in [`integration/evidence/independent_validator/`](integration/evidence/independent_validator/README.md).
 
 Follow-up work per track (details in each README):
 - **H1 v2/v2.1:** hardened dispute contract (on-chain adjudication, prefix-consistency check, bonds,
