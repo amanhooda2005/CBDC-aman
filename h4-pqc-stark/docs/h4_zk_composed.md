@@ -165,6 +165,11 @@ The proof uses no number-theoretic assumption: only hashing, polynomial identity
 | Conservative (generic QROM loss applied to the 111-bit proven figure) | ≈ 55 |
 | Without the QROM loss, limited by the best quantum collision attack on the hash | ≈ 99 |
 
+**Comparison with the earlier construction (state this when quoting v4):** the v4 proof's quantum estimate
+(≈ 62 bits) is **weaker** than v3's under the same argument (≈ 63 bits; v3 is 126-bit conjectured against
+v4's 124), and far below the "≥ 2⁶¹⁵ quantum" quoted earlier, which described only the commitment. v4 gains
+zero-knowledge and pays about 2 bits of conjectured security, set by the 248-bit Poseidon2 digest.
+
 **Single number to state:** **124-bit classical (conjectured) / 111-bit proven**, and **≈ 62-bit
 quantum security under the conservative generic QROM bound.** The lattice commitment's binding is
 unconditional.

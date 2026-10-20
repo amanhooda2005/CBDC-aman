@@ -65,31 +65,66 @@ Result (`pipeline/audit/audit_report.json`; per-transaction table in `settlement
   - 6 from a smoke test after the validator-retry change (10:56 IST);
   - 5 from a smoke test of the Elliptic path (13:43 IST).
 
-**To repeat it** (needs Hyperledger Besu 25.x, Java 21, Python with `web3`; Foundry only for `forge build`):
+**To repeat it.** Versions we used: Hyperledger Besu 25.10.0 (Java 21), Python 3.13 with `web3` 8.0,
+Foundry 1.5.1-stable (only for `forge build`, which produces the ABIs the decoder needs).
+
+Every Besu node needs a node key. A bare-metal install creates one inside `--data-path`, but under
+Docker the mounted folder is often not writable for the container user, so create one yourself and pass
+it explicitly. Any key works: this node only replays blocks and never signs.
 ```bash
 cd integration && forge build                      # contract ABIs for the decoder
 gunzip -k evidence/cbdc_besu_chain.blocks.gz
-besu --data-path=/tmp/cbdc-replay --genesis-file=evidence/genesis.json blocks import --from=evidence/cbdc_besu_chain.blocks
-besu --data-path=/tmp/cbdc-replay --genesis-file=evidence/genesis.json --rpc-http-enabled \
+mkdir -p /tmp/cbdc-replay && echo "0x$(openssl rand -hex 32)" > /tmp/cbdc-replay/key
+besu --data-path=/tmp/cbdc-replay/data --genesis-file=evidence/genesis.json \
+     --node-private-key-file=/tmp/cbdc-replay/key blocks import --from=evidence/cbdc_besu_chain.blocks
+besu --data-path=/tmp/cbdc-replay/data --genesis-file=evidence/genesis.json \
+     --node-private-key-file=/tmp/cbdc-replay/key --rpc-http-enabled \
      --rpc-http-api=ETH,NET,QBFT,WEB3 --p2p-enabled=false &        # read-only node on 127.0.0.1:8545
 cd pipeline && python audit_chain.py /tmp/cbdc-audit             # compare with pipeline/audit/audit_report.json
+```
+With Docker (`hyperledger/besu:25.10.0`), the same two Besu commands become (we tested the key-file
+flags with the native Besu 25.10.0 install; our build environment could not pull the Docker image):
+```bash
+mkdir -p replay && echo "0x$(openssl rand -hex 32)" > replay/key
+docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/evidence:/ev:ro" -v "$PWD/replay:/r" hyperledger/besu:25.10.0 \
+  --data-path=/r/data --genesis-file=/ev/genesis.json --node-private-key-file=/r/key \
+  blocks import --from=/ev/cbdc_besu_chain.blocks
+docker run -d --name cbdc-replay -u "$(id -u):$(id -g)" -p 8545:8545 -v "$PWD/evidence:/ev:ro" -v "$PWD/replay:/r" \
+  hyperledger/besu:25.10.0 --data-path=/r/data --genesis-file=/ev/genesis.json --node-private-key-file=/r/key \
+  --rpc-http-enabled --rpc-http-host=0.0.0.0 --host-allowlist="*" --rpc-http-api=ETH,NET,QBFT,WEB3 --p2p-enabled=false
 ```
 Importing re-executes every block, so the replayed state (balances, slashes, registry) is recomputed
 by your own node, not copied from ours. We ran exactly these commands on a fresh data directory; the
 report was identical to the one from the original node.
 
 ### On-chain disputes: `h1-zkopml-v2/verify_dispute_record.py`
-It starts `anvil` from the recorded state and checks that all 116 logged transactions exist with the
+It rebuilds the recorded dispute chain and checks that all 116 logged transactions exist with the
 logged status and gas; that each dispute's final phase, read from the game contract, names the winner
 the summary reports; and that every recorded step proof, sent to its on-chain verifier, returns true.
 
-Result (`evidence/recorded_rerun_elliptic/verification_report.json`): 116/116 transactions match,
-7/7 winners match, 7/7 proofs verify on-chain, including the proof made with another block's weights.
-The verifier accepts that proof; the game's `resolve` transaction with it is on the chain with status 0
-(reverted: "params instance != step weights").
+**Foundry version.** The recording was made with **Foundry 1.5.1-stable** (anvil/forge commit
+`b0a9dd9`, built 22 Dec 2025, EVM hardfork Prague). Its `anvil_state.json` uses that version's state
+format, which newer releases cannot load (Foundry 1.8.5 rejects it with "data did not match any variant
+of untagged enum SerializableTransactionType"). The verifier therefore **replays the chain by default**:
+it starts an empty anvil (Prague, chain id 31337, the recorded genesis time) and sends the 116 recorded
+*signed* transactions (`raw_transactions.jsonl`) with their original block timestamps. Because they
+are signed, their hashes and all contract addresses come out identical, and your own EVM re-executes
+every call. `--state` loads the state file instead (Foundry 1.5.1 only).
+
+Result, identical with both Foundry versions we tried:
+
+| Mode | Foundry | Transactions match | Winners match | Proofs verify on-chain | Report |
+|---|---|---|---|---|---|
+| replay (default) | 1.8.5 (commit 51a52c5) | 116/116 (status and gas) | 7/7 | 7/7 | `verification_report_replay.json` |
+| `--state` | 1.5.1-stable (b0a9dd9) | 116/116 | 7/7 | 7/7 | `verification_report.json` |
+
+The 7 proofs include the one made with another block's weights: the verifier accepts it, and the
+game's `resolve` transaction with it is on the chain with status 0 (reverted: "params instance != step
+weights").
 
 ```bash
-cd h1-zkopml-v2 && python3 verify_dispute_record.py evidence/recorded_rerun_elliptic
+cd h1-zkopml-v2 && python3 verify_dispute_record.py evidence/recorded_rerun_elliptic            # replay (any Foundry)
+python3 verify_dispute_record.py evidence/recorded_rerun_elliptic --state                        # Foundry 1.5.1 only
 ```
 
 Game gas in the recorded re-run differs from the committed result file by at most 0.2 % per scenario,
@@ -101,7 +136,8 @@ rounds, located steps and winners are identical.
 Levels 1–2 confirm that the records and the ledger agree. They cannot rule out that we built the
 ledger dishonestly: all four validator keys were ours. Re-running on your own machine removes that.
 
-**Disputes, about 10–20 minutes including a one-time setup (about 3 minutes, 3 GB of keys):**
+**Disputes, about 10–20 minutes including a one-time setup (about 3 minutes, 3 GB of keys).** New
+recordings also write `raw_transactions.jsonl`, so they replay with any Foundry version:
 ```bash
 cd h1-zkopml-v2 && forge build
 python3 prepare_data.py /path/to/elliptic_bitcoin_dataset     # writes X.npy, y.npy, ts.npy
@@ -117,5 +153,18 @@ cd pipeline && python deploy.py && ./start_validators.sh
 python run_pipeline.py --n 100 --source elliptic --data /path/to/elliptic_bitcoin_dataset --faults 0.1 --out runs/review_100
 python audit_chain.py /tmp/review-audit
 ```
-For an even stronger check, run one or more of the validator services on another machine you control,
-pointed at your own Besu node.
+For an even stronger check, have someone outside the team run one validator on their own machine:
+see [`docs/INDEPENDENT_VALIDATOR.md`](INDEPENDENT_VALIDATOR.md).
+
+## Why `docs/EXHAUSTIVE_REPORT.md` changes when rebuilt
+Five generated parts depend on when and where the build runs: the commit count (read from `git log`; the
+committed copy is always built before the commit that adds it), the tracked-file index with sizes, the
+embedded READMEs, the live test listings (H2 needs `torch` and `torch-geometric`, H4 needs a Rust
+toolchain, otherwise those lists come out empty or short), and the seeded H3 Sybil run. Until 20 Oct 2026
+the index also listed the report's own size, so no rebuild could ever reproduce it byte for byte; it now
+prints "(this file)". Two rebuilds in a row on the same checkout and environment are now byte-identical.
+Details are at the top of the report.
+
+## Large files
+The ledger export is 3.5 MB compressed and the dispute record 2.7 MB, so both are kept in the
+repository; no release asset is needed.

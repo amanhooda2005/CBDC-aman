@@ -19,6 +19,24 @@ Nothing that was run is left out.
 
 **Generated tables.** Tables marked *(generated)* are produced by `docs/exhaustive/build.py` directly from the committed result files (CSV/JSON) at build time. No number in them was retyped by hand. To rebuild, run `python docs/exhaustive/build.py` from the repository root.
 
+**Why a rebuild can differ from the committed copy.** Most of the document is generated from committed
+result files and is identical on every rebuild. Five generated parts depend on when and where the build
+runs:
+1. **Commit count and authors** (§1) are read from `git log` at build time. The committed copy is built
+   before the commit that adds it, so a rebuild on a later checkout always shows more commits.
+2. **The tracked-file index** (reproducibility section) lists `git ls-files` with file sizes, so any
+   added, removed or edited file changes it. (Before 20 Oct 2026 it also listed this report's own size,
+   which changed on every rebuild; it now shows "(this file)".)
+3. **Embedded Markdown** (the READMEs and write-ups pulled in by `md` include directives) changes whenever those
+   files change.
+4. **Test listings** are collected live: H2 with `pytest --collect-only`, which needs `torch` and
+   `torch-geometric` installed (without them collection fails and the H2 list comes out nearly empty);
+   H4 with `cargo test -- --list` in `benchmark_v2`, which needs a working Rust toolchain (an earlier
+   committed copy showed "0 tests" for that reason; the correct count is 20). H3 uses `pytest` only.
+5. **H3 Sybil output** is produced by running `h3-abt/run_sybil.py` (deterministic, seeded).
+
+Rebuilding twice in a row on the same checkout and environment gives a byte-identical file.
+
 **Hand-written text.** The narrative text was written for this document. Where a number appears in the narrative, it is quoted from a generated table or from a committed write-up, and the source is named.
 
 **Status labels.** Every result carries one of these labels:

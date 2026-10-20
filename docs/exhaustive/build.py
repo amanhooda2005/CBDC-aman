@@ -101,6 +101,9 @@ def gen_artifact_index():
     files = sh("git", "ls-files").splitlines()
     rows = []
     for p in files:
+        if p == "docs/EXHAUSTIVE_REPORT.md":   # its own size would change with every rebuild
+            rows.append((f"`{p}`", "(this file)"))
+            continue
         size = (ROOT / p).stat().st_size if (ROOT / p).exists() else 0
         rows.append((f"`{p}`", f"{size:,}"))
     return f"{len(files)} tracked files.\n\n" + table(["Path", "Bytes"], rows)
