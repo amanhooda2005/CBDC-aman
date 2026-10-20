@@ -1,0 +1,168 @@
+{
+ "chain_head": 8757,
+ "qbft_validators": [
+  "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B",
+  "0xF2909fe97a3F805AC0cD5314c874e58924477c91",
+  "0xcC3cA56EA3659Ff7eF81a7819112b31a39c1d733",
+  "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37"
+ ],
+ "settle_txs_total": 2197,
+ "settle_txs_reverted": 0,
+ "gates_seen": [
+  "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+  "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
+  "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F",
+  "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+ ],
+ "runs": {
+  "elliptic_1000": {
+   "rows": 1000,
+   "honest": 889,
+   "faulty": 111,
+   "csv_settled": 889,
+   "run_start_epoch": 1792052088,
+   "gate": [
+    "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F"
+   ],
+   "onchain_settle_txs": 889,
+   "onchain_outcomes": {
+    "AgentRefused": 581,
+    "Blocked": 1,
+    "Executed": 307
+   },
+   "faulty_requests_with_a_settle_tx": 0,
+   "rows_matching_chain_exactly": 889,
+   "mismatches": [],
+   "n_mismatches": 0,
+   "min_validator_signatures": 4,
+   "signatures_by_signer": {
+    "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B": 889,
+    "0xF2909fe97a3F805AC0cD5314c874e58924477c91": 889,
+    "0xcC3cA56EA3659Ff7eF81a7819112b31a39c1d733": 889,
+    "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37": 889
+   }
+  },
+  "synthetic_1000": {
+   "rows": 1000,
+   "honest": 900,
+   "faulty": 100,
+   "csv_settled": 899,
+   "run_start_epoch": 1792039514,
+   "gate": [
+    "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+   ],
+   "onchain_settle_txs": 899,
+   "onchain_outcomes": {
+    "AgentRefused": 555,
+    "Executed": 344
+   },
+   "faulty_requests_with_a_settle_tx": 0,
+   "rows_matching_chain_exactly": 899,
+   "mismatches": [],
+   "n_mismatches": 0,
+   "min_validator_signatures": 3,
+   "signatures_by_signer": {
+    "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B": 898,
+    "0xcC3cA56EA3659Ff7eF81a7819112b31a39c1d733": 899,
+    "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37": 899,
+    "0xF2909fe97a3F805AC0cD5314c874e58924477c91": 569
+   }
+  },
+  "synthetic_300_byz3": {
+   "rows": 300,
+   "honest": 244,
+   "faulty": 56,
+   "csv_settled": 244,
+   "run_start_epoch": 1792036352,
+   "gate": [
+    "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+   ],
+   "onchain_settle_txs": 244,
+   "onchain_outcomes": {
+    "Blocked": 1,
+    "AgentRefused": 146,
+    "Executed": 97
+   },
+   "faulty_requests_with_a_settle_tx": 0,
+   "rows_matching_chain_exactly": 244,
+   "mismatches": [],
+   "n_mismatches": 0,
+   "min_validator_signatures": 4,
+   "signatures_by_signer": {
+    "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B": 244,
+    "0xF2909fe97a3F805AC0cD5314c874e58924477c91": 244,
+    "0xcC3cA56EA3659Ff7eF81a7819112b31a39c1d733": 244,
+    "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37": 244
+   }
+  },
+  "synthetic_40_down1": {
+   "rows": 40,
+   "honest": 25,
+   "faulty": 15,
+   "csv_settled": 25,
+   "run_start_epoch": 1792036984,
+   "gate": [
+    "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+   ],
+   "onchain_settle_txs": 25,
+   "onchain_outcomes": {
+    "AgentRefused": 14,
+    "Executed": 11
+   },
+   "faulty_requests_with_a_settle_tx": 0,
+   "rows_matching_chain_exactly": 25,
+   "mismatches": [],
+   "n_mismatches": 0,
+   "min_validator_signatures": 3,
+   "signatures_by_signer": {
+    "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B": 25,
+    "0xF2909fe97a3F805AC0cD5314c874e58924477c91": 25,
+    "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37": 25
+   }
+  },
+  "synthetic_60_byz23": {
+   "rows": 60,
+   "honest": 26,
+   "faulty": 34,
+   "csv_settled": 26,
+   "run_start_epoch": 1792036905,
+   "gate": [
+    "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+   ],
+   "onchain_settle_txs": 26,
+   "onchain_outcomes": {
+    "Executed": 15,
+    "AgentRefused": 11
+   },
+   "faulty_requests_with_a_settle_tx": 0,
+   "rows_matching_chain_exactly": 26,
+   "mismatches": [],
+   "n_mismatches": 0,
+   "min_validator_signatures": 4,
+   "signatures_by_signer": {
+    "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B": 26,
+    "0xF2909fe97a3F805AC0cD5314c874e58924477c91": 26,
+    "0xcC3cA56EA3659Ff7eF81a7819112b31a39c1d733": 26,
+    "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37": 26
+   }
+  }
+ },
+ "settle_txs_not_in_any_run": 114,
+ "unaccounted_by_start": {
+  "1792034865": 4,
+  "1792035004": 99,
+  "1792041965": 6,
+  "1792052039": 5
+ },
+ "ledger_checks": [
+  {
+   "run": "elliptic_1000",
+   "gate": "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F",
+   "executed_amount_sum_csv": 1930131,
+   "merchant_balance_onchain": 1930131,
+   "customers_total_onchain": 3999998069869,
+   "customers_minted": 4000000000000,
+   "balances_consistent": true
+  }
+ ]
+}

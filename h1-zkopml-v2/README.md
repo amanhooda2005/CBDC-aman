@@ -11,12 +11,32 @@ Results, method and pass/fail verdict: **[WRITEUP.md](WRITEUP.md)**.
 
 | Criterion | Result |
 |---|---|
-| ≥10× proof latency | **Pass only at 60 blocks** (14.9× single-core, 12.6× multi-core; multi-core measured at 60 blocks only). **Fail** at 24 blocks (7.7×), 8 blocks (3.9×) and 1 block (1.07×), all single-core. |
+| ≥10× proof latency | **Pass only at 60 blocks and only with fixed-weight step circuits** (14.9× single-core, 12.6× multi-core; multi-core measured at 60 blocks only). **Fail with the shared verifiers of v2.1** (no faster than the whole-model proof; see below). **Fail** at 24 blocks (7.7×), 8 blocks (3.9×) and 1 block (1.07×), all single-core. |
 | ≥10× on-chain cost | **Pass amortized** (13.9× for undisputed inferences). **Fail per dispute** (up to 2.4× more gas than monolithic in the worst case; about 1.8× typical). Holds on average only if fewer than about 1.2% of inferences are disputed (worst-case dispute cost; about 1.6% with the typical cost). |
 | ≤1 pp accuracy drop | **Pass** (worst case 0.13 pp). |
 | Bisection isolates the fault in bounded rounds | **Pass** (≤6 rounds for 63 steps; 7 of 7 scenarios). |
 
+**The speedup applies only to the original fixed-weights design.** With the shared verifiers of v2.1
+(one circuit per step shape, weights as a hashed public input, needed for 4 verifiers instead of 63) the
+step circuit also hashes the weights, and a dispute's step proof is **no faster than proving the whole
+model**. Same machine (2-vCPU, 8 GB VM), two trials each, `bench_shared_vs_mono.py` →
+`results/same_machine_step_vs_mono.json`:
+
+| Proof | Weights | logrows | Prove time | vs whole model |
+|---|---|---|---|---|
+| Whole 60-block model (monolithic) | fixed | 17 | 18.2 s | 1× |
+| One residual-block step | fixed | 12 | 1.4 s | **13.4× faster** |
+| One residual-block step | hashed (shared verifier) | 16 | 16.1 s | 1.1× faster |
+| One projection-half step (slowest step) | fixed | 11 | 1.2 s | 15.7× faster |
+| One projection-half step (slowest step) | hashed (shared verifier) | 17 | 50.1 s | **2.8× slower** |
+
+So the design choice is a trade-off: fixed-weight step verifiers keep the ≥ 10× proving gain but cost
+about 251 M gas to deploy (63 verifiers); shared verifiers cost 17.2 M gas but give up the proving gain
+(the worst-case dispute step is slower than the monolithic proof). The 14.9× / 12.6× figures above are for
+the fixed-weights design only.
+
 Caveats to report with any speedup number:
+- Fixed-weight step circuits only; see the table above for the shared-verifier design.
 - The 10× latency result depends on model depth. The 60-block model is a benchmark, not a better AML model (its F1 matches the shallow one).
 - Speedup depends on hardware (14.9× single-core, 12.6× multi-core, both at 60 blocks). Report the hardware with the number.
 - The gas target is an average over disputes, not a per-dispute win. The 2.4× and 1.2% figures are worst-case; the typical figures are 1.8× and 1.6%.

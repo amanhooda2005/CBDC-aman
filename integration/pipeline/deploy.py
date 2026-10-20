@@ -6,6 +6,11 @@
   - customers (accounts 2..5) receive CBDC from the central bank and mandate the agents
 
 Usage: python deploy.py [n_agents] [prover_bin]   (chain must be running: chain/start_chain.sh)
+       python deploy.py --attester 0xABC... [--attester ...] [--threshold 4]
+         replaces the last local validator(s) in the attestation set by independent validators that run on
+         other machines (docs/INDEPENDENT_VALIDATOR.md). Their keys are never seen here.
+Writes deployment.json (local use: contains the team's keys) and deployment_public.json (no private keys;
+the file to give an independent validator).
 """
 import json
 import subprocess
@@ -65,7 +70,7 @@ class Chain:
         return rc
 
 
-def main(n_agents=4, prover_bin=None):
+def main(n_agents=4, prover_bin=None, external=(), threshold=3):
     prover_bin = prover_bin or str(ROOT.parent / "h4-pqc-stark/zk_composed/target/release/zk_composed")
     ch = Chain()
     w3 = ch.w3
@@ -77,12 +82,16 @@ def main(n_agents=4, prover_bin=None):
     vkeys = [{"address": Account.from_key((d / "key").read_text().strip()).address, "key": (d / "key").read_text().strip()}
              for d in sorted(keys_dir.iterdir())]
     qbft = [Web3.to_checksum_address(a) for a in w3.provider.make_request("qbft_getValidatorsByBlockNumber", ["latest"])["result"]]
-    assert sorted(v["address"] for v in vkeys) == sorted(qbft), "attestation keys must be the QBFT validators"
+    assert sorted(v["address"] for v in vkeys) == sorted(qbft), "local attestation keys must be the QBFT validators"
+    if external:   # independent validators take the last places; only their addresses are known here
+        vkeys = vkeys[:len(vkeys) - len(external)] + [{"address": Web3.to_checksum_address(a), "key": None, "external": True}
+                                                      for a in external]
+    assert 1 <= threshold <= len(vkeys)
 
     params = (regulator.address, treasury, 15 * UNIT, 100 * UNIT, 14 * UNIT, 2 * 86400, 30 * UNIT, 1 * UNIT, 10000)
     rc = ch.wait(ch.send(DEV_KEYS[0], deploy=(reg_abi, reg_code, [params])))
     registry = w3.eth.contract(address=rc.contractAddress, abi=reg_abi)
-    rc = ch.wait(ch.send(DEV_KEYS[0], deploy=(gate_abi, gate_code, [registry.address, regulator.address, [v["address"] for v in vkeys], 3])))
+    rc = ch.wait(ch.send(DEV_KEYS[0], deploy=(gate_abi, gate_code, [registry.address, regulator.address, [v["address"] for v in vkeys], threshold])))
     gate = w3.eth.contract(address=rc.contractAddress, abi=gate_abi)
     hs = [ch.send(DEV_KEYS[0], registry.functions.setSlasher(gate.address)),
           ch.send(DEV_KEYS[0], registry.functions.issueCredential(operator.address))]
@@ -104,13 +113,24 @@ def main(n_agents=4, prover_bin=None):
         "rpc": RPC, "registry": registry.address, "gate": gate.address,
         "regulator": regulator.address, "operator": operator.address, "operator_key": DEV_KEYS[1], "treasury": treasury,
         "customers": [{"address": c.address, "key": c.key.hex()} for c in customers],
-        "agents": agents, "validators": vkeys, "threshold": 3,
+        "agents": agents, "validators": vkeys, "threshold": threshold,
         "registry_unit": UNIT, "policy": POLICY, "prover_bin": prover_bin, "model_digest": digest,
         "abi": {"registry": reg_abi, "gate": gate_abi},
     }
     json.dump(dep, open(HERE / "deployment.json", "w"), indent=1)
+    public = {k: v for k, v in dep.items() if k not in ("operator_key", "customers", "rpc", "prover_bin")}
+    public["validators"] = [{"address": v["address"], "external": bool(v.get("external"))} for v in vkeys]
+    public["chain_id"] = w3.eth.chain_id
+    json.dump(public, open(HERE / "deployment_public.json", "w"), indent=1)
     print(json.dumps({k: dep[k] for k in ("registry", "gate", "operator", "agents", "model_digest")}, indent=1))
 
 
 if __name__ == "__main__":
-    main(int(sys.argv[1]) if len(sys.argv) > 1 else 4, sys.argv[2] if len(sys.argv) > 2 else None)
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("n_agents", nargs="?", type=int, default=4)
+    ap.add_argument("prover_bin", nargs="?", default=None)
+    ap.add_argument("--attester", action="append", default=[], help="address of an independent validator (repeatable)")
+    ap.add_argument("--threshold", type=int, default=3, help="signatures required by the SettlementGate")
+    a = ap.parse_args()
+    main(a.n_agents, a.prover_bin, a.attester, a.threshold)

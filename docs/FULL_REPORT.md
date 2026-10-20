@@ -13,7 +13,7 @@ We test four falsifiable hypotheses about running AI inside a central-bank digit
 
 | Hypothesis | Verdict |
 |---|---|
-| **H1, verifiable off-chain inference** | **Partly supported.** Bisection-based dispute resolution cuts proof latency 14.9× on a 60-block model, with ≤ 0.13 pp accuracy loss. It misses 10× on shallower models, and a single dispute costs 2.4× more gas than monolithic verification. |
+| **H1, verifiable off-chain inference** | **Partly supported.** Bisection-based dispute resolution cuts proof latency 14.9× on a 60-block model with fixed-weight step verifiers, with ≤ 0.13 pp accuracy loss (with the later shared verifiers the step proof is no faster than the whole-model proof, §6A). It misses 10× on shallower models, and a single dispute costs 2.4× more gas than monolithic verification. |
 | **H2, federated AML under label scarcity** | **Formally met, substantively not supported.** The pre-registered "≥ 20% fewer false positives" criterion holds at every scarcity level, but only because federated models flag less. At matched recall the criterion fails at every evaluable level, and with ample labels federation produces 67–80% *more* false positives. |
 | **H3, cryptoeconomic liability (AgentBound Tokens)** | **Supported,** with a 41% fewer violations (agent-level p ≈ 10⁻⁶). The original design wears out as stakes are slashed to zero, and is defeated by identity resets. Stake maintenance plus operator-bound history restores durable deterrence (violations 50.7% → 2.0%). A registration bond at an analytically derived break-even value does the same. |
 | **H4, post-quantum ZK-STARK migration** | **Supported.** A STARK that also proves a short opening of a statistically binding lattice (SIS) commitment stays within all pre-registered overhead bounds on the complete trained H1, H2 and H3 models (≤ 1.2× size, ≤ 1.5× prove, ≤ 2.0× verify). |
@@ -454,6 +454,10 @@ recall 0.81 on time steps 35–42 and 0 on 43–49, the known post-shutdown coll
   (weights as a hashed instance checked by the contract): 4 verifiers, 17.2 M deploy gas instead of
   ~251 M; a valid proof of another block's weights is rejected. Measured dispute 1.58–1.91 M gas;
   undisputed saving 12.8×; the 10× target holds below a 0.79 % (worst) / 0.93 % (typical) dispute rate.
+  **Trade-off:** shared verifiers give up the proving gain: on one machine the whole 60-block proof takes
+  18.2 s, a fixed-weight block step 1.4 s (13.4× faster), a shared-verifier block step 16.1 s and the slowest
+  shared-verifier step (a projection half) 50.1 s, 2.8× slower than the whole model. The 14.9× figure holds
+  for the fixed-weights design only.
 - **H3.** On-chain `LiabilityRegistry` (9 tests). Pre-registered learning-agent study (ε-greedy,
   detection p = 0.5 and 0.8, 10 seeds, 500 steps): stake maintenance beats a flat stake late in the run
   (20.9 % vs 25.7 % at p = 0.5; 16.1 % vs 26.2 % at p = 0.8) and operator-bound history beats ID-keyed
@@ -465,6 +469,7 @@ recall 0.81 on time steps 35–42 and 0 on 43–49, the known post-shutdown coll
   bits quantum under the conservative QROM bound (the earlier "2⁶¹⁵" figure described only the
   commitment). Overhead of post-quantum binding under ZK: 1.07× size, 1.10× prove, 0.98× verify; deployed
   proof 170 KB, ≈ 0.6 s prove, 15 ms verify. 17 tests.
+  **Note:** this quantum estimate is weaker than the earlier construction's. Under the same argument the v3 Winterfell proof gets ≈ 63 bits (126-bit conjectured), and the "≥ 2⁶¹⁵ quantum" figure quoted for H4 earlier described only the lattice commitment, not the proof. Zero-knowledge was gained; about 2 bits of conjectured security were lost.
 
 ### Readiness
 Technology validated in a lab (TRL 4): the components run together on a BFT ledger with real data and

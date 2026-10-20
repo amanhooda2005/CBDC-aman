@@ -1,0 +1,84 @@
+{
+ "mode": "state",
+ "anvil": "anvil Version: 1.5.1-stable",
+ "transactions": 116,
+ "tx_found_with_logged_status_and_gas": 116,
+ "tx_missing_or_different": [],
+ "scenarios": {
+  "0": {
+   "scenario": "asserter cheats at a projection step",
+   "summary_winner": "challenger",
+   "onchain_winner": "challenger",
+   "agrees": true
+  },
+  "1": {
+   "scenario": "asserter cheats at the join step",
+   "summary_winner": "challenger",
+   "onchain_winner": "challenger",
+   "agrees": true
+  },
+  "2": {
+   "scenario": "asserter cheats at a middle block",
+   "summary_winner": "challenger",
+   "onchain_winner": "challenger",
+   "agrees": true
+  },
+  "3": {
+   "scenario": "asserter cheats at the head (the decision)",
+   "summary_winner": "challenger",
+   "onchain_winner": "challenger",
+   "agrees": true
+  },
+  "4": {
+   "scenario": "false challenge against an honest asserter",
+   "summary_winner": "asserter",
+   "onchain_winner": "asserter",
+   "agrees": true
+  },
+  "5": {
+   "scenario": "malformed prefix chain (honest leaf at the disputed step)",
+   "summary_winner": "challenger",
+   "onchain_winner": "challenger",
+   "agrees": true
+  },
+  "6": {
+   "scenario": "attack: valid proof made with another block's weights",
+   "summary_winner": "challenger",
+   "onchain_winner": "challenger",
+   "agrees": true
+  }
+ },
+ "proofs": {
+  "s0": {
+   "verifier": "proj",
+   "verifyProof_returns_true": true
+  },
+  "s1": {
+   "verifier": "join",
+   "verifyProof_returns_true": true
+  },
+  "s2": {
+   "verifier": "block",
+   "verifyProof_returns_true": true
+  },
+  "s3": {
+   "verifier": "head",
+   "verifyProof_returns_true": true
+  },
+  "s4": {
+   "verifier": "block",
+   "verifyProof_returns_true": true
+  },
+  "s6": {
+   "verifier": "block",
+   "verifyProof_returns_true": true
+  },
+  "s6_wrong": {
+   "verifier": "block",
+   "verifyProof_returns_true": true
+  }
+ },
+ "all_transactions_match": true,
+ "all_winners_match": true,
+ "all_proofs_verify_onchain": true
+}

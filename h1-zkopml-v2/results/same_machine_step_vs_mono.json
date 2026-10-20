@@ -1,0 +1,53 @@
+{
+ "monolithic_60_blocks": {
+  "weights": "fixed",
+  "logrows": 17,
+  "prove_times_s": [
+   17.56847906112671,
+   18.867377996444702
+  ],
+  "prove_mean_s": 18.217928528785706,
+  "verified": true
+ },
+ "block_step_fixed": {
+  "weights": "fixed",
+  "logrows": 12,
+  "prove_times_s": [
+   1.2413692474365234,
+   1.4774186611175537
+  ],
+  "prove_mean_s": 1.3593939542770386,
+  "verified": true
+ },
+ "block_step_hashed": {
+  "weights": "hashed",
+  "logrows": 16,
+  "prove_times_s": [
+   14.704429864883423,
+   17.41270136833191
+  ],
+  "prove_mean_s": 16.058565616607666,
+  "verified": true
+ },
+ "projection_step_fixed": {
+  "weights": "fixed",
+  "logrows": 11,
+  "prove_times_s": [
+   1.3687951564788818,
+   0.9583516120910645
+  ],
+  "prove_mean_s": 1.1635733842849731,
+  "verified": true
+ },
+ "projection_step_hashed": {
+  "weights": "hashed",
+  "logrows": 17,
+  "prove_times_s": [
+   49.4601104259491,
+   50.81189298629761
+  ],
+  "prove_mean_s": 50.13600170612335,
+  "verified": true
+ },
+ "machine": "2-vCPU, 8 GB cloud VM (same machine for every row)"
+}

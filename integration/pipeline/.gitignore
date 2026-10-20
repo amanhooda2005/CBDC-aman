@@ -1,3 +1,4 @@
 deployment.json
 logs/
 __pycache__/
+deployment_public.json

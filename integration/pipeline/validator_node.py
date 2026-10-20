@@ -9,7 +9,15 @@ A validator co-signs a settlement request only if, independently and against its
      escalated slash read from the LiabilityRegistry (stake maintenance / escalation are on-chain).
 Then it signs requestId(r) (EIP-191) with its validator key; the SettlementGate needs 3 of 4.
 
-Usage: python validator_node.py <index> <deployment.json> [port] [--byzantine]
+Usage (team validators, keys from the local deployment.json):
+  python validator_node.py <index> <deployment.json> [port] [--byzantine]
+Usage (an independent validator on another machine; see docs/INDEPENDENT_VALIDATOR.md):
+  python validator_node.py --key-file my_validator.key --deployment deployment_public.json \
+         --rpc http://127.0.0.1:8545 --prover /path/to/own/zk_composed --host 0.0.0.0 --port 9200 \
+         --log decisions.jsonl
+  The key never leaves that machine, the chain is read from that machine's own Besu node, the proof is
+  checked by that machine's own build of the verifier, and the model digest is taken from that build
+  (not from the deployment file). Every decision is appended to --log.
 """
 import base64
 import json
@@ -46,17 +54,27 @@ def keccak_words(values):
 
 
 class Validator:
-    def __init__(self, index: int, dep: dict):
+    def __init__(self, index, dep: dict, key=None, rpc=None, prover=None, log=None):
         self.index = index
         self.dep = dep
-        self.key = Account.from_key(dep["validators"][index]["key"])
-        self.w3 = Web3(Web3.HTTPProvider(dep["rpc"][index]))      # this validator's own node
+        self.key = Account.from_key(key or dep["validators"][index]["key"])
+        self.w3 = Web3(Web3.HTTPProvider(rpc or dep["rpc"][index]))      # this validator's own node
         self.gate = self.w3.eth.contract(address=dep["gate"], abi=dep["abi"]["gate"])
         self.registry = self.w3.eth.contract(address=dep["registry"], abi=dep["abi"]["registry"])
-        self.prover = dep["prover_bin"]
+        self.prover = prover or dep["prover_bin"]
         self.model = dep["model_digest"]
+        if prover:   # independent validator: trust its own verifier build for the model digest
+            own = json.loads(subprocess.run([prover, "info"], capture_output=True, text=True, check=True).stdout)["model_digest"]
+            if own != self.model:
+                print(f"WARNING: deployment model digest {self.model} differs from this build's {own}; using this build's", flush=True)
+            self.model = own
         self.policy = dep["policy"]
         self.unit = dep["registry_unit"]
+        self.log = open(log, "a") if log else None
+        listed = self.gate.functions.isValidator(self.key.address).call()
+        print(f"validator {self.key.address} on {rpc or dep['rpc'][index]}, gate {dep['gate']} "
+              f"({'listed as attester' if listed else 'NOT an attester on this gate: its signatures will not count'}), "
+              f"threshold {self.gate.functions.threshold().call()}, model {self.model[:16]}…", flush=True)
 
     def check(self, req: dict, proof: bytes, st: dict, opening: dict) -> str | None:
         if st.get("model") != self.model:
@@ -104,11 +122,21 @@ class Validator:
         proof = base64.b64decode(body["proof_b64"])
         reason = None if self.byzantine else self.check(req, proof, body["statement"], body["opening"])
         ms = (time.time() - t) * 1e3
+        rid = retry(lambda: self.gate.functions.requestId(tuple_request(req)).call())
+        self._log(req, rid, reason, ms)
         if reason:
             return {"validator": self.key.address, "signed": False, "reason": reason, "check_ms": ms}
-        rid = retry(lambda: self.gate.functions.requestId(tuple_request(req)).call())
         sig = Account.sign_message(encode_defunct(primitive=rid), self.key.key)
         return {"validator": self.key.address, "signed": True, "signature": sig.signature.hex(), "check_ms": ms}
+
+    def _log(self, req, rid, reason, ms):
+        if self.log:
+            nonce = int(req["nonce"])
+            self.log.write(json.dumps({"time": time.strftime("%Y-%m-%dT%H:%M:%S"), "request_id": "0x" + bytes(rid).hex(),
+                                       "run_start": nonce // 100000, "i": nonce % 100000, "amount": int(req["amount"]),
+                                       "exec": bool(req["exec"]), "viol": bool(req["viol"]), "signed": reason is None,
+                                       "reason": reason or "", "check_ms": round(ms, 1)}) + "\n")
+            self.log.flush()
 
 
 def tuple_request(req: dict):
@@ -117,8 +145,8 @@ def tuple_request(req: dict):
             bool(req["exec"]), bool(req["viol"]), int(req["nonce"]))
 
 
-def serve(index: int, dep_path: str, port: int, byzantine: bool = False):
-    v = Validator(index, json.load(open(dep_path)))
+def serve(index, dep_path: str, port: int, byzantine: bool = False, host="127.0.0.1", key=None, rpc=None, prover=None, log=None):
+    v = Validator(index, json.load(open(dep_path)), key, rpc, prover, log)
     v.byzantine = byzantine
 
     class H(BaseHTTPRequestHandler):
@@ -138,10 +166,23 @@ def serve(index: int, dep_path: str, port: int, byzantine: bool = False):
         def log_message(self, *a):
             pass
 
-    ThreadingHTTPServer(("127.0.0.1", port), H).serve_forever()
+    ThreadingHTTPServer((host, port), H).serve_forever()
 
 
 if __name__ == "__main__":
-    i = int(sys.argv[1])
-    args = [a for a in sys.argv[3:] if not a.startswith("--")]
-    serve(i, sys.argv[2], int(args[0]) if args else 9100 + i, "--byzantine" in sys.argv)
+    if "--key-file" in sys.argv:   # independent validator
+        import argparse
+        ap = argparse.ArgumentParser()
+        ap.add_argument("--key-file", required=True)
+        ap.add_argument("--deployment", required=True)
+        ap.add_argument("--rpc", default="http://127.0.0.1:8545")
+        ap.add_argument("--prover", required=True)
+        ap.add_argument("--host", default="0.0.0.0")
+        ap.add_argument("--port", type=int, default=9200)
+        ap.add_argument("--log", default="decisions.jsonl")
+        a = ap.parse_args()
+        serve(None, a.deployment, a.port, False, a.host, open(a.key_file).read().strip(), a.rpc, a.prover, a.log)
+    else:
+        i = int(sys.argv[1])
+        args = [x for x in sys.argv[3:] if not x.startswith("--")]
+        serve(i, sys.argv[2], int(args[0]) if args else 9100 + i, "--byzantine" in sys.argv, log=f"logs/decisions_v{i}.jsonl")
