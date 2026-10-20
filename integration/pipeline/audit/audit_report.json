@@ -34,7 +34,13 @@
    "rows_matching_chain_exactly": 889,
    "mismatches": [],
    "n_mismatches": 0,
-   "min_validator_signatures": 4
+   "min_validator_signatures": 4,
+   "signatures_by_signer": {
+    "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B": 889,
+    "0xF2909fe97a3F805AC0cD5314c874e58924477c91": 889,
+    "0xcC3cA56EA3659Ff7eF81a7819112b31a39c1d733": 889,
+    "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37": 889
+   }
   },
   "synthetic_1000": {
    "rows": 1000,
@@ -54,7 +60,13 @@
    "rows_matching_chain_exactly": 899,
    "mismatches": [],
    "n_mismatches": 0,
-   "min_validator_signatures": 3
+   "min_validator_signatures": 3,
+   "signatures_by_signer": {
+    "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B": 898,
+    "0xcC3cA56EA3659Ff7eF81a7819112b31a39c1d733": 899,
+    "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37": 899,
+    "0xF2909fe97a3F805AC0cD5314c874e58924477c91": 569
+   }
   },
   "synthetic_300_byz3": {
    "rows": 300,
@@ -75,7 +87,13 @@
    "rows_matching_chain_exactly": 244,
    "mismatches": [],
    "n_mismatches": 0,
-   "min_validator_signatures": 4
+   "min_validator_signatures": 4,
+   "signatures_by_signer": {
+    "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B": 244,
+    "0xF2909fe97a3F805AC0cD5314c874e58924477c91": 244,
+    "0xcC3cA56EA3659Ff7eF81a7819112b31a39c1d733": 244,
+    "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37": 244
+   }
   },
   "synthetic_40_down1": {
    "rows": 40,
@@ -95,7 +113,12 @@
    "rows_matching_chain_exactly": 25,
    "mismatches": [],
    "n_mismatches": 0,
-   "min_validator_signatures": 3
+   "min_validator_signatures": 3,
+   "signatures_by_signer": {
+    "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B": 25,
+    "0xF2909fe97a3F805AC0cD5314c874e58924477c91": 25,
+    "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37": 25
+   }
   },
   "synthetic_60_byz23": {
    "rows": 60,
@@ -115,7 +138,13 @@
    "rows_matching_chain_exactly": 26,
    "mismatches": [],
    "n_mismatches": 0,
-   "min_validator_signatures": 4
+   "min_validator_signatures": 4,
+   "signatures_by_signer": {
+    "0x2C503FA0bCE0e850d1F8BAbe179d7c5968c1cB8B": 26,
+    "0xF2909fe97a3F805AC0cD5314c874e58924477c91": 26,
+    "0xcC3cA56EA3659Ff7eF81a7819112b31a39c1d733": 26,
+    "0xeCea00dA0f17f85030625cE2b9D18c45D927Db37": 26
+   }
   }
  },
  "settle_txs_not_in_any_run": 114,

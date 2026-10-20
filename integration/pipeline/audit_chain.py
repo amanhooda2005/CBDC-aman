@@ -48,6 +48,8 @@ def main(out_dir):
     reg_proto = w3.eth.contract(abi=reg_abi)
     selector = bytes(w3.keccak(text="settle((bytes32,address,address,uint256,bytes32,bytes32,bool,bool,uint64),bytes[])")[:4])
     validators = {Web3.to_checksum_address(a) for a in w3.provider.make_request("qbft_getValidatorsByBlockNumber", ["latest"])["result"]}
+    # attesters registered on each SettlementGate (an independent validator need not be a QBFT block producer)
+    attesters = set()
     head = w3.eth.block_number
 
     settlements, slashes, gates = [], [], set()
@@ -58,6 +60,8 @@ def main(out_dir):
             if tx["to"] is None or data[:4] != selector:
                 continue
             gate = w3.eth.contract(address=tx["to"], abi=gate_abi)
+            if tx["to"] not in gates:
+                attesters |= {gate.functions.validators(i).call() for i in range(gate.functions.validatorCount().call())}
             gates.add(tx["to"])
             _, args = gate.decode_function_input(data)
             r, sigs = args["r"], args["sigs"]
@@ -75,8 +79,9 @@ def main(out_dir):
                 "block": n, "tx": "0x" + tx["hash"].hex().removeprefix("0x"), "gate": tx["to"], "status": rc.status, "gas": rc.gasUsed,
                 "run_start": nonce // 100000, "i": nonce % 100000, "agent": r[0].hex()[:10], "amount": r[3],
                 "exec": int(r[6]), "viol": int(r[7]), "outcome": OUTCOMES[ev[0]["args"]["outcome"]] if ev else "-",
-                "signatures": len(sigs), "validator_signers": sum(s in validators for s in signers),
-                "non_validator_signers": sum(s not in validators for s in signers),
+                "signatures": len(sigs), "validator_signers": sum(s in validators or s in attesters for s in signers),
+                "non_validator_signers": sum(s not in validators and s not in attesters for s in signers),
+                "signers": " ".join(signers),
             })
         if n % 2000 == 0:
             print(f"scanned block {n}/{head}, settle txs so far {len(settlements)}", flush=True)
@@ -132,6 +137,7 @@ def main(out_dir):
             "rows_matching_chain_exactly": len(settled_rows) - len({m["i"] for m in mism}),
             "mismatches": mism[:20], "n_mismatches": len(mism),
             "min_validator_signatures": min(s["validator_signers"] for s in chain_rows.values()),
+            "signatures_by_signer": dict(Counter(a for s in chain_rows.values() for a in s["signers"].split())),
         })
         report["runs"][run_dir.name] = res
 

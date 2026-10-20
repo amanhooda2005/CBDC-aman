@@ -143,6 +143,12 @@ Timing and cost (honest transactions, mean):
 
 Raw logs, the exported ledger and an audit that reconciles every run with the chain itself: see [`docs/EVIDENCE.md`](../docs/EVIDENCE.md) (`pipeline/audit_chain.py`, results in `pipeline/audit/`).
 
+Every validator now appends each decision (signed or refused, with the reason) to a JSONL log
+(`pipeline/logs/decisions_v<i>.jsonl` for the team's validators). To have someone outside the team run
+one validator on their own machine, with their own key, node and verifier build, against a 4-of-4
+settlement contract, follow [`docs/INDEPENDENT_VALIDATOR.md`](../docs/INDEPENDENT_VALIDATOR.md)
+(`deploy.py --attester`, `validator_node.py --key-file`, `check_my_validator.py`).
+
 ## Running it
 
 Requirements: Besu 25.x (Java 21), Foundry, Python 3.11+ with `web3`, `eth-account`, `numpy`, `pandas`;
