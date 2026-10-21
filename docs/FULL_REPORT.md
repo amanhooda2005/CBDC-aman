@@ -1,24 +1,26 @@
-# Verifiable, Accountable and Quantum-Safe AI for CBDC Systems — Complete Results
+# Verifiable, Accountable and Post-Quantum AI for CBDC Systems — Complete Results
 
 **Project:** CBDC – AI – Blockchain research (proposal: `docs/CBDC_AI_Blockchain_Research_Proposal.pdf`)
-**Repository:** github.com/maanas1234/CBDC (all results on `main`, PRs #1–#34)
+**Repository:** github.com/maanas1234/CBDC (all results on `main`, PRs #1–#39)
 **Team:** Aman (H1), Indrakshi (H2), Anjali (H3), Simran (H4); mentor Maanas Tyagi
-**Status:** all experiments complete. This document collects every result, how it was obtained, what it does and does not show, and where the raw evidence lives. **October 2026 update:** the four mechanisms now run as one integrated system on a Byzantine-fault-tolerant ledger, validated on 1,000 real Elliptic transactions (§6A); sections 2–5 describe the original experiments and §6A lists what changed in each track.
+**Status:** all experiments complete. This document collects every result, how it was obtained, what it does and does not show, and where the raw evidence lives. **October 2026 update:** the four mechanisms now run as one integrated system on a Byzantine-fault-tolerant ledger, validated on 1,000 real Elliptic transactions (§6A), and a second run split across two people and two machines in which the fourth validator's key was held by someone other than the host (§6A); sections 2–5 describe the original experiments and §6A lists what changed in each track.
 
 ---
 
 ## Abstract
 
-We test four falsifiable hypotheses about running AI inside a central-bank digital currency (CBDC) stack, and three cross-cutting findings that emerged from them. All confirmatory runs were pre-registered: parameters, bounds and analysis code were committed before the runs.
+We test four falsifiable hypotheses about running AI inside a central-bank digital currency (CBDC) stack, and the cross-cutting findings (C1–C6) that emerged from them. All confirmatory runs were pre-registered: parameters, bounds and analysis code were committed before the runs.
 
 | Hypothesis | Verdict |
 |---|---|
 | **H1, verifiable off-chain inference** | **Partly supported.** Bisection-based dispute resolution cuts proof latency 14.9× on a 60-block model with fixed-weight step verifiers, with ≤ 0.13 pp accuracy loss (with the later shared verifiers the step proof is no faster than the whole-model proof, §6A). It misses 10× on shallower models, and a single dispute costs 2.4× more gas than monolithic verification. |
 | **H2, federated AML under label scarcity** | **Formally met, substantively not supported.** The pre-registered "≥ 20% fewer false positives" criterion holds at every scarcity level, but only because federated models flag less. At matched recall the criterion fails at every evaluable level, and with ample labels federation produces 67–80% *more* false positives. |
 | **H3, cryptoeconomic liability (AgentBound Tokens)** | **Supported,** with a 41% fewer violations (agent-level p ≈ 10⁻⁶). The original design wears out as stakes are slashed to zero, and is defeated by identity resets. Stake maintenance plus operator-bound history restores durable deterrence (violations 50.7% → 2.0%). A registration bond at an analytically derived break-even value does the same. |
-| **H4, post-quantum ZK-STARK migration** | **Supported.** A STARK that also proves a short opening of a statistically binding lattice (SIS) commitment stays within all pre-registered overhead bounds on the complete trained H1, H2 and H3 models (≤ 1.2× size, ≤ 1.5× prove, ≤ 2.0× verify). |
+| **H4, post-quantum ZK-STARK migration** | **Supported.** A STARK that also proves a short opening of a statistically binding lattice (SIS) commitment stays within all pre-registered overhead bounds on the complete trained H1, H2 and H3 models (≤ 1.2× size, ≤ 1.5× prove, ≤ 2.0× verify). The "≥ 2⁶¹⁵ quantum" figure covers only the commitment's binding; the whole proof is estimated at about 63 bits quantum (§6A). |
 
 The H4 result also includes **one proof covering H1 risk inference → H3 decision → the post-quantum-committed amount**, at 1.15× / 1.28× / 1.77× overhead.
+
+**Integrated system (October 2026, §6A).** The mechanisms were later run together on a 4-validator Hyperledger Besu (QBFT) ledger: on 1,000 real Elliptic transactions with 111 deliberately falsified, all 889 honest transfers settled and none of the falsified ones did, at about 2 s per transfer. In a second run split across two people and two machines, a validator whose key only the reviewer held signed exactly the 166 honest transfers and refused all 34 falsified ones, under a contract that needs all four signatures. This is a lab-scale (technology readiness level 4) demonstration. Its detection quality is limited by the underlying model (recall 0.72 on the real-data run, and none after time step 43), and the proof's quantum security is about 62–63 bits, not the 2⁶¹⁵ of the commitment alone.
 
 ---
 
@@ -28,7 +30,9 @@ The H4 result also includes **one proof covering H1 risk inference → H3 decisi
    - exact integer inference of a trained AML model, with the risk score kept private;
    - the risk flag;
    - an autonomous agent's policy decision that uses the flag;
-   - that the amount decided on is the amount inside a lattice commitment with ≥ 2⁶¹⁵ quantum attack cost.
+   - that the amount decided on is the amount inside a lattice commitment whose binding is statistical (about 2⁻⁶³⁶ expected collisions; lattice-estimator attack cost ≥ 2⁶¹⁵ quantum).
+
+   **Qualifier:** the 2⁶¹⁵ figure describes the *commitment only*. The STARK itself, whose soundness rests on hash functions, is estimated at about 63 bits quantum under the conservative argument (126-bit conjectured classical); the zero-knowledge Plonky3 version at about 62 bits (§6A). "Post-quantum" here means no known efficient quantum attack at these parameters, not 128-bit quantum security.
 
    Overhead versus the same proof without post-quantum binding: 1.15× size, 1.28× prove, 1.77× verify. Without the commitment, a decision on a different amount than the committed one is accepted; with it, it is rejected. (§5.4)
 2. **C2 — Post-quantum binding in ZKML has a near-constant additive cost.** Across six workloads, the commitment adds about +12 ms verify, +28 ms prove and +8.4 KB, so the overhead ratio is about 1 + c / classical cost and falls as models grow. Fitted post-hoc on five workloads; predicted the sixth within 0.02× for size and prove time. (§5.5)
@@ -38,7 +42,8 @@ The H4 result also includes **one proof covering H1 risk inference → H3 decisi
    - Stake maintenance (z = −13.1) and operator-bound history (z = −18.5) fix both problems.
    - A registration bond blocks resets at exactly the derived break-even B* = V_max − p·s − C_min.
 4. **C4 — False-positive targets for federated AML are gameable.** A pre-registered matched-recall analysis shows the "≥ 20% fewer false positives" criterion is met only because federated models flag less. At equal recall, federation is never significantly better, and it is significantly worse with ample labels (+67–80% false positives). Such targets must be stated at fixed recall. (§3.3)
-5. **C5 — Optimistic bisection for ZKML.** It isolates a tampered step in ⌈log₂ n⌉ rounds (7/7 scenarios) with zero accuracy cost from bisection itself. The 10× latency gain needs deep models (crossover between 24 and 60 blocks). On-chain, it only pays off if fewer than ≈ 1.2% of inferences are disputed. (§2)
+5. **C5 — Optimistic bisection for ZKML.** It isolates a tampered step in ⌈log₂ n⌉ rounds (7/7 scenarios) with zero accuracy cost from bisection itself. The 10× latency gain needs deep models (crossover between 24 and 60 blocks). On-chain, it only pays off if fewer than ≈ 1.2% of inferences are disputed. (§2) With the later shared verifiers, a disputed step is no faster than proving the whole model (§6A).
+6. **C6 — The four mechanisms work together on a BFT ledger, with the gate enforced by validators, not by the operator.** 889 / 889 honest transfers settled and 0 / 111 falsified ones did on 1,000 real transactions; every settled row reproduces exactly from the replayed ledger; a four-of-four run with one validator held by another person gave the same decisions on all 200 requests. Lab-scale, not production. (§6A)
 
 Negative and boundary results are part of the contribution. In particular:
 - H2's federated detection is worse than centralized.
@@ -273,7 +278,7 @@ Figure: `h3-abt/results/durable_figure.png`.
 - Detection probability is 1.
 - Operators are assumed to have unlimited capital for top-ups.
 - The operator credential is assumed to exist; establishing it is a regulatory question.
-- There is no on-chain contract.
+- The original simulation had no on-chain contract. One was built later (`LiabilityRegistry`, 9 tests) and exercised in the integrated system (§6A); the learning-agent study (§6A) relaxes the myopic-agent and perfect-detection assumptions.
 
 Evidence: `h3-abt/README.md`, `results/confirmatory_seed42.*`, `results/agent_level_seed42.json`, `results/durable_*`.
 
@@ -385,7 +390,7 @@ Figure: `h4-pqc-stark/benchmark_v2/results/overhead_law.png`.
 - One instance per model class.
 - One machine; the ratios are the reported quantity.
 - The commitment provides binding, not hiding.
-- No settlement-layer integration.
+- The v3 benchmarks do not include a settlement layer. A lab-scale integration on a Besu QBFT ledger (Plonky3 proof, §6A) was added later; it is not a production or central-bank ledger.
 - H1's input features are not tied to the amount (Elliptic features are anonymized).
 
 Evidence: `h4-pqc-stark/README.md`, `docs/h4_*.md`, `benchmark_v2/results/`.
@@ -400,7 +405,7 @@ A CBDC transfer passes through four layers:
 3. The decision is verifiable off-chain, with disputes settled by bisection (H1).
 4. The cryptography stays secure against quantum adversaries (H4).
 
-C1 makes this concrete: one post-quantum proof binds the model's output, the agent's decision and the committed amount. The overhead is under 2×, and per C2 it shrinks for larger models.
+C1 makes this concrete: one post-quantum proof binds the model's output, the agent's decision and the committed amount. The overhead is under 2×, and per C2 it shrinks for larger models. §6A shows the layers running together on a BFT ledger with validators that verify the proof and sign, so that falsified requests do not settle.
 
 The negative results define where the design must change:
 - federation needs a recall-anchored target, and more than three parties for DP to be usable (H2);
@@ -473,9 +478,16 @@ recall 0.81 on time steps 35–42 and 0 on 43–49, the known post-shutdown coll
 
 ### Readiness
 Technology validated in a lab (TRL 4): the components run together on a BFT ledger with real data and
-injected faults. Not yet shown: a relevant environment (multiple machines and organisations, network
-delays, a real central-bank ledger, real amounts), throughput beyond one sequential operator, and
-privacy of amounts towards validators.
+injected faults. A two-person, two-machine run over Tailscale (20–21 Oct 2026) also showed the gate working with
+one validator key held by someone other than the host. Not yet shown: a relevant environment (several
+organisations, realistic network delays, a real central-bank ledger, real amounts), throughput beyond one
+sequential operator, and privacy of amounts towards validators.
+
+### Independent-validator run and what has been checked independently
+- **Run (20–21 Oct 2026):** host (a person outside the team, his own MacBook) ran the network, three validators and 200 real Elliptic transfers (34 falsified); the reviewer (Aman Hooda, his own MacBook Air) ran a separate Besu node and the fourth validator with a key generated on his machine and his own build of the verifier. The contract required all four signatures. Result: the reviewer's validator signed exactly the 166 honest transfers and refused all 34 falsified ones, each for the matching reason; the three host validators decided identically on all 200 requests; with the reviewer unreachable, nothing settled.
+- **Checked by the mentor on his own machine:** all 234 tests; every summary recomputed from the raw records; the exported ledger re-executed in a fresh Besu 25.10 node (audit table of 2,197 settlements byte-identical to the team's); all 116 recorded dispute transactions replayed on an empty `anvil` (116 / 116 match; 7 / 7 winners agree; all proofs verify); the independent-validator records rechecked with separately written code.
+- **Not independently verified:** the live runs and all timings (they come from the team's machines), the reviewer's own ledger (not exported, so its checks are self-reported), and the H3 learning study and H4 v4 results beyond their test suites.
+- **Limits:** the reviewer is a team member and the host followed the team's instructions; the run shows the gate needs a key the host does not hold, not an audit by an unrelated third party.
 
 ---
 
@@ -484,7 +496,8 @@ privacy of amounts towards validators.
 **Pre-registration.** The following were committed before their confirmatory runs, with commit hashes in each PR:
 - H2 v2 and its matched-recall test;
 - H3 durable liability;
-- H4 v2, v3, coverage and the composed proof.
+- H4 v2, v3, coverage and the composed proof;
+- the H3 learning-agent study (§6A).
 
 **Post-hoc work (labelled as such everywhere):**
 - H3's majority-bar definition;
@@ -502,7 +515,9 @@ privacy of amounts towards validators.
 **Main threats:**
 - **Single dataset:** all ML results use Elliptic.
 - **Simulation:** H2 institutions are simulated, and the H3 agents are simulated and myopic.
-- **Hardware:** H4 timings come from one machine.
+- **Hardware:** H4 timings come from one machine; the integrated-system timings come from the team's machines and were not independently re-run.
+- **Integration scale and independence:** the integrated runs are lab-scale (one sequential operator, one ledger of four validators). The two-machine run involved a team member and a person following the team's instructions.
+- **Detection quality:** the system enforces what its proven rule says. With the H1 model's recall of 0.72 on real data (0 after time step 43), some illicit transfers still execute.
 - **Synthetic composition:** the composed proof pairs a real H1 transaction with a real H3 decision; Elliptic has no amount field.
 
 ---

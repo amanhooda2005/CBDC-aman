@@ -3,6 +3,7 @@
 **Repository:** github.com/maanas1234/CBDC (`main`)
 **Team:** Aman Hooda (H1), Indrakshi (H2), Anjali (H3), Simran Pundir (H4). Mentor and reviewer: Maanas Tyagi.
 **Source proposal:** *Architecting a Secure, Compliant, and Intelligent CBDC Ecosystem* (`docs/CBDC_AI_Blockchain_Research_Proposal.pdf`)
+**Updated:** 21 Oct 2026 (includes Aman's integration work, PRs #36–#39).
 **Companion summary:** `docs/FULL_REPORT.md` (short version). This document is the long version.
 
 ---
@@ -59,6 +60,7 @@ Rebuilding twice in a row on the same checkout and environment gives a byte-iden
 | 4 | H3: AgentBound Tokens (baseline, treatment, confirmatory, agent-level, Sybil, durable liability) |
 | 5 | H4: post-quantum ZK-STARK (v1 prototypes, halt, v2, v3, model coverage, composed proof, overhead law) |
 | 6 | Cross-cutting findings and the system picture |
+| 6A | The integrated system (TRL 4): Besu pipeline, on-chain disputes and registry, Plonky3 proof, independent-validator run, and what was independently verified |
 | 7 | Corrections, deviations, withdrawn work, and what was not done |
 | 8 | Reproducibility and the full artifact index |
 | Appendices | Configurations, pre-registrations and original documentation, verbatim |
@@ -118,8 +120,8 @@ The proposal decomposes its objectives into four falsifiable hypotheses, each wi
 - the Reverse-Kelly AMM;
 - ExpProof-style verifiable explanations;
 - secure multi-party aggregation and blockchain orchestration of the federated-learning layer;
-- an on-chain ABT contract;
-- settlement-layer integration.
+- an on-chain ABT contract (built later, see Part 6A);
+- settlement-layer integration (a lab-scale version was built later, see Part 6A).
 
 See §7.4.
 
@@ -152,7 +154,7 @@ Each hypothesis was owned end to end by one student. The mentor reviewed and mer
 
 ## 1.4 Timeline
 
-130 commits between 2026-09-03 and 2026-10-16. By author name: Maanas Tyagi 67, Indrakshi 24, Aman Hooda 13, simranpundirr 12, amanhooda2005 8, Anjali503 5, Simran Pundir 1.
+137 commits between 2026-09-03 and 2026-10-21. By author name: Maanas Tyagi 69, Indrakshi 24, Aman Hooda 18, simranpundirr 12, amanhooda2005 8, Anjali503 5, Simran Pundir 1.
 
 | Date | Milestone |
 |---|---|
@@ -203,6 +205,11 @@ Each hypothesis was owned end to end by one student. The mentor reviewed and mer
 | #32 | merged | maanas1234 | 2026-10-11 | 2026-10-11 | `maanas/final-findings` | README: cross-cutting findings (composed PQ proof, gameable FP criterion, overhead law); handoff refresh |
 | #33 | merged | maanas1234 | 2026-10-13 | 2026-10-13 | `maanas/h3-durable-liability` | H3 Finding C: deterrence wears out; stake maintenance + operator-bound history fix it (pre-registered) |
 | #34 | merged | maanas1234 | 2026-10-13 | 2026-10-13 | `maanas/full-report` | Full end-to-end results report (docs/FULL_REPORT.md) |
+| #35 | merged | maanas1234 | 2026-10-13 | 2026-10-13 | `maanas/exhaustive-report` | Exhaustive record of every experiment (docs/EXHAUSTIVE_REPORT.md) |
+| #36 | closed | amanhooda2005 | 2026-10-15 | — | `aman/trl4-integration` | TRL 4: integrated CBDC pipeline on Besu QBFT, real EZKL dispute verifiers, ZK composed proof, on-chain H3 registry |
+| #37 | merged | amanhooda2005 | 2026-10-15 | 2026-10-15 | `aman/trl4-integration` | TRL 4: integrated CBDC pipeline on Besu QBFT, real EZKL dispute verifiers, ZK composed proof, on-chain H3 registry |
+| #38 | merged | amanhooda2005 | 2026-10-20 | 2026-10-20 | `aman/trl4-evidence` | Evidence, reproducibility fixes and independent-validator setup |
+| #39 | merged | amanhooda2005 | 2026-10-20 | 2026-10-21 | `aman/independent-validator-result` | Evidence: independent-validator run on two machines (4-of-4 gate) |
 
 
 # Part 2 — H1: Verifiable off-chain inference (zk-OPML)
@@ -1678,7 +1685,7 @@ interpretation: The in-simulation ABT registry keys accounts by agent_id string.
 - Detection probability is 1.
 - Operators are assumed to have unlimited capital.
 - The operator credential is assumed to exist.
-- No on-chain contract.
+- The simulation has no on-chain contract. One was built later (`LiabilityRegistry`; Part 6A), together with a learning-agent study under imperfect detection that relaxes the myopic-agent assumption.
 - The one-step-ahead reset rule.
 
 
@@ -2148,7 +2155,8 @@ The recorded history is kept:
 - One machine; ratios are the reported quantity.
 - The commitment is binding but not hiding; no zero-knowledge masking.
 - SIS binding assumes the PRG matrix behaves like a uniform one.
-- No settlement-layer integration.
+- No settlement layer in the v3 benchmarks. A lab-scale integration on a Besu QBFT ledger, using a Plonky3 re-implementation with zero-knowledge hiding, was added later (Part 6A).
+- The "≥ 2⁶¹⁵ quantum" figure covers the commitment's binding only. The whole proof is estimated at about 63 bits quantum (v3) and about 62 bits (v4), as explained in Part 6A.
 - The H1 features are not tied to the amount.
 
 
@@ -2158,7 +2166,7 @@ The recorded history is kept:
 
 | ID | Finding | Status | Evidence |
 |---|---|---|---|
-| C1 | **One post-quantum proof for a whole CBDC transaction decision.** It covers H1 inference (private score), the risk flag, the H3 agent decision, and the amount bound to a lattice commitment with a quantum attack cost ≥ 2⁶¹⁵. Overhead vs the same proof without PQ binding: 1.15× / 1.28× / 1.77×. A decision on an amount other than the committed one passes the classical proof and fails the PQ proof. | Confirmatory | §5.5 |
+| C1 | **One post-quantum proof for a whole CBDC transaction decision.** It covers H1 inference (private score), the risk flag, the H3 agent decision, and the amount bound to a lattice commitment (binding attack cost ≥ 2⁶¹⁵ quantum; this covers the commitment only, the whole proof is about 63 bits quantum, Part 6A). Overhead vs the same proof without PQ binding: 1.15× / 1.28× / 1.77×. A decision on an amount other than the committed one passes the classical proof and fails the PQ proof. | Confirmatory | §5.5 |
 | C2 | **PQ binding in ZKML has a near-constant additive cost:** about +12 ms verify, +28 ms prove, +8.4 KB. The ratio ≈ 1 + c / classical falls as models grow; it predicted an unseen workload within 0.02× for size and prove time. | Post-hoc | §5.6 |
 | C3 | **Slashing-based agent liability wears out and is Sybil-fragile; two protocol changes make it durable.** Stake maintenance (z = −13.1) and operator-bound history (z = −18.5) take violations from 50.7% to 2.0%. A registration bond blocks resets exactly at the derived break-even B* = 14. | Confirmatory | §4.5 |
 | C4 | **False-positive targets for federated AML are gameable.** The ≥ 20% FP criterion holds at threshold 0.5 at every level but fails at matched recall at every evaluable level. With ample labels, federation makes 67–80% more false positives at equal recall. | Confirmatory | §3.5 |
@@ -2199,6 +2207,352 @@ The results say what each layer needs in order to work:
 | PQ cost | A roughly fixed add-on, cheapest relative to large models |
 
 
+# Part 6A — The integrated system (TRL 4), October 2026
+
+**Added by:** Aman Hooda (PRs #36–#39), after the four tracks were complete. **Independent checks by the mentor:** §6A.7.
+
+Code: `integration/` (its README has every table), `h1-zkopml-v2/` (v2, v2.1), `h3-abt/contracts/`, `h3-abt/docs/PREREGISTRATION_learning.md`, `h4-pqc-stark/zk_composed/`, `h4-pqc-stark/docs/h4_zk_composed.md`, `docs/EVIDENCE.md`, `docs/INDEPENDENT_VALIDATOR.md`.
+
+**What changed in the picture.** Parts 2–5 describe four tracks, each run as a simulation or benchmark. This part covers the later work that runs them together as one system on a real Byzantine-fault-tolerant ledger. It also replaces some statements in Parts 4–5:
+- The ABT registry now also exists as an **on-chain Solidity contract** (§6A.3).
+- A **settlement-layer integration** now exists at lab scale (§6A.1). It is not a production ledger.
+- The composed proof has a second implementation with **zero-knowledge hiding** (§6A.5), whose security estimate is **weaker** than v3's (§6A.5).
+- The H1 dispute game now runs on-chain with real proof verifiers (§6A.2), which **changes the latency conclusion** for the shared-verifier design.
+
+## 6A.1 The integrated pipeline
+
+**Design (from `integration/README.md`):**
+- **Ledger:** Hyperledger Besu 25.10, 4 validators, QBFT consensus (tolerates 1 faulty), 1-second blocks, chain id 20261, zero gas price.
+- **Operator node:** for each transfer, one zero-knowledge Plonky3 STARK proves:
+  - the H1 inference (`W32_B1`);
+  - the risk flag;
+  - the H3 decision under public policy values (limit, sanctioned id, the registry's current escalated slash);
+  - the link between the decided amount and an SIS commitment.
+- **Validators:** each verifies the proof natively (not in the EVM), the model digest, the commitment opening against the settled amount, the outputs and the current policy (read from its own node). It then signs (EIP-191).
+- **Contracts:** `SettlementGate` (quorum of signatures, customer mandates; outcomes Executed / AgentRefused / Blocked + slash / NotCovered) and H3's `LiabilityRegistry`.
+- **Fault injection:** a share of requests is deliberately falsified in one of five ways: wrong model, amount swap, stale penalty, corrupted proof, flipped verdict.
+
+**Runs** *(generated from `integration/pipeline/runs/*/summary.json`)*:
+
+| Run | Source | Requests | Falsified | Honest settled as expected | Falsified reaching quorum | Ledger changes by falsified | End-to-end mean ms | Settle gas mean | Wall s | Tx / min |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1,000 real Elliptic transactions, 4 honest validators | elliptic | 1000 | 111 | 889 / 889 | 0 / 111 | 0 | 1983 | 90,642 | 1872 | 32.0 |
+| 300 synthetic, 1 Byzantine validator | synthetic | 300 | 56 | 244 / 244 | 0 / 56 | 0 | 1964 | 91,760 | 532 | 33.8 |
+| 60 synthetic, 2 Byzantine validators | synthetic | 60 | 34 | 26 / 26 | 0 / 34 | 0 | 1615 | 95,018 | 71 | 50.8 |
+| 40 synthetic, 1 validator down | synthetic | 40 | 15 | 25 / 25 | 0 / 15 | 0 | 1660 | 84,474 | 55 | 44.0 |
+| 1,000 synthetic, a validator node crashed mid-run | synthetic | 1000 | 100 | 899 / 900 | 0 / 100 | 0 | 2512 | 88,389 | 2352 | 25.5 |
+
+**The real-data run in detail** *(generated from `runs/elliptic_1000/summary.json`)*:
+
+Honest outcomes:
+
+| Honest outcomes | Count |
+|---|---|
+| AgentRefused | 581 |
+| Blocked | 1 |
+| Executed | 307 |
+
+Falsified requests:
+
+| Falsification type | Injected | All rejected (not submitted) |
+|---|---|---|
+| amount_swap | 20 | yes |
+| corrupt_proof | 21 | yes |
+| flip_viol | 23 | yes |
+| stale_slash | 24 | yes |
+| wrong_model | 23 | yes |
+
+H1 risk flag inside the proof (illicit blocked: 0, illicit executed: 8):
+
+| Window | Labelled | Illicit | TP | FP | FN | TN | Precision | Recall | F1 |
+|---|---|---|---|---|---|---|---|---|---|
+| all time steps | 889 | 69 | 50 | 44 | 19 | 776 | 0.5319 | 0.7246 | 0.6135 |
+| steps 35-42 | 562 | 62 | 50 | 28 | 12 | 472 | 0.6410 | 0.8065 | 0.7143 |
+| steps 43-49 | 327 | 7 | 0 | 16 | 7 | 304 | 0.0000 | 0.0000 | 0.0000 |
+
+Timing:
+
+| Stage | Mean ms | Median ms | p95 ms |
+|---|---|---|---|
+| prove | 789.5 | 759.8 | 1106.7 |
+| attest | 290.5 | 266.5 | 472.6 |
+| validator_check | 207.6 | 193.1 | 337.4 |
+| settle | 846.0 | 875.8 | 1106.1 |
+| end_to_end | 1982.9 | 1994.7 | 2201.9 |
+
+Gas:
+
+| Gas | Mean | Median | p95 |
+|---|---|---|---|
+| settle | 90,642 | 84,021 | 103,099 |
+| top_up | 28,863 | 28,863 | 28,863 |
+
+Proof size mean 169,904 bytes.
+
+**Reading.**
+- **Integrity held in every run.** Every honest transfer settled as expected, and no falsified request reached the quorum or changed the ledger.
+- **Liveness cost:** in the run where a validator node crashed, one honest transfer was not submitted because its validator was unreachable (899 of 900 settled).
+- **Detection is weak.**
+  - Of 69 illicit transactions, the risk flag caught 50 (recall 0.72), and 8 illicit transfers were executed.
+  - The flag catches none of the 7 illicit transactions after time step 43, the known post-shutdown collapse of Elliptic models.
+  - The system enforces *what the proven rule says*; it does not make the underlying model better.
+- **Speed:** about 2 s per transfer, one operator, sequential.
+
+**Defects found by integration, fixed with regression tests:**
+1. The composed proof's 22-bit comparison window could not hold the decision term once the registry escalated the slash. Honest proofs failed (145 of 244 in the first 300-transaction run). It is now 30 bits with a stated domain (policy values and stake below 2²⁰), checked by prover and verifier.
+2. The proven rule refused every compliant transfer (the H3 refuse-on-tie rule), and the gate slashed declined violations. Compliant transfers now execute and only attempted violations are slashed.
+
+## 6A.2 H1 v2 and v2.1: a hardened dispute contract with real verifiers
+
+**v2 (`OptimisticInferenceV2.sol`):** full on-chain adjudication; a prefix-consistency check (which blocks a malformed-chain attack that v1 allowed); bonds; per-turn deadlines; per-challenger disputes; slashable delayed withdrawals. Tests: 17 Foundry + 66 Python.
+
+**v2.1:** complete dispute games on a local chain with real EZKL-generated Solidity verifiers and real step proofs. Steps of the same shape share one verifier: the weights become a *hashed public instance* that the contract checks against the step's stored weight hash. The 60-block model needs 4 verifiers instead of 63.
+
+*(generated from `results/gas_v2.json`, `onchain_disputes_B60*.json`, `same_machine_step_vs_mono.json`)*
+
+Dispute game gas with a mock verifier (hardened contract v2):
+
+| Dispute (mock verifier) | Step | Commit | Challenge | openFinal | Reveals total | Responds total | Resolve (mock) | Game total |
+|---|---|---|---|---|---|---|---|---|
+| block step (u16) | 17 | 54,673 | 147,144 | 98,290 | 348,731 | 295,027 | 109,268 | 998,460 |
+| projection half (proj0) | 0 | 54,661 | 147,132 | 98,290 | 294,275 | 237,284 | 88,731 | 865,712 |
+| join step (u1, two inputs) | 2 | 54,673 | 147,144 | 98,326 | 345,883 | 297,027 | 98,332 | 986,712 |
+| head step | 62 | 54,673 | 147,144 | 98,314 | 346,069 | 279,887 | 92,368 | 963,782 |
+
+Derived:
+
+| Quantity | Value |
+|---|---|
+| Monolithic verification gas | 696,984 |
+| Commit per inference | 54,673 |
+| Undisputed ratio | 12.75× |
+| Full dispute, typical (estimate) | 1,623,441 |
+| Full dispute, worst (estimate) | 1,902,457 |
+| Per-dispute ratio, worst | 0.366× |
+| Max dispute rate for 10×, worst / typical | 0.79% / 0.93% |
+
+Shared verifiers deployed for the B = 60 model (total deploy gas 17,220,011, game contract 8,527,528):
+
+| Verifier shape | Steps served | logrows | Deploy gas | Bytecode KB | Setup s | Proving key MB |
+|---|---|---|---|---|---|---|
+| proj | 2 | 17 | 5,376,345 | 24.1 | 100.7 | 1821 |
+| join | 1 | 16 | 3,943,098 | 17.6 | 41.5 | 659 |
+| block | 59 | 16 | 3,943,386 | 17.6 | 23.2 | 659 |
+| head | 1 | 12 | 3,957,182 | 17.7 | 3.0 | 41 |
+
+Complete games with real EZKL verifiers, first transaction:
+
+| # | Scenario | Step | Shape | Rounds | Step proof s | Winner | Correct | Game gas (real verifier) |
+|---|---|---|---|---|---|---|---|---|
+| 0 | asserter cheats at a projection step | proj0 | proj | 5 | 73.9 | challenger | yes | 1,914,284 |
+| 1 | asserter cheats at the join step | u1 | join | 6 | 22.4 | challenger | yes | 1,606,245 |
+| 2 | asserter cheats at a middle block | u29 | block | 6 | 21.0 | challenger | yes | 1,584,385 |
+| 3 | asserter cheats at the head (the decision) | u61 | head | 6 | 1.6 | challenger | yes | 1,582,490 |
+| 4 | false challenge against an honest asserter | u32 | block | 6 | 21.5 | asserter | yes | 1,609,272 |
+| 5 | malformed prefix chain (honest leaf at the disputed step) | — | — | 6 | none needed | challenger | yes | 905,649 |
+| 6 | attack: valid proof made with another block's weights | u19 | block | 6 | 21.1 | challenger | yes | 1,598,630 |
+
+Same games on a second real Elliptic transaction (index 3,915):
+
+| # | Scenario | Step | Shape | Rounds | Step proof s | Winner | Correct | Game gas (real verifier) |
+|---|---|---|---|---|---|---|---|---|
+| 0 | asserter cheats at a projection step | proj0 | proj | 5 | 196.3 | challenger | yes | 1,909,352 |
+| 1 | asserter cheats at the join step | u1 | join | 6 | 69.7 | challenger | yes | 1,606,353 |
+| 2 | asserter cheats at a middle block | u29 | block | 6 | 67.0 | challenger | yes | 1,589,937 |
+| 3 | asserter cheats at the head (the decision) | u61 | head | 6 | 5.0 | challenger | yes | 1,582,850 |
+| 4 | false challenge against an honest asserter | u32 | block | 6 | 24.8 | asserter | yes | 1,609,260 |
+| 5 | malformed prefix chain (honest leaf at the disputed step) | — | — | 6 | none needed | challenger | yes | 905,589 |
+| 6 | attack: valid proof made with another block's weights | u19 | block | 6 | 25.1 | challenger | yes | 1,595,722 |
+
+Same-machine latency comparison (2-vCPU, 8 GB cloud VM (same machine for every row)):
+
+| Proof | Weights | logrows | Trials (s) | Mean s | Speedup vs whole model |
+|---|---|---|---|---|---|
+| monolithic_60_blocks | fixed | 17 | 17.6 / 18.9 | 18.2 | 1.00× |
+| block_step_fixed | fixed | 12 | 1.2 / 1.5 | 1.4 | 13.40× |
+| block_step_hashed | hashed | 16 | 14.7 / 17.4 | 16.1 | 1.13× |
+| projection_step_fixed | fixed | 11 | 1.4 / 1.0 | 1.2 | 15.66× |
+| projection_step_hashed | hashed | 17 | 49.5 / 50.8 | 50.1 | 0.36× |
+
+**Reading.**
+- **The latency conclusion changes.**
+  - The 14.9× speedup (Part 2) holds only for the **fixed-weights** design, at a deploy cost of about 251 M gas for 63 verifiers.
+  - With the **shared** verifiers (17.2 M deploy gas) a disputed block step takes about as long as the whole-model proof (1.13× faster), and the slowest step (a projection half) is **2.8× slower** than the whole model (0.36×).
+  - The same-machine comparison has only 2 trials per row.
+- **Gas:** a dispute costs 1.58–1.91 M gas; an undisputed inference is 12.7× cheaper than monolithic verification; the 10× gas target holds only for dispute rates below about 0.79% (worst case) or 0.93% (typical).
+- **The attack a shared verifier opens is closed:** a valid proof made with another block's weights verifies on the verifier, but the game contract rejects it (`params instance != step weights`) and the challenger still wins.
+- **Limit:** the projection verifier's bytecode (24,644 bytes) is just over the EIP-170 limit of 24,576 bytes, so a permissioned chain must raise the limit (Besu `contractSizeLimit`).
+
+## 6A.3 H3 on-chain registry and the learning-agent study
+
+**`LiabilityRegistry.sol`** (9 Foundry tests): the ABT registry from Part 4 as a contract, including operator-bound history, escalating slash, stake maintenance, registration bond at the break-even, non-transferability, and slashable pending withdrawals.
+
+**Learning-agent study** (pre-registered in `h3-abt/docs/PREREGISTRATION_learning.md`, committed before the run): the agents of Part 4 were myopic best-responders. Here they *learn* by ε-greedy exploration under *imperfect* detection (p = 0.5 and 0.8).
+
+*(generated from `h3-abt/results/learning_report.json`)*
+
+Design: seeds 53–62, 500 steps, 20 agents per seed, detection p in [0.5, 0.8], epsilon-greedy exploration 0.1.
+
+Primary tests:
+
+| Test | Agents | Mean (first) | Mean (second) | z | p one-sided | Holm p | Supported |
+|---|---|---|---|---|---|---|---|
+| T1(p=0.5) maintained < flat, steps 451-500 | 200 | 20.9% | 25.7% | -4.98 | < 1e-6 | < 1e-6 | True |
+| T2(p=0.5) escalating_operator < escalating_id (B=0), all steps | 200 | 4.3% | 11.5% | -16.66 | < 1e-6 | < 1e-6 | True |
+| T1(p=0.8) maintained < flat, steps 451-500 | 200 | 16.1% | 26.2% | -10.21 | < 1e-6 | < 1e-6 | True |
+| T2(p=0.8) escalating_operator < escalating_id (B=0), all steps | 200 | 3.3% | 8.6% | -17.00 | < 1e-6 | < 1e-6 | True |
+
+Per regime:
+
+| Detection p | Regime | Violation rate | First 50 steps | Last 50 steps | Resets | Agents depleted | Slashed per agent |
+|---|---|---|---|---|---|---|---|
+| 0.5 | control | 23.2% | 7.2% | 32.9% | 0 | 0 | 0.0 |
+| 0.5 | flat | 14.4% | 5.8% | 25.7% | 0 | 200 | 100.0 |
+| 0.5 | maintained | 14.8% | 5.8% | 20.9% | 0 | 0 | 554.5 |
+| 0.5 | escalating_id | 11.5% | 6.0% | 15.7% | 12745 | 0 | 516.7 |
+| 0.5 | escalating_operator | 4.3% | 4.4% | 3.7% | 0 | 0 | 1038.8 |
+| 0.8 | control | 23.2% | 7.2% | 32.9% | 0 | 0 | 0.0 |
+| 0.8 | flat | 14.4% | 5.0% | 26.2% | 0 | 200 | 100.0 |
+| 0.8 | maintained | 11.6% | 5.1% | 16.1% | 0 | 0 | 700.6 |
+| 0.8 | escalating_id | 8.6% | 5.1% | 11.7% | 11238 | 0 | 629.9 |
+| 0.8 | escalating_operator | 3.3% | 3.5% | 3.0% | 0 | 0 | 1546.7 |
+
+Overall: `finding_supported` = True.
+
+**Reading.** Both earlier findings hold for learning agents under imperfect detection: stake maintenance beats a flat stake late in the run, and operator-bound history beats id-keyed history. All four pre-registered tests pass with Holm p ≤ 3.2 × 10⁻⁷. With a bond at the break-even, strategic resets disappear; the resets that remain are exploration. Note that at p = 0.5 the *overall* violation rate of the flat regime (14.4%) is not higher than maintenance (14.8%): the difference appears late in the run, as depleted agents become judgment-proof.
+
+## 6A.4 The Plonky3 composed proof (H4 v4 / v4.1)
+
+The composed proof of Part 5 (§5.5) was re-implemented on Plonky3 with **zero-knowledge hiding** (the v3 Winterfell proof had none). SIS was re-derived for the BabyBear field: 48 rows, statistical binding with about 2⁻²⁹⁴·⁷ expected collisions. The opening is checked row by row. 17 tests pass (forged risk flag, wrong outputs, high committed bits, a different amount than the committed one, tampered inference, out-of-domain witnesses, and so on).
+
+*(generated from `h4-pqc-stark/zk_composed/results/`)*
+
+Circuit: 256 rows, 215 columns classical, 270 PQ; SIS 48 rows, expected collisions 2^-294.7; model digest `5b0d4d3a9bf8cfef…`.
+
+| Variant | Runs | Proof bytes | Prove ms mean ± sd | Prove median | Verify ms mean ± sd | Verify median |
+|---|---|---|---|---|---|---|
+| classical | 30 | 99,573 | 179.8 ± 9.3 | 177.0 | 8.75 ± 1.44 | 8.31 |
+| pq | 30 | 113,037 | 227.3 ± 21.0 | 223.1 | 10.37 ± 2.10 | 9.47 |
+| classical_zk | 30 | 159,349 | 540.3 ± 69.0 | 532.2 | 15.43 ± 4.41 | 14.01 |
+| pq_zk | 30 | 170,157 | 594.1 ± 82.7 | 591.7 | 15.15 ± 3.97 | 13.03 |
+
+Ratios:
+
+| Comparison | Size | Prove | Verify |
+|---|---|---|---|
+| pq/classical | 1.14× | 1.26× | 1.19× |
+| pq_zk/classical_zk | 1.07× | 1.1× | 0.98× |
+| classical_zk/classical | 1.6× | 3.01× | 1.76× |
+| pq_zk/classical | 1.71× | 3.3× | 1.73× |
+
+Security of the whole proof:
+
+| Variant | Conjectured bits | Proven (list decoding) bits | Proven (unique decoding) bits | FRI queries | log blowup | Quotient chunks | Constraints |
+|---|---|---|---|---|---|---|---|
+| pq | 124 | 111 | 59 | 48 | 4 | 2 | 499 |
+| pq_zk | 124 | 111 | 59 | 48 | 4 | 8 | 499 |
+
+## 6A.5 Quantum security of the proofs: what the numbers do and do not say
+
+These are three different numbers. Quoting any of them without its qualifier is misleading.
+
+| Quantity | Value | What it covers |
+|---|---|---|
+| SIS commitment binding (Winterfell v2/v3) | ≥ 2⁶¹⁵ quantum attack cost (lattice estimator); about 2⁻⁶³⁶ expected short collisions | **Only the commitment.** Statistical binding. |
+| Whole v3 proof (Winterfell) | 126-bit conjectured; about **63 bits quantum** under the conservative argument | The STARK's soundness (hash-based). |
+| Whole v4 proof (Plonky3, zero-knowledge) | 124-bit conjectured, 111-bit proven (classical); about **62 bits quantum** under the conservative QROM bound | The STARK's soundness. |
+
+The v4 proof therefore gains zero-knowledge and loses about 2 bits of conjectured security, set by its 248-bit Poseidon2 digest. The "≥ 2⁶¹⁵" figure must **not** be quoted as the security of a proof. "Post-quantum" here means that the proof system uses hash functions and lattices and has no known efficient quantum attack at these parameters; a conservative estimate of 62–63 bits quantum is below the common 128-bit target.
+
+**Overhead of post-quantum binding under zero-knowledge** (from the table above): size 1.07×, prove 1.10×, verify 0.98× versus the same zero-knowledge proof without the SIS opening. Absolute: about 170 KB, 0.6 s prove, 15 ms verify.
+
+## 6A.6 Audit of the ledger, and the independent-validator run
+
+**Audit of every integrated run against the ledger itself** *(generated from `integration/pipeline/audit/audit_report.json`)*. Aman's script (`audit_chain.py`) reads every block, decodes each `settle` call, recovers the validator signatures, and compares with each run's CSV:
+
+Chain head 8757; 2,197 settle transactions in total, 0 reverted; 114 settle transactions belong to no recorded run (early functional tests and a deleted first 300-transaction attempt).
+
+| Run | CSV rows | Honest | Falsified | CSV settled | Settle txs on chain | Rows matching chain exactly | Mismatches | Falsified with a settle tx | Fewest validator signatures |
+|---|---|---|---|---|---|---|---|---|---|
+| elliptic_1000 | 1000 | 889 | 111 | 889 | 889 | 889 | 0 | 0 | 4 |
+| synthetic_1000 | 1000 | 900 | 100 | 899 | 899 | 899 | 0 | 0 | 3 |
+| synthetic_300_byz3 | 300 | 244 | 56 | 244 | 244 | 244 | 0 | 0 | 4 |
+| synthetic_40_down1 | 40 | 25 | 15 | 25 | 25 | 25 | 0 | 0 | 3 |
+| synthetic_60_byz23 | 60 | 26 | 34 | 26 | 26 | 26 | 0 | 0 | 4 |
+
+On the Elliptic deployment, the merchant's CBDC balance (1,930,131) equals the sum of the amounts the CSV records as Executed.
+
+**Independent-validator run (20–21 Oct 2026).** All four validator keys in the runs above were the team's. To address that, the run was split across **two people on two machines** (connected over Tailscale), following `docs/INDEPENDENT_VALIDATOR.md`:
+- **Host** (a person outside the team, his own MacBook): the 4-node QBFT network, the contract deployment, three validators and the 200 transfers.
+- **Reviewer** (Aman Hooda, his own MacBook Air, macOS on Apple Silicon, Besu 25.10.0): a separate Besu node synced from the host's network and the fourth validator. Its key was generated on that machine and never shared. It used its own build of the proof verifier (same model digest).
+- The `SettlementGate` was deployed with **threshold 4**, so neither person could settle alone.
+
+*(generated from `integration/evidence/independent_validator/`)*
+
+| Check | Result |
+|---|---|
+| Requests checked by the reviewer's validator | 200 |
+| Signed | 166 |
+| Refused | 34 |
+| Host honest / falsified | 166 / 34 |
+| Settled on the ledger | 166 |
+| Settled == reviewer-signed | True |
+| Settled == honest | True |
+| Signatures on each settled request | {'4': 166} |
+| Signatures on each falsified request | {'0': 34} |
+| Refusal reason matches the falsification | True |
+| Refusals by falsification | {'wrong_model': 10, 'flip_viol': 4, 'stale_slash': 6, 'amount_swap': 8, 'corrupt_proof': 6} |
+| Host validators: identical decisions | True |
+| First attempt (reviewer unreachable): requests settled | 0 |
+| Reviewer's own-ledger checks (self-reported) | {'check1_every_settlement_with_my_signature_was_signed_by_me': True, 'check2_no_settlement_with_my_signature_for_a_request_i_refused': True, 'check3_strict_gate_nothing_settled_without_me': True} |
+| all_ok | True |
+
+| Run | Honest settled | Honest outcomes | Falsified reaching quorum | Wall s |
+|---|---|---|---|---|
+| independent_200 (first attempt, reviewer unreachable) | 0 / 166 | {'NotSubmitted': 166} | 0 | 24.1 |
+| independent_200_b (settled run) | 166 / 166 | {'AgentRefused': 100, 'Blocked': 1, 'Executed': 65} | 0 | 180.2 |
+
+| Refusal reason (reviewer) | Count |
+|---|---|
+| statement is about a different model | 10 |
+| zero-knowledge proof does not verify | 10 |
+| proof used slash 7936, registry requires 7680 | 6 |
+| commitment does not open to the stated amount | 8 |
+
+Contract `0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512`, 4 attesters, threshold 4. Reviewer validator address `0xf88933d89FDe0b4353926722888B65a12e9fC1f7`.
+
+**Reading.** The reviewer's validator signed exactly the 166 honest requests and refused exactly the 34 falsified ones, each for the matching reason. The three host validators made identical decisions on all 200 requests. In the first attempt, where the reviewer's validator could not be reached, nothing settled, which shows the strict gate working.
+
+**Limits of this run.**
+1. The reviewer is a team member, and the host is an outside person (Aman describes him as a roommate) following the team's instructions. It shows that the gate needs a key the host does not hold, not that an unrelated third party audited the system.
+2. Both sides run the team's code. The verifier was built separately on each machine.
+3. The ledger itself stayed on the two machines and is not exported, so the reviewer's own-ledger checks are **self-reported**.
+
+## 6A.7 What the mentor independently verified, and what not
+
+Checks were made between 15 and 21 Oct 2026 on the mentor's own machine, using Aman's evidence files, with no access to his machines.
+
+**Reproduced independently:**
+
+| Check | Result |
+|---|---|
+| Test suites on a clean checkout of the PR branch | 234 / 234 pass: H3 pytest 99, H1 pytest 66, H4 `zk_composed` 17, H4 `benchmark_v2` 20, Foundry H1 17, H3 9, integration 6 |
+| Summaries recomputed from the raw CSVs (all five runs) | identical |
+| H1 risk-flag precision, recall, F1 and the decision rule (viol = policy OR risk flag) recomputed from the raw rows | identical (0 exceptions in 889 rows) |
+| Exported ledger decoded with an independent RLP decoder | 8,758 blocks (head 8,757); 2,197 settle calls; per-gate counts match the audit report |
+| Exported ledger imported into a fresh **Besu 25.10** node (re-executing all 8,757 blocks); Aman's audit script run against that node | head 8,757; audit report identical; per-transaction table of 2,197 rows **byte-identical** |
+| Recorded on-chain dispute run: all 116 original *signed* transactions replayed on an empty `anvil` 1.8.5 | 116 / 116 match logged status and gas; 7 / 7 winners agree; all 7 proofs verify on-chain; a copy with one byte flipped is rejected |
+| Independent-validator records, rechecked with separately written code | the reviewer signed exactly the 166 honest requests; the 8 amount-swap requests it received carried the committed amount plus 1 and were refused; identical decisions on all 200 requests by all three host validators; 4 signatures on every settled request and 0 on every falsified one |
+
+**Not independently verified:**
+- The **live runs themselves** (Besu chain, EZKL proving and key generation, the pipeline) and **all timings**, which come from Aman's machines. Records and ledger were replayed; the executions were not repeated.
+- The **reviewer's own ledger** in the independent-validator run (not exported).
+- The **H3 learning-study** and **H4 v4** results beyond their passing test suites.
+- `bench_shared_vs_mono.py` (needs EZKL and a 3 GB key setup).
+
+**Problems found during verification and fixed by Aman (PR #38):** the audit script, evidence file and logs were missing from PR #37; the H1 README did not say that the shared-verifier proof is no faster than the whole model; the recorded `anvil` state could not be loaded by current Foundry builds (the replay mode of `verify_dispute_record.py` fixes this); the exhaustive report was not reproducible from its build script.
+
+
 # Part 7 — Corrections, deviations, withdrawn work, and what was not done
 
 ## 7.1 Corrections and errors, in order
@@ -2230,6 +2584,12 @@ The results say what each layer needs in order to work:
 | 23 | H4 coverage: a heuristic picked scales that hurt accuracy | Fidelity loss | Scales selected by validation PR-AUC instead |
 | 24 | H3 durable-liability outputs (`durable_report.json`, `durable_actions.csv`) were blocked by `h3-abt/.gitignore` (`results/*.json`, `results/*.csv`) | The README referenced files missing from the repo | Force-added in the PR that adds this document |
 | 25 | H4 composed pre-registration (`h4_composed.md`) states the PQ main trace width as 219; it is 220 (12 SIS + 207 workload + 1 link accumulator) | Descriptive typo; no effect on the circuit or the timing | Corrected in this document and in `FULL_REPORT.md`; the pre-registration is left as committed |
+| 26 | The first versions of `FULL_REPORT.md` and the exhaustive report quoted "≥ 2⁶¹⁵ quantum" next to the composed proof. That figure covers only the SIS commitment's binding; the proof as a whole is about 63 bits quantum (v3) or 62 bits (v4) | Overstated the quantum security of the proof | Reworded everywhere (Part 6A.5, C1); found during the review of PR #37 |
+| 27 | The report title and abstract called the system "quantum-safe" | Overclaim given the estimates above | Title changed to "Post-Quantum"; abstract qualified |
+| 28 | PR #36 and PR #37 were the same branch (#36 closed, #37 merged); PR #37 omitted the audit script, evidence and logs it relied on | Claims in `EVIDENCE.md` could not be checked from `main` | Added in PR #38 |
+| 29 | The H1 v2.1 shared verifiers (4 verifiers, 17.2 M deploy gas instead of about 251 M) remove the proving-time gain: a disputed block step takes about as long as the whole-model proof, and a projection step is 2.8× slower | The 14.9× speedup was still quoted as if it applied to the on-chain design | H1 README, FULL_REPORT and Part 6A now state that 14.9× applies to the fixed-weights design only (PR #38) |
+| 30 | The recorded `anvil_state.json` of the on-chain dispute run could not be loaded by current Foundry builds (written by 1.5.1) | The 116-transaction record was not re-checkable with a current toolchain | `verify_dispute_record.py` gained a replay mode that re-sends the original signed transactions (PR #38); reproduced independently |
+| 31 | The independent-validator run (host outside the team, reviewer a team member) does not export the ledger | The reviewer's own-ledger checks are self-reported | Stated as a limit in Part 6A.6; ledger export requested |
 
 ## 7.2 Provenance gaps that remain
 
@@ -2252,8 +2612,8 @@ The results say what each layer needs in order to work:
 | Deep-RL monetary policy engine; Reverse-Kelly AMM | Not attempted (outside the 2–3 month scope) |
 | ExpProof-style verifiable explanations bound to the ABT | Not attempted |
 | Blockchain orchestration of FL; secure multi-party aggregation; encrypted gradients | Not attempted (FedAvg is simulated in-process) |
-| On-chain ABT contract (Solidity) | Not built; the registry is in-simulation |
-| Settlement-layer integration of the PQ proofs | Not attempted |
+| On-chain ABT contract (Solidity) | Not built in the original programme; built later as `LiabilityRegistry` (Part 6A) |
+| Settlement-layer integration of the PQ proofs | Not attempted in the original programme; a lab-scale integration on a Besu QBFT ledger was added later (Part 6A). Not a production or central-bank ledger |
 | Real VASP institutions | Simulated by graph partitioning |
 | Transaction-level DP | Not attempted; only institution-level DP |
 | Hiding (zero-knowledge) commitments in H4 | Not claimed; binding only |
@@ -2311,6 +2671,10 @@ Paths are relative to the repository root. The PDF build embeds each image.
 
 ![H4 overhead law](../h4-pqc-stark/benchmark_v2/results/overhead_law.png)
 
+**Figure 13 — H3 learning agents under imperfect detection (Part 6A):** violation rate over time per regime for detection probability 0.5 and 0.8.
+
+![H3 learning](../h3-abt/results/learning_figure.png)
+
 
 # Part 9 — Reproducibility and artifact index
 
@@ -2346,47 +2710,49 @@ Paths are relative to the repository root. The PDF build embeds each image.
 
 ## 9.3 Every tracked file *(generated by `git ls-files`)*
 
-376 tracked files.
+397 tracked files.
 
 | Path | Bytes |
 |---|---|
-| `.gitignore` | 35 |
-| `README.md` | 12,862 |
+| `.gitignore` | 38 |
+| `README.md` | 13,261 |
 | `docs/CBDC_AI_Blockchain_Research_Proposal.pdf` | 787,684 |
-| `docs/EVIDENCE.md` | 11,759 |
+| `docs/EVIDENCE.md` | 13,167 |
 | `docs/EXHAUSTIVE_REPORT.md` | (this file) |
-| `docs/FULL_REPORT.md` | 34,045 |
-| `docs/NEXT_SESSION.md` | 3,532 |
-| `docs/exhaustive/build.py` | 30,629 |
-| `docs/exhaustive/pr_history.json` | 36,644 |
-| `docs/exhaustive/render.py` | 2,724 |
-| `docs/exhaustive/sections/00_front.md` | 6,179 |
-| `docs/exhaustive/sections/01_project.md` | 4,806 |
-| `docs/exhaustive/sections/02_h1.md` | 10,767 |
-| `docs/exhaustive/sections/03_h2.md` | 11,411 |
-| `docs/exhaustive/sections/04_h3.md` | 8,377 |
-| `docs/exhaustive/sections/05_h4.md` | 12,929 |
-| `docs/exhaustive/sections/06_cross.md` | 3,521 |
-| `docs/exhaustive/sections/07_corrections.md` | 6,263 |
-| `docs/exhaustive/sections/08_figures.md` | 1,955 |
-| `docs/exhaustive/sections/09_repro.md` | 2,645 |
-| `docs/exhaustive/sections/10_appendix_a.md` | 640 |
-| `docs/exhaustive/sections/11_appendix_b.md` | 1,053 |
-| `docs/exhaustive/sections/12_appendix_c.md` | 794 |
-| `h1-zkopml-v2/.gitignore` | 124 |
-| `h1-zkopml-v2/README.md` | 14,381 |
-| `h1-zkopml-v2/WRITEUP.md` | 14,127 |
-| `h1-zkopml-v2/bench_steps.py` | 3,265 |
-| `h1-zkopml-v2/chain.py` | 3,198 |
-| `h1-zkopml-v2/check_quant.py` | 885 |
-| `h1-zkopml-v2/commit.py` | 1,236 |
-| `h1-zkopml-v2/contracts/OptimisticInference.sol` | 2,170 |
-| `h1-zkopml-v2/contracts/OptimisticInferenceV2.sol` | 23,223 |
-| `h1-zkopml-v2/data.py` | 1,082 |
-| `h1-zkopml-v2/dispute.py` | 9,703 |
-| `h1-zkopml-v2/evidence/original_run_logs/run1_block_scenario_only.log` | 5,068 |
-| `h1-zkopml-v2/evidence/original_run_logs/run2_all_scenarios_spec_example_tx.log` | 3,118 |
-| `h1-zkopml-v2/evidence/original_run_logs/run3_all_scenarios_elliptic_tx3915.log` | 3,116 |
+| `docs/FULL_REPORT.md` | 38,917 |
+| `docs/INDEPENDENT_VALIDATOR.md` | 8,606 |
+| `docs/NEXT_SESSION.md` | 4,070 |
+| `docs/exhaustive/build.py` | 42,839 |
+| `docs/exhaustive/pr_history.json` | 46,094 |
+| `docs/exhaustive/render.py` | 2,773 |
+| `docs/exhaustive/sections/00_front.md` | 6,420 |
+| `docs/exhaustive/sections/01_project.md` | 4,884 |
+| `docs/exhaustive/sections/02_h1.md` | 10,982 |
+| `docs/exhaustive/sections/03_h2.md` | 11,635 |
+| `docs/exhaustive/sections/04_h3.md` | 8,553 |
+| `docs/exhaustive/sections/05_h4.md` | 13,257 |
+| `docs/exhaustive/sections/06_cross.md` | 3,608 |
+| `docs/exhaustive/sections/07_corrections.md` | 8,180 |
+| `docs/exhaustive/sections/08_figures.md` | 2,211 |
+| `docs/exhaustive/sections/09_repro.md` | 2,680 |
+| `docs/exhaustive/sections/10_appendix_a.md` | 661 |
+| `docs/exhaustive/sections/11_appendix_b.md` | 1,086 |
+| `docs/exhaustive/sections/12_appendix_c.md` | 827 |
+| `h1-zkopml-v2/.gitignore` | 138 |
+| `h1-zkopml-v2/README.md` | 14,598 |
+| `h1-zkopml-v2/WRITEUP.md` | 14,359 |
+| `h1-zkopml-v2/bench_shared_vs_mono.py` | 2,843 |
+| `h1-zkopml-v2/bench_steps.py` | 3,323 |
+| `h1-zkopml-v2/chain.py` | 3,299 |
+| `h1-zkopml-v2/check_quant.py` | 904 |
+| `h1-zkopml-v2/commit.py` | 1,273 |
+| `h1-zkopml-v2/contracts/OptimisticInference.sol` | 2,216 |
+| `h1-zkopml-v2/contracts/OptimisticInferenceV2.sol` | 23,690 |
+| `h1-zkopml-v2/data.py` | 1,106 |
+| `h1-zkopml-v2/dispute.py` | 9,868 |
+| `h1-zkopml-v2/evidence/original_run_logs/run1_block_scenario_only.log` | 5,118 |
+| `h1-zkopml-v2/evidence/original_run_logs/run2_all_scenarios_spec_example_tx.log` | 3,126 |
+| `h1-zkopml-v2/evidence/original_run_logs/run3_all_scenarios_elliptic_tx3915.log` | 3,124 |
 | `h1-zkopml-v2/evidence/recorded_rerun_elliptic/anvil_state.json` | 2,477,893 |
 | `h1-zkopml-v2/evidence/recorded_rerun_elliptic/proofs/s0_proof.json` | 57,615 |
 | `h1-zkopml-v2/evidence/recorded_rerun_elliptic/proofs/s0_verifyProof_calldata.bin` | 11,524 |
@@ -2402,99 +2768,102 @@ Paths are relative to the repository root. The PDF build embeds each image.
 | `h1-zkopml-v2/evidence/recorded_rerun_elliptic/proofs/s6_verifyProof_calldata.bin` | 4,100 |
 | `h1-zkopml-v2/evidence/recorded_rerun_elliptic/proofs/s6_wrong_proof.json` | 22,005 |
 | `h1-zkopml-v2/evidence/recorded_rerun_elliptic/proofs/s6_wrong_verifyProof_calldata.bin` | 4,100 |
-| `h1-zkopml-v2/evidence/recorded_rerun_elliptic/result.json` | 8,739 |
-| `h1-zkopml-v2/evidence/recorded_rerun_elliptic/transactions.jsonl` | 27,258 |
-| `h1-zkopml-v2/evidence/recorded_rerun_elliptic/verification_report.json` | 1,958 |
-| `h1-zkopml-v2/foundry.toml` | 206 |
-| `h1-zkopml-v2/gas.py` | 2,697 |
-| `h1-zkopml-v2/gas_game.py` | 2,915 |
-| `h1-zkopml-v2/gas_game_v2.py` | 9,042 |
-| `h1-zkopml-v2/make_report.py` | 4,220 |
+| `h1-zkopml-v2/evidence/recorded_rerun_elliptic/raw_transactions.jsonl` | 377,472 |
+| `h1-zkopml-v2/evidence/recorded_rerun_elliptic/result.json` | 9,085 |
+| `h1-zkopml-v2/evidence/recorded_rerun_elliptic/transactions.jsonl` | 27,374 |
+| `h1-zkopml-v2/evidence/recorded_rerun_elliptic/verification_report.json` | 2,041 |
+| `h1-zkopml-v2/evidence/recorded_rerun_elliptic/verification_report_replay.json` | 2,067 |
+| `h1-zkopml-v2/foundry.toml` | 217 |
+| `h1-zkopml-v2/gas.py` | 2,747 |
+| `h1-zkopml-v2/gas_game.py` | 2,965 |
+| `h1-zkopml-v2/gas_game_v2.py` | 9,224 |
+| `h1-zkopml-v2/make_report.py` | 4,276 |
 | `h1-zkopml-v2/models/W32_B1.pkl` | 54,572 |
 | `h1-zkopml-v2/models/W32_B24.pkl` | 250,384 |
 | `h1-zkopml-v2/models/W32_B60.pkl` | 556,861 |
 | `h1-zkopml-v2/models/W32_B8.pkl` | 114,165 |
-| `h1-zkopml-v2/onchain_dispute.py` | 22,409 |
-| `h1-zkopml-v2/onnx_builder.py` | 5,175 |
-| `h1-zkopml-v2/prepare_data.py` | 929 |
-| `h1-zkopml-v2/prover.py` | 3,895 |
-| `h1-zkopml-v2/quant.py` | 1,301 |
-| `h1-zkopml-v2/quant_accuracy.py` | 1,602 |
-| `h1-zkopml-v2/requirements.txt` | 184 |
-| `h1-zkopml-v2/results/accuracy_suite.json` | 7,051 |
-| `h1-zkopml-v2/results/disputes_B60.json` | 4,865 |
-| `h1-zkopml-v2/results/gas.json` | 1,455 |
-| `h1-zkopml-v2/results/gas_v2.json` | 2,245 |
-| `h1-zkopml-v2/results/onchain_disputes_B60.json` | 7,770 |
-| `h1-zkopml-v2/results/onchain_disputes_B60_elliptic.json` | 7,733 |
-| `h1-zkopml-v2/results/quant_accuracy_S10.json` | 1,434 |
-| `h1-zkopml-v2/results/quant_accuracy_S7.json` | 1,456 |
-| `h1-zkopml-v2/results/quant_accuracy_S9.json` | 1,426 |
+| `h1-zkopml-v2/onchain_dispute.py` | 22,830 |
+| `h1-zkopml-v2/onnx_builder.py` | 5,303 |
+| `h1-zkopml-v2/prepare_data.py` | 942 |
+| `h1-zkopml-v2/prover.py` | 3,974 |
+| `h1-zkopml-v2/quant.py` | 1,337 |
+| `h1-zkopml-v2/quant_accuracy.py` | 1,628 |
+| `h1-zkopml-v2/requirements.txt` | 193 |
+| `h1-zkopml-v2/results/accuracy_suite.json` | 7,292 |
+| `h1-zkopml-v2/results/disputes_B60.json` | 5,048 |
+| `h1-zkopml-v2/results/gas.json` | 1,523 |
+| `h1-zkopml-v2/results/gas_v2.json` | 2,354 |
+| `h1-zkopml-v2/results/onchain_disputes_B60.json` | 8,099 |
+| `h1-zkopml-v2/results/onchain_disputes_B60_elliptic.json` | 8,062 |
+| `h1-zkopml-v2/results/quant_accuracy_S10.json` | 1,479 |
+| `h1-zkopml-v2/results/quant_accuracy_S7.json` | 1,501 |
+| `h1-zkopml-v2/results/quant_accuracy_S9.json` | 1,471 |
+| `h1-zkopml-v2/results/same_machine_step_vs_mono.json` | 1,102 |
 | `h1-zkopml-v2/results/speedup_vs_depth.png` | 56,457 |
-| `h1-zkopml-v2/results/steps_B1.json` | 12,894 |
-| `h1-zkopml-v2/results/steps_B24.json` | 12,888 |
-| `h1-zkopml-v2/results/steps_B60.json` | 42,800 |
-| `h1-zkopml-v2/results/steps_B8.json` | 12,885 |
-| `h1-zkopml-v2/results/summary.json` | 3,151 |
-| `h1-zkopml-v2/steps.py` | 1,142 |
-| `h1-zkopml-v2/test/GameHarness.sol` | 7,062 |
-| `h1-zkopml-v2/test/OptimisticInferenceV2.t.sol` | 19,061 |
-| `h1-zkopml-v2/test_chain.py` | 2,966 |
-| `h1-zkopml-v2/train.py` | 4,570 |
-| `h1-zkopml-v2/train_suite.py` | 895 |
-| `h1-zkopml-v2/verify_dispute_record.py` | 6,551 |
-| `h2-federated-aml/.gitignore` | 90 |
-| `h2-federated-aml/LICENSE` | 797 |
-| `h2-federated-aml/README.md` | 15,837 |
-| `h2-federated-aml/data/.getkeep` | 1 |
-| `h2-federated-aml/data/elliptic_txs_classes.csv` | 3,305,144 |
-| `h2-federated-aml/data/elliptic_txs_edgelist.csv` | 4,470,584 |
-| `h2-federated-aml/experiments/PREREGISTRATION_matched_recall.md` | 3,487 |
-| `h2-federated-aml/experiments/PREREGISTRATION_v2.md` | 3,302 |
-| `h2-federated-aml/experiments/README.md` | 1,951 |
-| `h2-federated-aml/experiments/configs/default.yaml` | 447 |
-| `h2-federated-aml/experiments/configs/protocol_v2.yaml` | 789 |
-| `h2-federated-aml/requirements.txt` | 92 |
-| `h2-federated-aml/results/ablation_results.csv` | 31,515 |
-| `h2-federated-aml/results/baseline_results.csv` | 245 |
-| `h2-federated-aml/results/boundary_results.csv` | 6,150 |
-| `h2-federated-aml/results/federated_results.csv` | 287 |
+| `h1-zkopml-v2/results/steps_B1.json` | 13,085 |
+| `h1-zkopml-v2/results/steps_B24.json` | 13,079 |
+| `h1-zkopml-v2/results/steps_B60.json` | 43,516 |
+| `h1-zkopml-v2/results/steps_B8.json` | 13,076 |
+| `h1-zkopml-v2/results/summary.json` | 3,255 |
+| `h1-zkopml-v2/steps.py` | 1,175 |
+| `h1-zkopml-v2/test/GameHarness.sol` | 7,226 |
+| `h1-zkopml-v2/test/OptimisticInferenceV2.t.sol` | 19,469 |
+| `h1-zkopml-v2/test_chain.py` | 3,037 |
+| `h1-zkopml-v2/train.py` | 4,668 |
+| `h1-zkopml-v2/train_suite.py` | 913 |
+| `h1-zkopml-v2/verify_dispute_record.py` | 6,668 |
+| `h2-federated-aml/.gitignore` | 96 |
+| `h2-federated-aml/LICENSE` | 814 |
+| `h2-federated-aml/README.md` | 16,015 |
+| `h2-federated-aml/data/.getkeep` | 2 |
+| `h2-federated-aml/data/elliptic_txs_classes.csv` | 3,508,914 |
+| `h2-federated-aml/data/elliptic_txs_edgelist.csv` | 4,704,940 |
+| `h2-federated-aml/experiments/PREREGISTRATION_matched_recall.md` | 3,532 |
+| `h2-federated-aml/experiments/PREREGISTRATION_v2.md` | 3,344 |
+| `h2-federated-aml/experiments/README.md` | 1,956 |
+| `h2-federated-aml/experiments/configs/default.yaml` | 466 |
+| `h2-federated-aml/experiments/configs/protocol_v2.yaml` | 816 |
+| `h2-federated-aml/requirements.txt` | 103 |
+| `h2-federated-aml/results/ablation_results.csv` | 31,681 |
+| `h2-federated-aml/results/baseline_results.csv` | 247 |
+| `h2-federated-aml/results/boundary_results.csv` | 6,181 |
+| `h2-federated-aml/results/federated_results.csv` | 289 |
 | `h2-federated-aml/results/figures/boundary_connectivity.png` | 32,456 |
 | `h2-federated-aml/results/figures/degradation_vs_label_scarcity.png` | 61,052 |
 | `h2-federated-aml/results/figures/f1_vs_label_scarcity.png` | 59,627 |
 | `h2-federated-aml/results/figures/institution_label_distribution.png` | 31,554 |
 | `h2-federated-aml/results/figures/performance_vs_label_scarcity.png` | 59,627 |
 | `h2-federated-aml/results/figures/pr_auc_vs_label_scarcity.png` | 72,003 |
-| `h2-federated-aml/results/institution_count_ablation_results.csv` | 8,654 |
-| `h2-federated-aml/results/institution_stats.csv` | 324 |
-| `h2-federated-aml/results/lambda_ablation_results.csv` | 5,630 |
-| `h2-federated-aml/results/paired_significance.csv` | 10,150 |
-| `h2-federated-aml/results/per_institution_scarcity_counts.csv` | 147 |
-| `h2-federated-aml/results/scarcity_results.csv` | 17,521 |
-| `h2-federated-aml/results/scarcity_summary.csv` | 5,557 |
-| `h2-federated-aml/results/v2/all_results.csv` | 74,984 |
+| `h2-federated-aml/results/institution_count_ablation_results.csv` | 8,700 |
+| `h2-federated-aml/results/institution_stats.csv` | 328 |
+| `h2-federated-aml/results/lambda_ablation_results.csv` | 5,661 |
+| `h2-federated-aml/results/paired_significance.csv` | 10,223 |
+| `h2-federated-aml/results/per_institution_scarcity_counts.csv` | 151 |
+| `h2-federated-aml/results/scarcity_results.csv` | 17,612 |
+| `h2-federated-aml/results/scarcity_summary.csv` | 5,576 |
+| `h2-federated-aml/results/v2/all_results.csv` | 75,415 |
 | `h2-federated-aml/results/v2/figures/h2_v2_privacy_tradeoff.png` | 45,486 |
 | `h2-federated-aml/results/v2/figures/h2_v2_scarcity.png` | 152,423 |
-| `h2-federated-aml/results/v2/h2_primary_fp_criterion.csv` | 481 |
-| `h2-federated-aml/results/v2/h2_privacy_tradeoff.csv` | 412 |
-| `h2-federated-aml/results/v2/h2_refined_boundary_mitigation.csv` | 488 |
-| `h2-federated-aml/results/v2/h2_secondary_comparisons.csv` | 3,490 |
-| `h2-federated-aml/results/v2/report.json` | 1,658 |
-| `h2-federated-aml/results/v2/seed_42.csv` | 7,647 |
-| `h2-federated-aml/results/v2/seed_43.csv` | 7,770 |
-| `h2-federated-aml/results/v2/seed_44.csv` | 7,744 |
-| `h2-federated-aml/results/v2/seed_45.csv` | 7,560 |
-| `h2-federated-aml/results/v2/seed_46.csv` | 7,719 |
-| `h2-federated-aml/results/v2/seed_47.csv` | 8,101 |
-| `h2-federated-aml/results/v2/seed_48.csv` | 8,048 |
-| `h2-federated-aml/results/v2/seed_49.csv` | 7,611 |
-| `h2-federated-aml/results/v2/seed_50.csv` | 7,637 |
-| `h2-federated-aml/results/v2/seed_51.csv` | 7,878 |
-| `h2-federated-aml/results/v2/summary.csv` | 12,540 |
-| `h2-federated-aml/results/v2_scores/matched_recall_by_method.csv` | 2,149 |
-| `h2-federated-aml/results/v2_scores/matched_recall_per_seed.csv` | 32,739 |
-| `h2-federated-aml/results/v2_scores/matched_recall_primary.csv` | 1,022 |
-| `h2-federated-aml/results/v2_scores/matched_recall_report.json` | 3,187 |
+| `h2-federated-aml/results/v2/h2_primary_fp_criterion.csv` | 488 |
+| `h2-federated-aml/results/v2/h2_privacy_tradeoff.csv` | 417 |
+| `h2-federated-aml/results/v2/h2_refined_boundary_mitigation.csv` | 494 |
+| `h2-federated-aml/results/v2/h2_secondary_comparisons.csv` | 3,545 |
+| `h2-federated-aml/results/v2/report.json` | 1,734 |
+| `h2-federated-aml/results/v2/seed_42.csv` | 7,691 |
+| `h2-federated-aml/results/v2/seed_43.csv` | 7,814 |
+| `h2-federated-aml/results/v2/seed_44.csv` | 7,788 |
+| `h2-federated-aml/results/v2/seed_45.csv` | 7,604 |
+| `h2-federated-aml/results/v2/seed_46.csv` | 7,763 |
+| `h2-federated-aml/results/v2/seed_47.csv` | 8,145 |
+| `h2-federated-aml/results/v2/seed_48.csv` | 8,092 |
+| `h2-federated-aml/results/v2/seed_49.csv` | 7,655 |
+| `h2-federated-aml/results/v2/seed_50.csv` | 7,681 |
+| `h2-federated-aml/results/v2/seed_51.csv` | 7,922 |
+| `h2-federated-aml/results/v2/summary.csv` | 12,584 |
+| `h2-federated-aml/results/v2_scores/matched_recall_by_method.csv` | 2,174 |
+| `h2-federated-aml/results/v2_scores/matched_recall_per_seed.csv` | 32,980 |
+| `h2-federated-aml/results/v2_scores/matched_recall_primary.csv` | 1,029 |
+| `h2-federated-aml/results/v2_scores/matched_recall_report.json` | 3,288 |
 | `h2-federated-aml/results/v2_scores/pr_curves.png` | 118,337 |
 | `h2-federated-aml/results/v2_scores/scores_seed_42.npz` | 1,324,679 |
 | `h2-federated-aml/results/v2_scores/scores_seed_43.npz` | 1,321,069 |
@@ -2506,226 +2875,242 @@ Paths are relative to the repository root. The PDF build embeds each image.
 | `h2-federated-aml/results/v2_scores/scores_seed_49.npz` | 1,324,835 |
 | `h2-federated-aml/results/v2_scores/scores_seed_50.npz` | 1,325,376 |
 | `h2-federated-aml/results/v2_scores/scores_seed_51.npz` | 1,306,878 |
-| `h2-federated-aml/results/v2_scores/seed_42.csv` | 4,041 |
-| `h2-federated-aml/results/v2_scores/seed_43.csv` | 4,161 |
-| `h2-federated-aml/results/v2_scores/seed_44.csv` | 4,206 |
-| `h2-federated-aml/results/v2_scores/seed_45.csv` | 4,022 |
-| `h2-federated-aml/results/v2_scores/seed_46.csv` | 4,047 |
-| `h2-federated-aml/results/v2_scores/seed_47.csv` | 4,340 |
-| `h2-federated-aml/results/v2_scores/seed_48.csv` | 4,322 |
-| `h2-federated-aml/results/v2_scores/seed_49.csv` | 4,105 |
-| `h2-federated-aml/results/v2_scores/seed_50.csv` | 4,078 |
-| `h2-federated-aml/results/v2_scores/seed_51.csv` | 4,232 |
-| `h2-federated-aml/src/boundary.py` | 2,647 |
-| `h2-federated-aml/src/data.py` | 5,692 |
-| `h2-federated-aml/src/dp_accounting.py` | 1,484 |
-| `h2-federated-aml/src/eval_stats.py` | 2,521 |
-| `h2-federated-aml/src/evaluate.py` | 1,157 |
-| `h2-federated-aml/src/experiments.py` | 7,459 |
-| `h2-federated-aml/src/federated.py` | 9,924 |
-| `h2-federated-aml/src/figures_v2.py` | 2,289 |
-| `h2-federated-aml/src/main.py` | 4,497 |
-| `h2-federated-aml/src/matched_recall.py` | 7,144 |
-| `h2-federated-aml/src/model.py` | 4,058 |
-| `h2-federated-aml/src/privacy.py` | 2,613 |
-| `h2-federated-aml/src/protocol_v2.py` | 10,896 |
-| `h2-federated-aml/src/result_labels.py` | 234 |
-| `h2-federated-aml/src/scarcity.py` | 1,528 |
-| `h2-federated-aml/tests/conftest.py` | 105 |
-| `h2-federated-aml/tests/test_boundary.py` | 1,682 |
-| `h2-federated-aml/tests/test_data.py` | 1,459 |
-| `h2-federated-aml/tests/test_experiment_outputs.py` | 1,683 |
-| `h2-federated-aml/tests/test_federated.py` | 1,743 |
-| `h2-federated-aml/tests/test_gcn.py` | 376 |
-| `h2-federated-aml/tests/test_privacy_and_statistics.py` | 2,091 |
-| `h2-federated-aml/tests/test_protocol_v2.py` | 2,658 |
-| `h2-federated-aml/tests/test_result_labels.py` | 245 |
-| `h3-abt/.gitignore` | 110 |
+| `h2-federated-aml/results/v2_scores/seed_42.csv` | 4,066 |
+| `h2-federated-aml/results/v2_scores/seed_43.csv` | 4,186 |
+| `h2-federated-aml/results/v2_scores/seed_44.csv` | 4,231 |
+| `h2-federated-aml/results/v2_scores/seed_45.csv` | 4,047 |
+| `h2-federated-aml/results/v2_scores/seed_46.csv` | 4,072 |
+| `h2-federated-aml/results/v2_scores/seed_47.csv` | 4,365 |
+| `h2-federated-aml/results/v2_scores/seed_48.csv` | 4,347 |
+| `h2-federated-aml/results/v2_scores/seed_49.csv` | 4,130 |
+| `h2-federated-aml/results/v2_scores/seed_50.csv` | 4,103 |
+| `h2-federated-aml/results/v2_scores/seed_51.csv` | 4,257 |
+| `h2-federated-aml/src/boundary.py` | 2,713 |
+| `h2-federated-aml/src/data.py` | 5,799 |
+| `h2-federated-aml/src/dp_accounting.py` | 1,516 |
+| `h2-federated-aml/src/eval_stats.py` | 2,556 |
+| `h2-federated-aml/src/evaluate.py` | 1,172 |
+| `h2-federated-aml/src/experiments.py` | 7,535 |
+| `h2-federated-aml/src/federated.py` | 10,052 |
+| `h2-federated-aml/src/figures_v2.py` | 2,353 |
+| `h2-federated-aml/src/main.py` | 4,543 |
+| `h2-federated-aml/src/matched_recall.py` | 7,279 |
+| `h2-federated-aml/src/model.py` | 4,137 |
+| `h2-federated-aml/src/privacy.py` | 2,663 |
+| `h2-federated-aml/src/protocol_v2.py` | 11,061 |
+| `h2-federated-aml/src/result_labels.py` | 239 |
+| `h2-federated-aml/src/scarcity.py` | 1,549 |
+| `h2-federated-aml/tests/conftest.py` | 108 |
+| `h2-federated-aml/tests/test_boundary.py` | 1,701 |
+| `h2-federated-aml/tests/test_data.py` | 1,481 |
+| `h2-federated-aml/tests/test_experiment_outputs.py` | 1,698 |
+| `h2-federated-aml/tests/test_federated.py` | 1,762 |
+| `h2-federated-aml/tests/test_gcn.py` | 383 |
+| `h2-federated-aml/tests/test_privacy_and_statistics.py` | 2,129 |
+| `h2-federated-aml/tests/test_protocol_v2.py` | 2,718 |
+| `h2-federated-aml/tests/test_result_labels.py` | 251 |
+| `h3-abt/.gitignore` | 122 |
 | `h3-abt/.gitkeep` | 0 |
-| `h3-abt/README.md` | 23,344 |
-| `h3-abt/configs/default.yaml` | 1,311 |
-| `h3-abt/configs/experiment.yaml` | 1,534 |
-| `h3-abt/contracts/LiabilityRegistry.sol` | 8,827 |
-| `h3-abt/docs/PREREGISTRATION_durable.md` | 3,809 |
-| `h3-abt/docs/PREREGISTRATION_learning.md` | 4,914 |
-| `h3-abt/foundry.toml` | 178 |
-| `h3-abt/pyproject.toml` | 330 |
-| `h3-abt/requirements.txt` | 24 |
+| `h3-abt/README.md` | 23,753 |
+| `h3-abt/configs/default.yaml` | 1,355 |
+| `h3-abt/configs/experiment.yaml` | 1,580 |
+| `h3-abt/contracts/LiabilityRegistry.sol` | 9,020 |
+| `h3-abt/docs/PREREGISTRATION_durable.md` | 3,883 |
+| `h3-abt/docs/PREREGISTRATION_learning.md` | 5,015 |
+| `h3-abt/foundry.toml` | 188 |
+| `h3-abt/pyproject.toml` | 348 |
+| `h3-abt/requirements.txt` | 26 |
 | `h3-abt/results/.gitkeep` | 0 |
-| `h3-abt/results/agent_level_seed42.json` | 457 |
-| `h3-abt/results/confirmatory_seed42.csv` | 96,320 |
-| `h3-abt/results/confirmatory_seed42.json` | 453,533 |
-| `h3-abt/results/durable_actions.csv` | 3,059,151 |
+| `h3-abt/results/agent_level_seed42.json` | 471 |
+| `h3-abt/results/confirmatory_seed42.csv` | 98,321 |
+| `h3-abt/results/confirmatory_seed42.json` | 473,574 |
+| `h3-abt/results/durable_actions.csv` | 3,109,152 |
 | `h3-abt/results/durable_figure.png` | 116,825 |
-| `h3-abt/results/durable_report.json` | 3,607 |
+| `h3-abt/results/durable_report.json` | 3,780 |
 | `h3-abt/results/learning_agents.csv` | 135,405 |
 | `h3-abt/results/learning_figure.png` | 132,324 |
-| `h3-abt/results/learning_report.json` | 8,898 |
-| `h3-abt/run_agent_level.py` | 662 |
-| `h3-abt/run_baseline.py` | 291 |
-| `h3-abt/run_durable.py` | 4,360 |
-| `h3-abt/run_experiment.py` | 292 |
-| `h3-abt/run_learning.py` | 6,574 |
-| `h3-abt/run_sybil.py` | 283 |
-| `h3-abt/run_treatment.py` | 287 |
-| `h3-abt/src/h3_abt/__init__.py` | 2,629 |
-| `h3-abt/src/h3_abt/abt.py` | 4,274 |
-| `h3-abt/src/h3_abt/agent_level.py` | 4,623 |
-| `h3-abt/src/h3_abt/baseline.py` | 3,045 |
-| `h3-abt/src/h3_abt/config.py` | 6,506 |
-| `h3-abt/src/h3_abt/durable.py` | 6,220 |
-| `h3-abt/src/h3_abt/environment.py` | 2,550 |
-| `h3-abt/src/h3_abt/experiment.py` | 7,702 |
-| `h3-abt/src/h3_abt/experiment_cli.py` | 4,161 |
-| `h3-abt/src/h3_abt/learning.py` | 5,894 |
-| `h3-abt/src/h3_abt/metrics.py` | 731 |
-| `h3-abt/src/h3_abt/protocol.py` | 3,407 |
-| `h3-abt/src/h3_abt/simulation.py` | 2,696 |
-| `h3-abt/src/h3_abt/stats.py` | 3,883 |
-| `h3-abt/src/h3_abt/sybil.py` | 3,526 |
-| `h3-abt/src/h3_abt/sybil_cli.py` | 4,452 |
-| `h3-abt/src/h3_abt/treatment.py` | 3,912 |
-| `h3-abt/src/h3_abt/treatment_cli.py` | 3,458 |
-| `h3-abt/src/h3_abt/types.py` | 6,298 |
-| `h3-abt/test/sol/LiabilityRegistry.t.sol` | 6,243 |
-| `h3-abt/tests/test_abt.py` | 4,540 |
-| `h3-abt/tests/test_agent_level.py` | 1,528 |
-| `h3-abt/tests/test_baseline.py` | 6,406 |
-| `h3-abt/tests/test_config.py` | 4,161 |
-| `h3-abt/tests/test_durable.py` | 1,538 |
-| `h3-abt/tests/test_experiment.py` | 6,509 |
-| `h3-abt/tests/test_learning.py` | 2,979 |
-| `h3-abt/tests/test_metrics.py` | 796 |
-| `h3-abt/tests/test_protocol.py` | 4,102 |
-| `h3-abt/tests/test_stats.py` | 2,621 |
-| `h3-abt/tests/test_sybil.py` | 5,133 |
-| `h3-abt/tests/test_treatment.py` | 8,222 |
-| `h4-pqc-stark/.gitignore` | 88 |
+| `h3-abt/results/learning_report.json` | 9,266 |
+| `h3-abt/run_agent_level.py` | 678 |
+| `h3-abt/run_baseline.py` | 304 |
+| `h3-abt/run_durable.py` | 4,461 |
+| `h3-abt/run_experiment.py` | 305 |
+| `h3-abt/run_learning.py` | 6,708 |
+| `h3-abt/run_sybil.py` | 296 |
+| `h3-abt/run_treatment.py` | 300 |
+| `h3-abt/src/h3_abt/__init__.py` | 2,733 |
+| `h3-abt/src/h3_abt/abt.py` | 4,406 |
+| `h3-abt/src/h3_abt/agent_level.py` | 4,745 |
+| `h3-abt/src/h3_abt/baseline.py` | 3,141 |
+| `h3-abt/src/h3_abt/config.py` | 6,690 |
+| `h3-abt/src/h3_abt/durable.py` | 6,356 |
+| `h3-abt/src/h3_abt/environment.py` | 2,626 |
+| `h3-abt/src/h3_abt/experiment.py` | 7,919 |
+| `h3-abt/src/h3_abt/experiment_cli.py` | 4,277 |
+| `h3-abt/src/h3_abt/learning.py` | 6,040 |
+| `h3-abt/src/h3_abt/metrics.py` | 754 |
+| `h3-abt/src/h3_abt/protocol.py` | 3,520 |
+| `h3-abt/src/h3_abt/simulation.py` | 2,775 |
+| `h3-abt/src/h3_abt/stats.py` | 4,018 |
+| `h3-abt/src/h3_abt/sybil.py` | 3,621 |
+| `h3-abt/src/h3_abt/sybil_cli.py` | 4,569 |
+| `h3-abt/src/h3_abt/treatment.py` | 4,017 |
+| `h3-abt/src/h3_abt/treatment_cli.py` | 3,562 |
+| `h3-abt/src/h3_abt/types.py` | 6,561 |
+| `h3-abt/test/sol/LiabilityRegistry.t.sol` | 6,408 |
+| `h3-abt/tests/test_abt.py` | 4,671 |
+| `h3-abt/tests/test_agent_level.py` | 1,570 |
+| `h3-abt/tests/test_baseline.py` | 6,587 |
+| `h3-abt/tests/test_config.py` | 4,304 |
+| `h3-abt/tests/test_durable.py` | 1,579 |
+| `h3-abt/tests/test_experiment.py` | 6,693 |
+| `h3-abt/tests/test_learning.py` | 3,046 |
+| `h3-abt/tests/test_metrics.py` | 824 |
+| `h3-abt/tests/test_protocol.py` | 4,218 |
+| `h3-abt/tests/test_stats.py` | 2,704 |
+| `h3-abt/tests/test_sybil.py` | 5,275 |
+| `h3-abt/tests/test_treatment.py` | 8,449 |
+| `h4-pqc-stark/.gitignore` | 92 |
 | `h4-pqc-stark/.gitkeep` | 0 |
-| `h4-pqc-stark/README.md` | 20,082 |
-| `h4-pqc-stark/benchmark_v2/Cargo.lock` | 8,595 |
-| `h4-pqc-stark/benchmark_v2/Cargo.toml` | 183 |
-| `h4-pqc-stark/benchmark_v2/analyze.py` | 2,706 |
-| `h4-pqc-stark/benchmark_v2/overhead_law.py` | 4,158 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_composed.csv` | 3,862 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_composed.log` | 113 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_composed.md` | 787 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_coverage.csv` | 10,692 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_coverage.log` | 113 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_coverage.md` | 1,716 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_v2.csv` | 6,784 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_v2.log` | 113 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_v2.md` | 1,221 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_v3.csv` | 6,835 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_v3.log` | 113 |
-| `h4-pqc-stark/benchmark_v2/results/benchmark_v3.md` | 1,226 |
-| `h4-pqc-stark/benchmark_v2/results/overhead_law.csv` | 1,011 |
-| `h4-pqc-stark/benchmark_v2/results/overhead_law.md` | 1,938 |
+| `h4-pqc-stark/README.md` | 20,449 |
+| `h4-pqc-stark/benchmark_v2/Cargo.lock` | 8,933 |
+| `h4-pqc-stark/benchmark_v2/Cargo.toml` | 191 |
+| `h4-pqc-stark/benchmark_v2/analyze.py` | 2,760 |
+| `h4-pqc-stark/benchmark_v2/overhead_law.py` | 4,240 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_composed.csv` | 3,923 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_composed.log` | 114 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_composed.md` | 798 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_coverage.csv` | 10,873 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_coverage.log` | 114 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_coverage.md` | 1,739 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_v2.csv` | 6,905 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_v2.log` | 114 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_v2.md` | 1,238 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_v3.csv` | 6,956 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_v3.log` | 114 |
+| `h4-pqc-stark/benchmark_v2/results/benchmark_v3.md` | 1,243 |
+| `h4-pqc-stark/benchmark_v2/results/overhead_law.csv` | 1,027 |
+| `h4-pqc-stark/benchmark_v2/results/overhead_law.md` | 1,968 |
 | `h4-pqc-stark/benchmark_v2/results/overhead_law.png` | 104,910 |
 | `h4-pqc-stark/benchmark_v2/specs/h1_spec.json` | 29,489 |
 | `h4-pqc-stark/benchmark_v2/specs/h2_spec.json` | 42,403 |
 | `h4-pqc-stark/benchmark_v2/specs/h3_spec.json` | 7,891 |
-| `h4-pqc-stark/benchmark_v2/src/classical.rs` | 8,154 |
-| `h4-pqc-stark/benchmark_v2/src/compose.rs` | 9,977 |
-| `h4-pqc-stark/benchmark_v2/src/cover.rs` | 4,364 |
-| `h4-pqc-stark/benchmark_v2/src/dense.rs` | 3,603 |
-| `h4-pqc-stark/benchmark_v2/src/gadget.rs` | 1,291 |
-| `h4-pqc-stark/benchmark_v2/src/gcn.rs` | 10,149 |
-| `h4-pqc-stark/benchmark_v2/src/h1mlp.rs` | 12,870 |
-| `h4-pqc-stark/benchmark_v2/src/main.rs` | 29,494 |
-| `h4-pqc-stark/benchmark_v2/src/params.rs` | 4,012 |
-| `h4-pqc-stark/benchmark_v2/src/pq.rs` | 6,201 |
-| `h4-pqc-stark/benchmark_v2/src/rlc.rs` | 16,820 |
-| `h4-pqc-stark/benchmark_v2/src/rule.rs` | 8,335 |
-| `h4-pqc-stark/benchmark_v2/src/sis.rs` | 4,737 |
-| `h4-pqc-stark/classical/matched_matrix_stark/Cargo.lock` | 6,143 |
-| `h4-pqc-stark/classical/matched_matrix_stark/Cargo.toml` | 181 |
-| `h4-pqc-stark/classical/matched_matrix_stark/src/air.rs` | 5,842 |
-| `h4-pqc-stark/classical/matched_matrix_stark/src/main.rs` | 2,427 |
-| `h4-pqc-stark/classical/matched_matrix_stark/src/prover.rs` | 875 |
-| `h4-pqc-stark/classical/matched_matrix_stark/src/trace.rs` | 3,000 |
-| `h4-pqc-stark/classical/matrix_stark/Cargo.lock` | 8,556 |
-| `h4-pqc-stark/classical/matrix_stark/Cargo.toml` | 105 |
-| `h4-pqc-stark/classical/matrix_stark/src/main.rs` | 14,560 |
-| `h4-pqc-stark/coverage/README.md` | 1,587 |
-| `h4-pqc-stark/coverage/export_h3.py` | 2,587 |
-| `h4-pqc-stark/coverage/quantize_h1.py` | 5,485 |
-| `h4-pqc-stark/coverage/quantize_h2.py` | 8,901 |
-| `h4-pqc-stark/docs/est_h4.py` | 1,940 |
-| `h4-pqc-stark/docs/h4_composed.md` | 5,943 |
-| `h4-pqc-stark/docs/h4_coverage.md` | 4,589 |
-| `h4-pqc-stark/docs/h4_lattice_estimator.json` | 2,227 |
-| `h4-pqc-stark/docs/h4_v2_security.md` | 7,255 |
-| `h4-pqc-stark/docs/h4_v3.md` | 3,239 |
-| `h4-pqc-stark/docs/h4_zk_composed.md` | 11,267 |
-| `h4-pqc-stark/docs/preregistration.md` | 3,850 |
-| `h4-pqc-stark/experiments/benchmark_results.csv` | 1,005 |
-| `h4-pqc-stark/pq/matched_matrix_stark/Cargo.lock` | 6,133 |
-| `h4-pqc-stark/pq/matched_matrix_stark/Cargo.toml` | 171 |
-| `h4-pqc-stark/pq/matched_matrix_stark/h4_research_candidate_results.txt` | 771 |
-| `h4-pqc-stark/pq/matched_matrix_stark/src/air.rs` | 10,432 |
-| `h4-pqc-stark/pq/matched_matrix_stark/src/lattice.rs` | 2,508 |
-| `h4-pqc-stark/pq/matched_matrix_stark/src/main.rs` | 3,327 |
-| `h4-pqc-stark/pq/matched_matrix_stark/src/prover.rs` | 1,729 |
-| `h4-pqc-stark/pq/matched_matrix_stark/src/trace.rs` | 6,810 |
-| `h4-pqc-stark/zk_composed/.gitignore` | 8 |
-| `h4-pqc-stark/zk_composed/Cargo.lock` | 20,714 |
-| `h4-pqc-stark/zk_composed/Cargo.toml` | 1,908 |
-| `h4-pqc-stark/zk_composed/results/bench_summary.json` | 1,458 |
-| `h4-pqc-stark/zk_composed/results/bench_zk_composed.csv` | 3,884 |
-| `h4-pqc-stark/zk_composed/results/info.json` | 215 |
-| `h4-pqc-stark/zk_composed/results/security.json` | 739 |
-| `h4-pqc-stark/zk_composed/results/summarize.py` | 1,177 |
+| `h4-pqc-stark/benchmark_v2/src/classical.rs` | 8,374 |
+| `h4-pqc-stark/benchmark_v2/src/compose.rs` | 10,229 |
+| `h4-pqc-stark/benchmark_v2/src/cover.rs` | 4,494 |
+| `h4-pqc-stark/benchmark_v2/src/dense.rs` | 3,709 |
+| `h4-pqc-stark/benchmark_v2/src/gadget.rs` | 1,331 |
+| `h4-pqc-stark/benchmark_v2/src/gcn.rs` | 10,419 |
+| `h4-pqc-stark/benchmark_v2/src/h1mlp.rs` | 13,198 |
+| `h4-pqc-stark/benchmark_v2/src/main.rs` | 30,114 |
+| `h4-pqc-stark/benchmark_v2/src/params.rs` | 4,125 |
+| `h4-pqc-stark/benchmark_v2/src/pq.rs` | 6,371 |
+| `h4-pqc-stark/benchmark_v2/src/rlc.rs` | 17,237 |
+| `h4-pqc-stark/benchmark_v2/src/rule.rs` | 8,545 |
+| `h4-pqc-stark/benchmark_v2/src/sis.rs` | 4,855 |
+| `h4-pqc-stark/classical/matched_matrix_stark/Cargo.lock` | 6,385 |
+| `h4-pqc-stark/classical/matched_matrix_stark/Cargo.toml` | 188 |
+| `h4-pqc-stark/classical/matched_matrix_stark/src/air.rs` | 6,038 |
+| `h4-pqc-stark/classical/matched_matrix_stark/src/main.rs` | 2,543 |
+| `h4-pqc-stark/classical/matched_matrix_stark/src/prover.rs` | 922 |
+| `h4-pqc-stark/classical/matched_matrix_stark/src/trace.rs` | 3,112 |
+| `h4-pqc-stark/classical/matrix_stark/Cargo.lock` | 8,888 |
+| `h4-pqc-stark/classical/matrix_stark/Cargo.toml` | 112 |
+| `h4-pqc-stark/classical/matrix_stark/src/main.rs` | 15,112 |
+| `h4-pqc-stark/coverage/README.md` | 1,615 |
+| `h4-pqc-stark/coverage/export_h3.py` | 2,647 |
+| `h4-pqc-stark/coverage/quantize_h1.py` | 5,600 |
+| `h4-pqc-stark/coverage/quantize_h2.py` | 9,090 |
+| `h4-pqc-stark/docs/est_h4.py` | 1,988 |
+| `h4-pqc-stark/docs/h4_composed.md` | 6,009 |
+| `h4-pqc-stark/docs/h4_coverage.md` | 4,646 |
+| `h4-pqc-stark/docs/h4_lattice_estimator.json` | 2,331 |
+| `h4-pqc-stark/docs/h4_v2_security.md` | 7,346 |
+| `h4-pqc-stark/docs/h4_v3.md` | 3,273 |
+| `h4-pqc-stark/docs/h4_zk_composed.md` | 11,465 |
+| `h4-pqc-stark/docs/preregistration.md` | 3,913 |
+| `h4-pqc-stark/experiments/benchmark_results.csv` | 1,036 |
+| `h4-pqc-stark/pq/matched_matrix_stark/Cargo.lock` | 6,375 |
+| `h4-pqc-stark/pq/matched_matrix_stark/Cargo.toml` | 178 |
+| `h4-pqc-stark/pq/matched_matrix_stark/h4_research_candidate_results.txt` | 792 |
+| `h4-pqc-stark/pq/matched_matrix_stark/src/air.rs` | 10,842 |
+| `h4-pqc-stark/pq/matched_matrix_stark/src/lattice.rs` | 2,630 |
+| `h4-pqc-stark/pq/matched_matrix_stark/src/main.rs` | 3,477 |
+| `h4-pqc-stark/pq/matched_matrix_stark/src/prover.rs` | 1,809 |
+| `h4-pqc-stark/pq/matched_matrix_stark/src/trace.rs` | 7,069 |
+| `h4-pqc-stark/zk_composed/.gitignore` | 9 |
+| `h4-pqc-stark/zk_composed/Cargo.lock` | 21,560 |
+| `h4-pqc-stark/zk_composed/Cargo.toml` | 1,939 |
+| `h4-pqc-stark/zk_composed/results/bench_summary.json` | 1,524 |
+| `h4-pqc-stark/zk_composed/results/bench_zk_composed.csv` | 4,005 |
+| `h4-pqc-stark/zk_composed/results/info.json` | 216 |
+| `h4-pqc-stark/zk_composed/results/security.json` | 770 |
+| `h4-pqc-stark/zk_composed/results/summarize.py` | 1,193 |
 | `h4-pqc-stark/zk_composed/specs/h1_spec.json` | 29,489 |
 | `h4-pqc-stark/zk_composed/specs/h3_spec.json` | 7,891 |
-| `h4-pqc-stark/zk_composed/src/air.rs` | 13,638 |
-| `h4-pqc-stark/zk_composed/src/config.rs` | 5,014 |
-| `h4-pqc-stark/zk_composed/src/layout.rs` | 5,389 |
-| `h4-pqc-stark/zk_composed/src/lib.rs` | 5,041 |
-| `h4-pqc-stark/zk_composed/src/main.rs` | 7,392 |
-| `h4-pqc-stark/zk_composed/src/model.rs` | 5,711 |
-| `h4-pqc-stark/zk_composed/src/sis.rs` | 2,672 |
-| `h4-pqc-stark/zk_composed/src/tests.rs` | 9,465 |
-| `h4-pqc-stark/zk_composed/src/trace.rs` | 9,863 |
-| `integration/.gitignore` | 17 |
-| `integration/README.md` | 12,639 |
-| `integration/chain/.gitignore` | 26 |
-| `integration/chain/qbftConfigFile.json` | 1,634 |
-| `integration/chain/start_chain.sh` | 1,733 |
-| `integration/chain/stop_chain.sh` | 146 |
-| `integration/contracts/SettlementGate.sol` | 6,657 |
+| `h4-pqc-stark/zk_composed/src/air.rs` | 13,948 |
+| `h4-pqc-stark/zk_composed/src/config.rs` | 5,124 |
+| `h4-pqc-stark/zk_composed/src/layout.rs` | 5,511 |
+| `h4-pqc-stark/zk_composed/src/lib.rs` | 5,174 |
+| `h4-pqc-stark/zk_composed/src/main.rs` | 7,531 |
+| `h4-pqc-stark/zk_composed/src/model.rs` | 5,876 |
+| `h4-pqc-stark/zk_composed/src/sis.rs` | 2,750 |
+| `h4-pqc-stark/zk_composed/src/tests.rs` | 9,704 |
+| `h4-pqc-stark/zk_composed/src/trace.rs` | 10,099 |
+| `integration/.gitignore` | 20 |
+| `integration/README.md` | 12,823 |
+| `integration/chain/.gitignore` | 29 |
+| `integration/chain/qbftConfigFile.json` | 1,695 |
+| `integration/chain/start_chain.sh` | 1,782 |
+| `integration/chain/stop_chain.sh` | 150 |
+| `integration/contracts/SettlementGate.sol` | 6,794 |
 | `integration/evidence/besu_node_logs/node0.log.gz` | 2,620 |
 | `integration/evidence/besu_node_logs/node1.log.gz` | 2,560 |
 | `integration/evidence/besu_node_logs/node2.log.gz` | 2,586 |
 | `integration/evidence/besu_node_logs/node3.log.gz` | 2,523 |
 | `integration/evidence/cbdc_besu_chain.blocks.gz` | 3,462,527 |
-| `integration/evidence/genesis.json` | 1,908 |
-| `integration/evidence/run_logs/run_1000.log` | 3,561 |
-| `integration/evidence/run_logs/run_byz3.log` | 2,405 |
-| `integration/evidence/run_logs/run_elliptic.log` | 4,671 |
-| `integration/foundry.toml` | 304 |
-| `integration/pipeline/.gitignore` | 58 |
-| `integration/pipeline/audit/audit_report.json` | 4,545 |
+| `integration/evidence/genesis.json` | 1,962 |
+| `integration/evidence/independent_validator/README.md` | 3,574 |
+| `integration/evidence/independent_validator/cross_check.json` | 993 |
+| `integration/evidence/independent_validator/cross_check.py` | 3,828 |
+| `integration/evidence/independent_validator/host/logs/decisions_v0.jsonl` | 102,580 |
+| `integration/evidence/independent_validator/host/logs/decisions_v1.jsonl` | 102,591 |
+| `integration/evidence/independent_validator/host/logs/decisions_v2.jsonl` | 102,619 |
+| `integration/evidence/independent_validator/host/runs/independent_200/summary.json` | 1,902 |
+| `integration/evidence/independent_validator/host/runs/independent_200/transactions.csv` | 38,100 |
+| `integration/evidence/independent_validator/host/runs/independent_200_b/summary.json` | 2,082 |
+| `integration/evidence/independent_validator/host/runs/independent_200_b/transactions.csv` | 33,342 |
+| `integration/evidence/independent_validator/reviewer/decisions.jsonl` | 51,344 |
+| `integration/evidence/independent_validator/reviewer/deployment_public.json` | 22,121 |
+| `integration/evidence/independent_validator/reviewer/genesis.json` | 1,962 |
+| `integration/evidence/independent_validator/reviewer/my_check.json` | 736 |
+| `integration/evidence/independent_validator/reviewer/my_machine.txt` | 205 |
+| `integration/evidence/run_logs/run_1000.log` | 3,682 |
+| `integration/evidence/run_logs/run_byz3.log` | 2,504 |
+| `integration/evidence/run_logs/run_elliptic.log` | 4,835 |
+| `integration/foundry.toml` | 316 |
+| `integration/pipeline/.gitignore` | 62 |
+| `integration/pipeline/audit/audit_report.json` | 4,712 |
 | `integration/pipeline/audit/settlements_onchain.csv` | 752,083 |
 | `integration/pipeline/audit/slashes_onchain.csv` | 656 |
-| `integration/pipeline/audit_chain.py` | 10,858 |
-| `integration/pipeline/deploy.py` | 7,670 |
-| `integration/pipeline/run_pipeline.py` | 17,379 |
-| `integration/pipeline/runs/elliptic_1000/summary.json` | 1,992 |
+| `integration/pipeline/audit_chain.py` | 11,035 |
+| `integration/pipeline/check_my_validator.py` | 4,087 |
+| `integration/pipeline/deploy.py` | 7,806 |
+| `integration/pipeline/run_pipeline.py` | 17,688 |
+| `integration/pipeline/runs/elliptic_1000/summary.json` | 2,113 |
 | `integration/pipeline/runs/elliptic_1000/transactions.csv` | 163,418 |
-| `integration/pipeline/runs/synthetic_1000/summary.json` | 1,300 |
+| `integration/pipeline/runs/synthetic_1000/summary.json` | 1,380 |
 | `integration/pipeline/runs/synthetic_1000/transactions.csv` | 241,864 |
-| `integration/pipeline/runs/synthetic_300_byz3/summary.json` | 1,342 |
+| `integration/pipeline/runs/synthetic_300_byz3/summary.json` | 1,426 |
 | `integration/pipeline/runs/synthetic_300_byz3/transactions.csv` | 50,145 |
-| `integration/pipeline/runs/synthetic_40_down1/summary.json` | 1,233 |
+| `integration/pipeline/runs/synthetic_40_down1/summary.json` | 1,311 |
 | `integration/pipeline/runs/synthetic_40_down1/transactions.csv` | 10,785 |
-| `integration/pipeline/runs/synthetic_60_byz23/summary.json` | 1,260 |
+| `integration/pipeline/runs/synthetic_60_byz23/summary.json` | 1,339 |
 | `integration/pipeline/runs/synthetic_60_byz23/transactions.csv` | 12,640 |
-| `integration/pipeline/sis.py` | 1,134 |
-| `integration/pipeline/start_validators.sh` | 855 |
-| `integration/pipeline/stop_validators.sh` | 152 |
-| `integration/pipeline/validator_node.py` | 10,029 |
-| `integration/test/SettlementGate.t.sol` | 5,877 |
+| `integration/pipeline/sis.py` | 1,168 |
+| `integration/pipeline/start_validators.sh` | 869 |
+| `integration/pipeline/stop_validators.sh` | 155 |
+| `integration/pipeline/validator_node.py` | 10,217 |
+| `integration/test/SettlementGate.t.sol` | 6,011 |
 
 
 # Appendix A — Configurations (verbatim)
@@ -5163,7 +5548,7 @@ Integration found two real defects, both fixed with regression tests: the compos
 once H3's slash escalated (a 22-bit comparison window; now 30 bits with a stated domain), and the proven
 rule could never execute a compliant transfer.
 
-Reviewers: the raw logs, the exported ledger and scripts that check every number against the chain are described in [`docs/EVIDENCE.md`](docs/EVIDENCE.md).
+Reviewers: the raw logs, the exported ledger and scripts that check every number against the chain are described in [`docs/EVIDENCE.md`](docs/EVIDENCE.md). A run with one validator key and Besu node on a second person's machine (4-of-4 gate, 200 Elliptic transfers, all 34 falsified ones refused, nothing settled without that validator) is in [`integration/evidence/independent_validator/`](integration/evidence/independent_validator/README.md).
 
 Follow-up work per track (details in each README):
 - **H1 v2/v2.1:** hardened dispute contract (on-chain adjudication, prefix-consistency check, bonds,

@@ -1,6 +1,6 @@
 # Next session: state and plan
 
-Updated 2026-10-11 (evening). Everything is merged on `main` (PRs up to #34). Full write-up: `docs/FULL_REPORT.md`; exhaustive record: `docs/EXHAUSTIVE_REPORT.md` (built by `docs/exhaustive/build.py`; PDF on Desktop: CBDC_Exhaustive_Report.pdf) (PDF copy on Maanas's Desktop: CBDC_Full_Results_Report.pdf). No experiments are running and no PRs are open.
+Updated 2026-10-21. Everything is merged on `main` (PRs up to #39; Aman's TRL 4 integration work is PRs #36-#39, described in `docs/FULL_REPORT.md` §6A and `docs/EXHAUSTIVE_REPORT.md` Part 6A). Full write-up: `docs/FULL_REPORT.md`; exhaustive record: `docs/EXHAUSTIVE_REPORT.md` (built by `docs/exhaustive/build.py`; PDF on Desktop: CBDC_Exhaustive_Report.pdf) (PDF copy on Maanas's Desktop: CBDC_Full_Results_Report.pdf). No experiments are running and no PRs are open.
 
 ## Where things stand
 
@@ -19,7 +19,13 @@ The top-level `README.md` has the Final Results table and a "Cross-cutting findi
 - **Finding B** (PR #30): at matched validation recall, the ≥ 20% FP-reduction criterion fails at all 5 fully evaluable levels. With 50–100% labels, FedAvg has 67–80% more false positives (Holm p = 0.012 and 0.049). Exception: at 10% labels, FedAvg has 80% fewer, but this is not significant after Holm (p = 0.070). The 1% level is not evaluable (5 of 10 seeds have centralized validation recall of 0).
 - **Finding A** (PR #31): composed circuit `h4-pqc-stark/benchmark_v2/src/compose.rs`, amount link in `rlc.rs`, 20/20 tests, PASS.
 
-## If more work is wanted (optional, nothing pending)
+## Open items
+
+- **Export the independent-validator ledger** (`besu blocks export` on the reviewer's node plus `audit_chain.py` output) so it can be replayed like the earlier runs; until then the reviewer's own-ledger checks are self-reported.
+- A reviewer who is not a team member for the two-machine run.
+- Independent re-run of the live Besu/EZKL runs and the timings (verified so far: records, ledger replay, dispute replay, tests).
+
+## If more work is wanted (optional)
 
 - **Finding A at scale:** batch several decisions per proof (needs a second trace segment or a wider-field fork), or bind H1's input to the transaction record.
 - **H2:** report the matched-recall test for local-only and boundary as well (the numbers are already in `results/v2_scores/matched_recall_by_method.csv`, descriptive only).

@@ -498,6 +498,130 @@ def _pytest_list(folder):
     return f"{len(names)} tests:\n\n" + "\n".join(f"- `{k}` ({len(v)}): " + ", ".join(f"`{t}`" for t in v) for k, v in by.items())
 
 
+# ---------------------------------------------------------------- integrated system (TRL 4, Oct 2026)
+INT = "integration/pipeline/runs/"
+RUNS_ORDER = ["elliptic_1000", "synthetic_300_byz3", "synthetic_60_byz23", "synthetic_40_down1", "synthetic_1000"]
+RUN_LABEL = {"elliptic_1000": "1,000 real Elliptic transactions, 4 honest validators", "synthetic_300_byz3": "300 synthetic, 1 Byzantine validator",
+             "synthetic_60_byz23": "60 synthetic, 2 Byzantine validators", "synthetic_40_down1": "40 synthetic, 1 validator down",
+             "synthetic_1000": "1,000 synthetic, a validator node crashed mid-run"}
+
+
+def gen_int_runs():
+    out = []
+    for r in RUNS_ORDER:
+        s = rjson(INT + r + "/summary.json")
+        h, fa = s["honest"], s["faulty"]
+        out.append((RUN_LABEL[r], s["source"], s["n"], s["faults_injected"], f"{h['settled_with_expected_outcome']} / {h['n']}",
+                    f"{fa['reached_quorum']} / {fa['n']}", fa["ledger_changed"], f(s["timing_ms"]["end_to_end_ms"]["mean"], 0),
+                    f"{s['gas']['settle']['mean']:,.0f}", f(s["wall_s"], 0), f(s["throughput_tx_per_min"], 1)))
+    return table(["Run", "Source", "Requests", "Falsified", "Honest settled as expected", "Falsified reaching quorum", "Ledger changes by falsified",
+                  "End-to-end mean ms", "Settle gas mean", "Wall s", "Tx / min"], out)
+
+
+def gen_int_elliptic_detail():
+    s = rjson(INT + "elliptic_1000/summary.json")
+    rf = s["risk_flags"]
+    a = table(["Honest outcomes", "Count"], [(k, v) for k, v in s["honest"]["outcomes"].items()])
+    b = table(["Falsification type", "Injected", "All rejected (not submitted)"], [(k, v, "yes") for k, v in s["faulty"]["by_type"].items()])
+    m = table(["Window", "Labelled", "Illicit", "TP", "FP", "FN", "TN", "Precision", "Recall", "F1"],
+              [("all time steps", rf["labelled"], rf["illicit"], rf["tp"], rf["fp"], rf["fn"], rf["tn"], f(rf["precision"], 4), f(rf["recall"], 4), f(rf["f1"], 4))] +
+              [(k.replace("time_steps_", "steps ").replace("_", "-"), v["labelled"], v["illicit"], v["tp"], v["fp"], v["fn"], v["tn"], f(v["precision"], 4), f(v["recall"], 4), f(v["f1"], 4))
+               for k, v in rf.items() if k.startswith("time_steps_")])
+    t = table(["Stage", "Mean ms", "Median ms", "p95 ms"], [(k.replace("_ms", ""), f(v["mean"], 1), f(v["median"], 1), f(v["p95"], 1)) for k, v in s["timing_ms"].items()])
+    g = table(["Gas", "Mean", "Median", "p95"], [(k, f"{v['mean']:,.0f}", f"{v['median']:,.0f}", f"{v['p95']:,.0f}") for k, v in s["gas"].items() if v])
+    return ("Honest outcomes:\n\n" + a + "\n\nFalsified requests:\n\n" + b +
+            f"\n\nH1 risk flag inside the proof (illicit blocked: {rf['illicit_blocked']}, illicit executed: {rf['illicit_executed']}):\n\n" + m +
+            "\n\nTiming:\n\n" + t + "\n\nGas:\n\n" + g + f"\n\nProof size mean {s['proof_bytes']['mean']:,.0f} bytes.")
+
+
+def gen_int_audit():
+    a = rjson("integration/pipeline/audit/audit_report.json")
+    rows = [(k, v["rows"], v["honest"], v["faulty"], v["csv_settled"], v["onchain_settle_txs"], v["rows_matching_chain_exactly"], v["n_mismatches"],
+             v["faulty_requests_with_a_settle_tx"], v["min_validator_signatures"]) for k, v in a["runs"].items()]
+    t = table(["Run", "CSV rows", "Honest", "Falsified", "CSV settled", "Settle txs on chain", "Rows matching chain exactly", "Mismatches",
+               "Falsified with a settle tx", "Fewest validator signatures"], rows)
+    return (f"Chain head {a['chain_head']}; {a['settle_txs_total']:,} settle transactions in total, {a['settle_txs_reverted']} reverted; "
+            f"{a['settle_txs_not_in_any_run']} settle transactions belong to no recorded run (early functional tests and a deleted first 300-transaction attempt).\n\n" + t)
+
+
+def gen_ind_validator():
+    base = "integration/evidence/independent_validator/"
+    cc, mc = rjson(base + "cross_check.json"), rjson(base + "reviewer/my_check.json")
+    s1, s2 = rjson(base + "host/runs/independent_200/summary.json"), rjson(base + "host/runs/independent_200_b/summary.json")
+    rows = [("Requests checked by the reviewer's validator", cc["reviewer_decisions"]), ("Signed", cc["reviewer_signed"]), ("Refused", cc["reviewer_refused"]),
+            ("Host honest / falsified", f"{cc['host_honest']} / {cc['host_falsified']}"), ("Settled on the ledger", cc["host_settled"]),
+            ("Settled == reviewer-signed", cc["settled_equals_reviewer_signed"]), ("Settled == honest", cc["settled_equals_honest"]),
+            ("Signatures on each settled request", cc["signatures_on_settled"]), ("Signatures on each falsified request", cc["signatures_on_falsified"]),
+            ("Refusal reason matches the falsification", cc["reason_matches_falsification"]), ("Refusals by falsification", cc["refusals_by_falsification"]),
+            ("Host validators: identical decisions", all(cc[f"host_validator_{i}_same_request_ids_and_decisions"] for i in range(3))),
+            ("First attempt (reviewer unreachable): requests settled", cc["first_attempt_reviewer_unreachable_settled"]),
+            ("Reviewer's own-ledger checks (self-reported)", cc["reviewer_own_ledger_check"]), ("all_ok", cc["all_ok"])]
+    runs = table(["Run", "Honest settled", "Honest outcomes", "Falsified reaching quorum", "Wall s"],
+                 [("independent_200 (first attempt, reviewer unreachable)", f"{s1['honest']['settled']} / {s1['honest']['n']}", s1["honest"]["outcomes"], s1["faulty"]["reached_quorum"], f(s1["wall_s"], 1)),
+                  ("independent_200_b (settled run)", f"{s2['honest']['settled']} / {s2['honest']['n']}", s2["honest"]["outcomes"], s2["faulty"]["reached_quorum"], f(s2["wall_s"], 1))])
+    reasons = table(["Refusal reason (reviewer)", "Count"], [(k, v) for k, v in mc["refusal_reasons"].items()])
+    return (table(["Check", "Result"], [(a, str(b)) for a, b in rows]) + "\n\n" + runs + "\n\n" + reasons +
+            f"\n\nContract `{mc['gate']}`, {mc['attesters']} attesters, threshold {mc['threshold']}. Reviewer validator address `{mc['my_address'][0]}`.")
+
+
+def gen_h1_v21():
+    g = rjson("h1-zkopml-v2/results/gas_v2.json")
+    s = g["summary"]
+    rows = [(k, v["step"], f"{v['commit']:,}", f"{v['challenge']:,}", f"{v['openFinal']:,}", f"{sum(v['reveal']):,}", f"{sum(v['respond']):,}", f"{v['resolve_mock']:,}", f"{v['game_total']:,}") for k, v in g["disputes"].items()]
+    t = table(["Dispute (mock verifier)", "Step", "Commit", "Challenge", "openFinal", "Reveals total", "Responds total", "Resolve (mock)", "Game total"], rows)
+    d = rjson("h1-zkopml-v2/results/onchain_disputes_B60.json")
+    e = rjson("h1-zkopml-v2/results/onchain_disputes_B60_elliptic.json")
+
+    def sc(x):
+        items = x["scenarios"].items() if isinstance(x["scenarios"], dict) else enumerate(x["scenarios"])
+        return [(k, v["scenario"], v.get("step_name", "—"), v.get("shape", "—"), v["bisection_rounds"], f(v.get("prove_s"), 1) if v.get("prove_s") else "none needed",
+                 v["winner"], "yes" if v["outcome_correct"] else "NO", f"{v['gas']['game_total']:,}") for k, v in items]
+    hdr = ["#", "Scenario", "Step", "Shape", "Rounds", "Step proof s", "Winner", "Correct", "Game gas (real verifier)"]
+    ver = table(["Verifier shape", "Steps served", "logrows", "Deploy gas", "Bytecode KB", "Setup s", "Proving key MB"],
+                [(k, v["steps_served"], v["logrows"], f"{v['deploy_gas']:,}", f(v["bytecode_kb"], 1), f(v["setup_s"], 1), f(v["pk_mb"], 0)) for k, v in d["verifiers"].items()])
+    sm = rjson("h1-zkopml-v2/results/same_machine_step_vs_mono.json")
+    mono = sm["monolithic_60_blocks"]["prove_mean_s"]
+    same = table(["Proof", "Weights", "logrows", "Trials (s)", "Mean s", "Speedup vs whole model"],
+                 [(k, v["weights"], v["logrows"], " / ".join(f(t, 1) for t in v["prove_times_s"]), f(v["prove_mean_s"], 1), f(mono / v["prove_mean_s"], 2) + "×") for k, v in sm.items() if isinstance(v, dict)])
+    summ = table(["Quantity", "Value"], [("Monolithic verification gas", f"{s['monolithic_verify']:,}"), ("Commit per inference", f"{s['commit_per_inference']:,}"),
+                                         ("Undisputed ratio", f(s["undisputed_ratio"], 2) + "×"), ("Full dispute, typical (estimate)", f"{s['full_dispute_typical_est']:,}"),
+                                         ("Full dispute, worst (estimate)", f"{s['full_dispute_worst_est']:,}"), ("Per-dispute ratio, worst", f(s["per_dispute_ratio_worst"], 3) + "×"),
+                                         ("Max dispute rate for 10×, worst / typical", pct(s["max_dispute_rate_for_10x_worst"], 2) + " / " + pct(s["max_dispute_rate_for_10x_typical"], 2))])
+    return ("Dispute game gas with a mock verifier (hardened contract v2):\n\n" + t + "\n\nDerived:\n\n" + summ +
+            f"\n\nShared verifiers deployed for the B = 60 model (total deploy gas {d['verifier_deploy_gas_total']:,}, game contract {d['game_deploy_gas']:,}):\n\n" + ver +
+            "\n\nComplete games with real EZKL verifiers, first transaction:\n\n" + table(hdr, sc(d)) +
+            "\n\nSame games on a second real Elliptic transaction (index 3,915):\n\n" + table(hdr, sc(e)) +
+            f"\n\nSame-machine latency comparison ({sm['machine']}):\n\n" + same)
+
+
+def gen_h3_learning():
+    l = rjson("h3-abt/results/learning_report.json")
+    d = l["design"]
+    prim = table(["Test", "Agents", "Mean (first)", "Mean (second)", "z", "p one-sided", "Holm p", "Supported"],
+                 [(x["test"], x["n"], pct(x["mean_first"]), pct(x["mean_second"]), f(x["mann_whitney_z"], 2), pval(x["p_one_sided"]), pval(x["p_holm"]), x["supported"]) for x in l["primary"]])
+    desc = []
+    for p, v in l["by_p"].items():
+        for reg, r in v["descriptive"].items():
+            desc.append((p, reg, pct(r["rate"]), pct(r["by_window"][0]), pct(r["by_window"][-1]), r["resets"], r["agents_depleted"], f(r["slashed_per_agent"], 1)))
+    dt = table(["Detection p", "Regime", "Violation rate", "First 50 steps", "Last 50 steps", "Resets", "Agents depleted", "Slashed per agent"], desc)
+    return (f"Design: seeds {d['seeds'][0]}–{d['seeds'][-1]}, {d['steps']} steps, {d['agents_per_seed']} agents per seed, detection p in {d['p_values']}, epsilon-greedy exploration {d['epsilon']}.\n\n"
+            "Primary tests:\n\n" + prim + "\n\nPer regime:\n\n" + dt + f"\n\nOverall: `finding_supported` = {l['finding_supported']}.")
+
+
+def gen_h4_v4():
+    b = rjson("h4-pqc-stark/zk_composed/results/bench_summary.json")
+    sec = rjson("h4-pqc-stark/zk_composed/results/security.json")
+    info = rjson("h4-pqc-stark/zk_composed/results/info.json")
+    v = table(["Variant", "Runs", "Proof bytes", "Prove ms mean ± sd", "Prove median", "Verify ms mean ± sd", "Verify median"],
+              [(k, x["runs"], f"{x['proof_bytes']:,}", f(x["prove_ms_mean"], 1) + " ± " + f(x["prove_ms_sd"], 1), f(x["prove_ms_median"], 1),
+                f(x["verify_ms_mean"], 2) + " ± " + f(x["verify_ms_sd"], 2), f(x["verify_ms_median"], 2)) for k, x in b["variants"].items()])
+    r = table(["Comparison", "Size", "Prove", "Verify"], [(k, f"{x['size']}×", f"{x['prove']}×", f"{x['verify']}×") for k, x in b["ratios"].items()])
+    s = table(["Variant", "Conjectured bits", "Proven (list decoding) bits", "Proven (unique decoding) bits", "FRI queries", "log blowup", "Quotient chunks", "Constraints"],
+              [(k, x["conjectured_bits"], x["proven_list_decoding_bits"], x["proven_unique_decoding_bits"], x["fri"]["num_queries"], x["fri"]["log_blowup"], x["num_quotient_chunks"], x["num_constraints"]) for k, x in sec.items() if isinstance(x, dict)])
+    return (f"Circuit: {info['rows']} rows, {info['width_classical']} columns classical, {info['width_pq']} PQ; SIS {info['sis_rows']} rows, expected collisions 2^{info['sis_log2_expected_collisions']:.1f}; "
+            f"model digest `{info['model_digest'][:16]}…`.\n\n" + v + "\n\nRatios:\n\n" + r + "\n\nSecurity of the whole proof:\n\n" + s)
+
+
 GENERATORS = {
     "pr_history": gen_pr_history, "commit_count": gen_commit_count, "artifact_index": gen_artifact_index,
     "h1_seeds": gen_h1_seeds, "h1_quant": gen_h1_quant, "h1_steps": gen_h1_steps, "h1_sweep_committed": gen_h1_sweep_committed,
@@ -515,6 +639,8 @@ GENERATORS = {
     "h4_v3_bench": lambda: gen_h4_bench(H4 + "benchmark_v2/results/benchmark_v3.csv"),
     "h4_coverage_bench": lambda: gen_h4_bench(H4 + "benchmark_v2/results/benchmark_coverage.csv"),
     "h4_composed_bench": lambda: gen_h4_bench(H4 + "benchmark_v2/results/benchmark_composed.csv"),
+    "int_runs": gen_int_runs, "int_elliptic_detail": gen_int_elliptic_detail, "int_audit": gen_int_audit, "ind_validator": gen_ind_validator,
+    "h1_v21": gen_h1_v21, "h3_learning": gen_h3_learning, "h4_v4": gen_h4_v4,
     "h4_estimator": gen_h4_estimator, "h4_specs": gen_h4_specs, "h4_tests": gen_h4_tests,
 }
 
