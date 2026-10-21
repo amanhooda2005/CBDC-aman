@@ -15,6 +15,11 @@ key and a separate verifier binary. With 40 Elliptic transfers (12 falsified), t
 signed the 28 honest requests and refused all 12 falsified ones, each with its reason. All 28 settlements
 on the reviewer's own ledger carried its signature, and nothing settled without it.
 
+**Then run for real on 20–21 Oct 2026, on two people's own machines:** 200 Elliptic transfers (34
+falsified). The fourth validator signed exactly the 166 honest requests and refused all 34 falsified ones;
+all three of its own-ledger checks were `true`. Results and records:
+[`integration/evidence/independent_validator/`](../integration/evidence/independent_validator/README.md).
+
 ## 0. What both machines need
 - Linux or macOS (Windows through WSL2), about 8 GB RAM and 10 GB free disk.
 - Git, Python 3.11+ (`pip install web3 eth-account numpy pandas`), Java 21 and **Hyperledger Besu

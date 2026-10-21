@@ -1,0 +1,1131 @@
+{
+ "registry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+ "gate": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+ "regulator": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+ "operator": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+ "treasury": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+ "agents": [
+  "0dee66826e298edd3117127caecb507df414977c7811c28065d142acc000f9b3",
+  "ecc2f8830565cee1ed0e46e3e66f5e3af0cac6cff93297956a00f920793ea0d3",
+  "6ddae4ea86d8103e0d72eee1f602a5b5f7d665ceda43cec7c33b486fdd5819cc",
+  "6ca36633e04dde9fb62ee69a559f170811bde0ea5e7455e8e9e2783601150d12"
+ ],
+ "validators": [
+  {
+   "address": "0x4ea9FC9EcF0E3cEE87a60eDe4ff36Fd34eB5faA3",
+   "external": false
+  },
+  {
+   "address": "0x639b44e48e822b4F5448A4d13aC62a363949A7b9",
+   "external": false
+  },
+  {
+   "address": "0xe2be10c462E7fa94eee7501Ec788d67839A725EF",
+   "external": false
+  },
+  {
+   "address": "0xf88933d89FDe0b4353926722888B65a12e9fC1f7",
+   "external": true
+  }
+ ],
+ "threshold": 4,
+ "registry_unit": 1000000000000000,
+ "policy": {
+  "max_compliant": 12800,
+  "sanctioned_id": 1000
+ },
+ "model_digest": "5b0d4d3a9bf8cfef6371d9feff04ba7c723679cfd1d8ef59f2278fed73c055b5",
+ "abi": {
+  "registry": [
+   {
+    "type": "constructor",
+    "inputs": [
+     {
+      "name": "p",
+      "type": "tuple",
+      "internalType": "struct LiabilityRegistry.Params",
+      "components": [
+       {
+        "name": "regulator",
+        "type": "address",
+        "internalType": "address"
+       },
+       {
+        "name": "treasury",
+        "type": "address",
+        "internalType": "address"
+       },
+       {
+        "name": "baseSlash",
+        "type": "uint128",
+        "internalType": "uint128"
+       },
+       {
+        "name": "minStake",
+        "type": "uint128",
+        "internalType": "uint128"
+       },
+       {
+        "name": "registrationBond",
+        "type": "uint128",
+        "internalType": "uint128"
+       },
+       {
+        "name": "withdrawDelay",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "maxViolationPayoff",
+        "type": "uint128",
+        "internalType": "uint128"
+       },
+       {
+        "name": "minCompliantPayoff",
+        "type": "uint128",
+        "internalType": "uint128"
+       },
+       {
+        "name": "detectionBps",
+        "type": "uint16",
+        "internalType": "uint16"
+       }
+      ]
+     }
+    ],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "agentCount",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "agents",
+    "inputs": [
+     {
+      "name": "",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "operator",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "registeredAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "baseSlash",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint128",
+      "internalType": "uint128"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "breakEvenBond",
+    "inputs": [
+     {
+      "name": "vMax",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "detectionBps",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "s",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "cMin",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "stateMutability": "pure"
+   },
+   {
+    "type": "function",
+    "name": "isCovered",
+    "inputs": [
+     {
+      "name": "agentId",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "bool",
+      "internalType": "bool"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "issueCredential",
+    "inputs": [
+     {
+      "name": "op",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "locked",
+    "inputs": [
+     {
+      "name": "",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "bool",
+      "internalType": "bool"
+     }
+    ],
+    "stateMutability": "pure"
+   },
+   {
+    "type": "function",
+    "name": "minStake",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint128",
+      "internalType": "uint128"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "nextSlash",
+    "inputs": [
+     {
+      "name": "op",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "operatorOf",
+    "inputs": [
+     {
+      "name": "agentId",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "operators",
+    "inputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "credentialed",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "violations",
+      "type": "uint32",
+      "internalType": "uint32"
+     },
+     {
+      "name": "stake",
+      "type": "uint128",
+      "internalType": "uint128"
+     },
+     {
+      "name": "pendingWithdrawal",
+      "type": "uint128",
+      "internalType": "uint128"
+     },
+     {
+      "name": "withdrawNotBefore",
+      "type": "uint64",
+      "internalType": "uint64"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "payTreasury",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "registerAgent",
+    "inputs": [
+     {
+      "name": "agentId",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+   },
+   {
+    "type": "function",
+    "name": "registrationBond",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint128",
+      "internalType": "uint128"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "regulator",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "requestWithdraw",
+    "inputs": [
+     {
+      "name": "amount",
+      "type": "uint128",
+      "internalType": "uint128"
+     }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "requiredStake",
+    "inputs": [
+     {
+      "name": "op",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "revokeCredential",
+    "inputs": [
+     {
+      "name": "op",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "setSlasher",
+    "inputs": [
+     {
+      "name": "s",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "slash",
+    "inputs": [
+     {
+      "name": "agentId",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     },
+     {
+      "name": "evidence",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "taken",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "slasher",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "topUp",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "payable"
+   },
+   {
+    "type": "function",
+    "name": "transferAgent",
+    "inputs": [
+     {
+      "name": "",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     },
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "outputs": [],
+    "stateMutability": "pure"
+   },
+   {
+    "type": "function",
+    "name": "treasury",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "treasuryBalance",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "withdraw",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "withdrawDelay",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint64",
+      "internalType": "uint64"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "event",
+    "name": "AgentRegistered",
+    "inputs": [
+     {
+      "name": "agentId",
+      "type": "bytes32",
+      "indexed": true,
+      "internalType": "bytes32"
+     },
+     {
+      "name": "operator",
+      "type": "address",
+      "indexed": true,
+      "internalType": "address"
+     }
+    ],
+    "anonymous": false
+   },
+   {
+    "type": "event",
+    "name": "CredentialIssued",
+    "inputs": [
+     {
+      "name": "operator",
+      "type": "address",
+      "indexed": true,
+      "internalType": "address"
+     }
+    ],
+    "anonymous": false
+   },
+   {
+    "type": "event",
+    "name": "CredentialRevoked",
+    "inputs": [
+     {
+      "name": "operator",
+      "type": "address",
+      "indexed": true,
+      "internalType": "address"
+     }
+    ],
+    "anonymous": false
+   },
+   {
+    "type": "event",
+    "name": "Slashed",
+    "inputs": [
+     {
+      "name": "agentId",
+      "type": "bytes32",
+      "indexed": true,
+      "internalType": "bytes32"
+     },
+     {
+      "name": "operator",
+      "type": "address",
+      "indexed": true,
+      "internalType": "address"
+     },
+     {
+      "name": "amount",
+      "type": "uint256",
+      "indexed": false,
+      "internalType": "uint256"
+     },
+     {
+      "name": "violationsAfter",
+      "type": "uint256",
+      "indexed": false,
+      "internalType": "uint256"
+     },
+     {
+      "name": "evidence",
+      "type": "bytes32",
+      "indexed": false,
+      "internalType": "bytes32"
+     }
+    ],
+    "anonymous": false
+   },
+   {
+    "type": "event",
+    "name": "Staked",
+    "inputs": [
+     {
+      "name": "operator",
+      "type": "address",
+      "indexed": true,
+      "internalType": "address"
+     },
+     {
+      "name": "amount",
+      "type": "uint256",
+      "indexed": false,
+      "internalType": "uint256"
+     },
+     {
+      "name": "stake",
+      "type": "uint256",
+      "indexed": false,
+      "internalType": "uint256"
+     }
+    ],
+    "anonymous": false
+   },
+   {
+    "type": "event",
+    "name": "WithdrawRequested",
+    "inputs": [
+     {
+      "name": "operator",
+      "type": "address",
+      "indexed": true,
+      "internalType": "address"
+     },
+     {
+      "name": "amount",
+      "type": "uint256",
+      "indexed": false,
+      "internalType": "uint256"
+     },
+     {
+      "name": "notBefore",
+      "type": "uint64",
+      "indexed": false,
+      "internalType": "uint64"
+     }
+    ],
+    "anonymous": false
+   },
+   {
+    "type": "error",
+    "name": "NonTransferable",
+    "inputs": []
+   },
+   {
+    "type": "error",
+    "name": "NotCredentialed",
+    "inputs": []
+   },
+   {
+    "type": "error",
+    "name": "NotRegulator",
+    "inputs": []
+   },
+   {
+    "type": "error",
+    "name": "NotSlasher",
+    "inputs": []
+   }
+  ],
+  "gate": [
+   {
+    "type": "constructor",
+    "inputs": [
+     {
+      "name": "registry_",
+      "type": "address",
+      "internalType": "contract LiabilityRegistry"
+     },
+     {
+      "name": "centralBank_",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "validators_",
+      "type": "address[]",
+      "internalType": "address[]"
+     },
+     {
+      "name": "threshold_",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "DOMAIN",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "balanceOf",
+    "inputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "centralBank",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "isValidator",
+    "inputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "bool",
+      "internalType": "bool"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "mandate",
+    "inputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "bool",
+      "internalType": "bool"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "mint",
+    "inputs": [
+     {
+      "name": "to",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "amount",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "outcome",
+    "inputs": [
+     {
+      "name": "",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint8",
+      "internalType": "enum SettlementGate.Outcome"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "registry",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "contract LiabilityRegistry"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "requestId",
+    "inputs": [
+     {
+      "name": "r",
+      "type": "tuple",
+      "internalType": "struct SettlementGate.Request",
+      "components": [
+       {
+        "name": "agentId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+       },
+       {
+        "name": "from",
+        "type": "address",
+        "internalType": "address"
+       },
+       {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+       },
+       {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "commitmentHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
+       },
+       {
+        "name": "proofHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
+       },
+       {
+        "name": "exec",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "viol",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "nonce",
+        "type": "uint64",
+        "internalType": "uint64"
+       }
+      ]
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "setMandate",
+    "inputs": [
+     {
+      "name": "agentId",
+      "type": "bytes32",
+      "internalType": "bytes32"
+     },
+     {
+      "name": "allowed",
+      "type": "bool",
+      "internalType": "bool"
+     }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "settle",
+    "inputs": [
+     {
+      "name": "r",
+      "type": "tuple",
+      "internalType": "struct SettlementGate.Request",
+      "components": [
+       {
+        "name": "agentId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+       },
+       {
+        "name": "from",
+        "type": "address",
+        "internalType": "address"
+       },
+       {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+       },
+       {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "commitmentHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
+       },
+       {
+        "name": "proofHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
+       },
+       {
+        "name": "exec",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "viol",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "nonce",
+        "type": "uint64",
+        "internalType": "uint64"
+       }
+      ]
+     },
+     {
+      "name": "sigs",
+      "type": "bytes[]",
+      "internalType": "bytes[]"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "out",
+      "type": "uint8",
+      "internalType": "enum SettlementGate.Outcome"
+     }
+    ],
+    "stateMutability": "nonpayable"
+   },
+   {
+    "type": "function",
+    "name": "threshold",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "validatorCount",
+    "inputs": [],
+    "outputs": [
+     {
+      "name": "",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "function",
+    "name": "validators",
+    "inputs": [
+     {
+      "name": "",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "",
+      "type": "address",
+      "internalType": "address"
+     }
+    ],
+    "stateMutability": "view"
+   },
+   {
+    "type": "event",
+    "name": "MandateSet",
+    "inputs": [
+     {
+      "name": "wallet",
+      "type": "address",
+      "indexed": true,
+      "internalType": "address"
+     },
+     {
+      "name": "agentId",
+      "type": "bytes32",
+      "indexed": true,
+      "internalType": "bytes32"
+     },
+     {
+      "name": "allowed",
+      "type": "bool",
+      "indexed": false,
+      "internalType": "bool"
+     }
+    ],
+    "anonymous": false
+   },
+   {
+    "type": "event",
+    "name": "Minted",
+    "inputs": [
+     {
+      "name": "to",
+      "type": "address",
+      "indexed": true,
+      "internalType": "address"
+     },
+     {
+      "name": "amount",
+      "type": "uint256",
+      "indexed": false,
+      "internalType": "uint256"
+     }
+    ],
+    "anonymous": false
+   },
+   {
+    "type": "event",
+    "name": "Settled",
+    "inputs": [
+     {
+      "name": "requestId",
+      "type": "bytes32",
+      "indexed": true,
+      "internalType": "bytes32"
+     },
+     {
+      "name": "agentId",
+      "type": "bytes32",
+      "indexed": true,
+      "internalType": "bytes32"
+     },
+     {
+      "name": "outcome",
+      "type": "uint8",
+      "indexed": false,
+      "internalType": "enum SettlementGate.Outcome"
+     },
+     {
+      "name": "amount",
+      "type": "uint256",
+      "indexed": false,
+      "internalType": "uint256"
+     }
+    ],
+    "anonymous": false
+   }
+  ]
+ },
+ "chain_id": 20261
+}

@@ -1,0 +1,201 @@
+i,tx_id,time_step,label_illicit,fault,agent,amount,sanctioned,over_limit,offer_violates_policy,h1_risk,exec,viol,slash_units,stake_units,proof_bytes,prove_ms,prove_wall_ms,attest_ms,validator_check_ms,signatures,refusal_reasons,settle_ms,settle_gas,top_up_gas,outcome,gate_rejection,end_to_end_ms
+0,50409049,42,0,wrong_model,0dee66826e,12976,0,1,1,0,0,1,3840,25600,170445,51.73,66.78,97.01,9.14,0,statement is about a different model | unreachable: URLError,27.08,0,0,NotSubmitted,quorum not reached,224.18
+1,201002580,36,0,,ecc2f88305,4451,0,0,0,0,1,0,3840,25600,171405,52.62,64.05,61.1,31.43,3,unreachable: URLError,373.77,0,0,NotSubmitted,quorum not reached,511.81
+2,151206980,39,1,,6ddae4ea86,16669,0,1,1,1,1,1,3840,25600,169709,65.38,79.98,63.96,33.46,3,unreachable: URLError,6.1,0,0,NotSubmitted,quorum not reached,171.83
+3,71242657,42,0,,6ca36633e0,6476,0,0,0,0,1,0,3840,25600,169677,50.48,61.98,57.61,27.23,3,unreachable: URLError,5.73,0,0,NotSubmitted,quorum not reached,138.88
+4,200726261,36,0,,0dee66826e,18611,0,1,1,0,0,1,3840,25600,165708,50.37,61.75,56.78,28.42,3,unreachable: URLError,5.29,0,0,NotSubmitted,quorum not reached,135.3
+5,73019144,42,0,,ecc2f88305,7856,0,0,0,0,1,0,3840,25600,171533,50.65,61.68,51.54,26.89,3,unreachable: URLError,5.4,0,0,NotSubmitted,quorum not reached,130.64
+6,105425540,44,0,,6ddae4ea86,6091,1,0,1,0,1,1,3840,25600,168428,51.49,63.43,53.0,26.81,3,unreachable: URLError,5.41,0,0,NotSubmitted,quorum not reached,133.39
+7,70807051,42,0,,6ca36633e0,22520,0,1,1,0,0,1,3840,25600,169325,54.45,65.7,51.18,25.87,3,unreachable: URLError,4.92,0,0,NotSubmitted,quorum not reached,132.61
+8,94119493,43,0,,0dee66826e,9829,0,0,0,0,1,0,3840,25600,173901,50.24,61.95,48.43,24.98,3,unreachable: URLError,5.39,0,0,NotSubmitted,quorum not reached,126.95
+9,105976778,44,0,,ecc2f88305,20868,0,1,1,0,0,1,3840,25600,170189,54.98,66.83,52.75,26.46,3,unreachable: URLError,5.06,0,0,NotSubmitted,quorum not reached,135.62
+10,194342024,46,0,,6ddae4ea86,1661,1,0,1,0,0,1,3840,25600,170157,56.13,66.52,53.29,27.15,3,unreachable: URLError,5.34,0,0,NotSubmitted,quorum not reached,136.24
+11,149560434,39,0,,6ca36633e0,6568,0,0,0,0,1,0,3840,25600,169453,54.26,64.6,47.9,23.71,3,unreachable: URLError,5.34,0,0,NotSubmitted,quorum not reached,129.11
+12,200657637,36,0,,0dee66826e,18704,0,1,1,0,1,1,3840,25600,168716,52.49,63.3,55.25,25.11,3,unreachable: URLError,5.94,0,0,NotSubmitted,quorum not reached,135.36
+13,100803539,35,0,,ecc2f88305,25224,0,1,1,0,0,1,3840,25600,171597,51.26,61.48,48.01,24.19,3,unreachable: URLError,5.45,0,0,NotSubmitted,quorum not reached,127.99
+14,164964361,45,0,flip_viol,6ddae4ea86,1237,0,0,0,0,1,1,3840,25600,170861,49.91,59.74,35.1,16.48,0,"unreachable: URLError | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.594084} | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.646458} | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.702166}",4.46,0,0,NotSubmitted,quorum not reached,109.41
+15,41490163,35,0,flip_viol,6ca36633e0,12441,0,0,0,0,1,1,3840,25600,173517,49.84,60.23,35.62,16.71,0,"unreachable: URLError | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.6256249999999999} | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.6559579999999998} | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.707458}",5.83,0,0,NotSubmitted,quorum not reached,112.56
+16,74061330,42,0,,0dee66826e,7345,0,0,0,0,1,0,3840,25600,168140,54.04,64.45,47.18,23.75,3,unreachable: URLError,5.72,0,0,NotSubmitted,quorum not reached,129.05
+17,72266983,36,0,,ecc2f88305,14578,1,1,1,0,0,1,3840,25600,168972,54.53,65.62,47.48,24.08,3,unreachable: URLError,5.01,0,0,NotSubmitted,quorum not reached,134.95
+18,72310080,42,0,,6ddae4ea86,4584,0,0,0,0,1,0,3840,25600,167756,51.55,61.13,46.22,23.56,3,unreachable: URLError,5.14,0,0,NotSubmitted,quorum not reached,122.8
+19,87356856,42,0,,6ca36633e0,2462,0,0,0,0,1,0,3840,25600,171437,50.44,59.64,47.95,24.35,3,unreachable: URLError,4.9,0,0,NotSubmitted,quorum not reached,122.72
+20,91400373,39,0,,0dee66826e,22544,0,1,1,0,1,1,3840,25600,170669,52.15,61.62,47.05,23.72,3,unreachable: URLError,5.12,0,0,NotSubmitted,quorum not reached,123.87
+21,63819321,35,0,,ecc2f88305,16275,0,1,1,0,0,1,3840,25600,172589,51.66,60.98,48.2,24.71,3,unreachable: URLError,5.34,0,0,NotSubmitted,quorum not reached,125.06
+22,13367078,41,0,,6ddae4ea86,873,0,0,0,0,1,0,3840,25600,173229,57.95,67.58,50.51,26.01,3,unreachable: URLError,5.69,0,0,NotSubmitted,quorum not reached,133.82
+23,94626483,43,1,,6ca36633e0,13896,1,1,1,0,1,1,3840,25600,168717,52.72,62.11,47.42,23.57,3,unreachable: URLError,4.87,0,0,NotSubmitted,quorum not reached,124.53
+24,105419960,44,0,,0dee66826e,11050,0,0,0,0,1,0,3840,25600,171693,49.68,58.03,46.87,24.18,3,unreachable: URLError,5.8,0,0,NotSubmitted,quorum not reached,120.52
+25,74763136,42,0,,ecc2f88305,2551,0,0,0,0,1,0,3840,25600,171181,74.11,84.01,54.62,30.43,3,unreachable: URLError,5.61,0,0,NotSubmitted,quorum not reached,159.25
+26,66866745,36,0,,6ddae4ea86,2464,1,0,1,0,0,1,3840,25600,171117,52.07,60.55,47.29,23.23,3,unreachable: URLError,5.2,0,0,NotSubmitted,quorum not reached,123.49
+27,99262938,43,0,stale_slash,6ca36633e0,994,1,0,1,0,0,1,3840,25600,171149,50.98,59.62,25.69,10.26,0,"proof used slash 4096, registry requires 3840 | unreachable: URLError",4.58,0,0,NotSubmitted,quorum not reached,101.53
+28,195422373,46,0,wrong_model,0dee66826e,10541,1,0,1,0,0,1,3840,25600,169068,50.99,58.24,12.45,1.51,0,statement is about a different model | unreachable: URLError,4.52,0,0,NotSubmitted,quorum not reached,85.11
+29,105785072,44,0,,ecc2f88305,9062,1,0,1,0,1,1,3840,25600,170733,52.69,61.48,48.49,24.78,3,unreachable: URLError,6.13,0,0,NotSubmitted,quorum not reached,126.09
+30,148844437,39,0,,6ddae4ea86,21513,0,1,1,0,0,1,3840,25600,169932,49.51,57.27,48.83,25.02,3,unreachable: URLError,5.12,0,0,NotSubmitted,quorum not reached,121.93
+31,94122061,43,0,,6ca36633e0,9663,0,0,0,0,1,0,3840,25600,169260,57.15,65.49,46.48,23.5,3,unreachable: URLError,5.29,0,0,NotSubmitted,quorum not reached,126.89
+32,148836717,39,0,,0dee66826e,2445,0,0,0,0,1,0,3840,25600,173261,50.39,58.57,50.35,25.86,3,unreachable: URLError,5.18,0,0,NotSubmitted,quorum not reached,123.67
+33,97716158,40,1,,ecc2f88305,3422,0,0,0,0,1,0,3840,25600,171661,63.79,72.37,53.31,27.86,3,unreachable: URLError,5.2,0,0,NotSubmitted,quorum not reached,142.31
+34,87102547,44,0,stale_slash,6ddae4ea86,11473,0,0,0,0,1,0,3840,25600,168556,50.88,59.68,24.65,10.59,0,"proof used slash 4096, registry requires 3840 | unreachable: URLError",4.83,0,0,NotSubmitted,quorum not reached,99.74
+35,160357717,45,0,,6ca36633e0,10155,0,0,0,0,1,0,3840,25600,166956,51.1,59.0,46.7,23.07,3,unreachable: URLError,4.82,0,0,NotSubmitted,quorum not reached,120.22
+36,12687470,41,0,,0dee66826e,18919,1,1,1,0,1,1,3840,25600,165548,50.27,58.98,46.77,24.09,3,unreachable: URLError,4.81,0,0,NotSubmitted,quorum not reached,120.87
+37,155583708,45,0,,ecc2f88305,21270,0,1,1,0,0,1,3840,25600,169580,51.05,59.59,46.1,23.19,3,unreachable: URLError,4.93,0,0,NotSubmitted,quorum not reached,120.19
+38,156182164,45,0,,6ddae4ea86,18494,0,1,1,0,0,1,3840,25600,164236,51.62,60.59,49.78,24.66,3,unreachable: URLError,4.9,0,0,NotSubmitted,quorum not reached,125.42
+39,207363644,36,0,,6ca36633e0,7664,0,0,0,0,1,0,3840,25600,169612,50.18,58.58,46.02,23.28,3,unreachable: URLError,5.06,0,0,NotSubmitted,quorum not reached,119.45
+40,94126162,43,0,wrong_model,0dee66826e,1512,0,0,0,0,1,0,3840,25600,169868,50.63,58.95,12.31,1.44,0,statement is about a different model | unreachable: URLError,4.48,0,0,NotSubmitted,quorum not reached,85.3
+41,24339154,36,0,,ecc2f88305,21224,0,1,1,0,0,1,3840,25600,167948,52.14,60.0,52.05,23.99,3,unreachable: URLError,4.95,0,0,NotSubmitted,quorum not reached,126.63
+42,10403056,42,0,,6ddae4ea86,6730,0,0,0,0,1,0,3840,25600,171021,51.25,59.92,47.47,23.34,3,unreachable: URLError,4.8,0,0,NotSubmitted,quorum not reached,126.96
+43,164686466,45,0,,6ca36633e0,10242,0,0,0,0,1,0,3840,25600,169516,49.79,58.25,51.54,25.0,3,unreachable: URLError,5.06,0,0,NotSubmitted,quorum not reached,124.12
+44,106305311,44,0,,0dee66826e,18330,0,1,1,0,1,1,3840,25600,170253,52.4,60.99,45.77,23.44,3,unreachable: URLError,4.81,0,0,NotSubmitted,quorum not reached,122.25
+45,12829702,38,1,,ecc2f88305,24153,0,1,1,1,0,1,3840,25600,171341,50.1,58.82,45.68,22.44,3,unreachable: URLError,4.77,0,0,NotSubmitted,quorum not reached,119.46
+46,219562863,47,0,,6ddae4ea86,11412,0,0,0,0,1,0,3840,25600,170412,50.95,59.52,48.53,25.12,3,unreachable: URLError,4.74,0,0,NotSubmitted,quorum not reached,121.84
+47,73265411,42,0,,6ca36633e0,14055,0,1,1,0,0,1,3840,25600,171021,52.14,61.25,43.4,22.74,3,unreachable: URLError,4.81,0,0,NotSubmitted,quorum not reached,118.73
+48,114604561,38,0,,0dee66826e,8015,0,0,0,0,1,0,3840,25600,171405,49.71,58.43,44.8,23.61,3,unreachable: URLError,4.82,0,0,NotSubmitted,quorum not reached,117.9
+49,105848028,44,0,,ecc2f88305,12792,0,0,0,0,1,0,3840,25600,170445,52.06,60.66,45.98,22.57,3,unreachable: URLError,5.43,0,0,NotSubmitted,quorum not reached,121.54
+50,105870722,44,0,,6ddae4ea86,23228,0,1,1,0,0,1,3840,25600,167340,58.52,66.69,48.02,24.31,3,unreachable: URLError,4.91,0,0,NotSubmitted,quorum not reached,130.33
+51,71046356,49,0,,6ca36633e0,15318,0,1,1,0,0,1,3840,25600,169036,51.78,59.87,49.4,23.9,3,unreachable: URLError,5.06,0,0,NotSubmitted,quorum not reached,124.04
+52,164681084,45,0,,0dee66826e,25561,0,1,1,0,0,1,3840,25600,169389,50.6,58.53,48.96,25.39,3,unreachable: URLError,4.74,0,0,NotSubmitted,quorum not reached,122.29
+53,105786164,44,0,,ecc2f88305,6750,0,0,0,0,1,0,3840,25600,171341,51.11,59.34,47.52,25.06,3,unreachable: URLError,4.75,0,0,NotSubmitted,quorum not reached,120.92
+54,200464814,36,0,,6ddae4ea86,22990,0,1,1,0,1,1,3840,25600,169004,53.6,61.6,45.34,23.17,3,unreachable: URLError,5.0,0,0,NotSubmitted,quorum not reached,121.89
+55,12984797,41,0,,6ca36633e0,8147,1,0,1,0,1,1,3840,25600,167404,51.37,59.75,45.65,23.2,3,unreachable: URLError,5.16,0,0,NotSubmitted,quorum not reached,120.47
+56,1880111,42,0,,0dee66826e,25306,0,1,1,0,1,1,3840,25600,171405,51.38,60.49,47.25,24.75,3,unreachable: URLError,4.48,0,0,NotSubmitted,quorum not reached,121.71
+57,200739627,36,0,,ecc2f88305,20575,0,1,1,0,1,1,3840,25600,170413,50.79,59.07,45.55,22.81,3,unreachable: URLError,6.08,0,0,NotSubmitted,quorum not reached,119.83
+58,94302390,43,0,,6ddae4ea86,6605,0,0,0,0,1,0,3840,25600,171757,58.48,66.49,48.04,24.42,3,unreachable: URLError,4.81,0,0,NotSubmitted,quorum not reached,128.72
+59,73382493,42,0,amount_swap,6ca36633e0,3664,1,0,1,0,0,1,3840,25600,171597,51.27,59.36,12.81,2.45,0,commitment does not open to the stated amount | unreachable: URLError,4.44,0,0,NotSubmitted,quorum not reached,86.22
+60,1803867,48,0,,0dee66826e,3052,0,0,0,0,1,0,3840,25600,167436,62.88,69.75,44.43,22.92,3,unreachable: URLError,4.57,0,0,NotSubmitted,quorum not reached,127.98
+61,29253866,37,0,corrupt_proof,ecc2f88305,16434,1,1,1,0,0,1,3840,25600,170605,50.89,58.73,31.53,14.55,0,"unreachable: URLError | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.46945800000000004} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.477292} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.492667}",4.32,0,0,NotSubmitted,quorum not reached,104.74
+62,163403634,45,0,,6ddae4ea86,16868,0,1,1,0,0,1,3840,25600,171693,53.98,61.84,45.44,23.36,3,unreachable: URLError,4.61,0,0,NotSubmitted,quorum not reached,121.63
+63,194064275,49,0,,6ca36633e0,8343,0,0,0,0,1,0,3840,25600,170221,53.32,61.04,43.83,22.27,3,unreachable: URLError,4.97,0,0,NotSubmitted,quorum not reached,118.78
+64,13405591,41,0,,0dee66826e,24832,0,1,1,1,1,1,3840,25600,167724,54.66,62.55,50.39,26.83,3,unreachable: URLError,4.76,0,0,NotSubmitted,quorum not reached,127.71
+65,12977734,41,0,,ecc2f88305,14534,0,1,1,0,0,1,3840,25600,171021,50.56,58.44,45.42,22.36,3,unreachable: URLError,4.76,0,0,NotSubmitted,quorum not reached,118.19
+66,114497442,38,0,,6ddae4ea86,1805,1,0,1,0,0,1,3840,25600,170445,57.59,65.31,54.07,23.53,3,unreachable: URLError,5.31,0,0,NotSubmitted,quorum not reached,134.22
+67,39292646,44,0,,6ca36633e0,21965,1,1,1,0,0,1,3840,25600,172845,57.85,66.4,44.93,22.41,3,unreachable: URLError,4.68,0,0,NotSubmitted,quorum not reached,126.31
+68,71359356,36,0,,0dee66826e,19612,0,1,1,0,0,1,3840,25600,168268,51.03,58.83,44.77,22.5,3,unreachable: URLError,4.66,0,0,NotSubmitted,quorum not reached,117.33
+69,156381357,45,0,,ecc2f88305,11656,1,0,1,0,1,1,3840,25600,174349,50.1,57.8,44.85,23.15,3,unreachable: URLError,4.61,0,0,NotSubmitted,quorum not reached,116.38
+70,57342656,43,0,,6ddae4ea86,10329,0,0,0,0,1,0,3840,25600,169260,50.87,58.85,49.43,24.84,3,unreachable: URLError,4.67,0,0,NotSubmitted,quorum not reached,121.79
+71,43998636,42,0,,6ca36633e0,5029,1,0,1,0,0,1,3840,25600,171693,50.61,58.89,43.64,22.29,3,unreachable: URLError,5.16,0,0,NotSubmitted,quorum not reached,117.41
+72,98652748,43,0,,0dee66826e,11699,0,0,0,0,1,0,3840,25600,168524,53.3,61.64,51.45,27.91,3,unreachable: URLError,5.27,0,0,NotSubmitted,quorum not reached,128.37
+73,200052323,36,0,,ecc2f88305,20993,1,1,1,1,0,1,3840,25600,172141,49.71,58.06,44.24,22.29,3,unreachable: URLError,4.66,0,0,NotSubmitted,quorum not reached,116.41
+74,12665084,41,1,,6ddae4ea86,13250,0,1,1,0,0,1,3840,25600,171309,52.78,60.82,44.52,22.4,3,unreachable: URLError,5.72,0,0,NotSubmitted,quorum not reached,120.39
+75,6417015,46,0,,6ca36633e0,14168,1,1,1,0,1,1,3840,25600,168716,59.25,67.88,52.77,28.32,3,unreachable: URLError,4.26,0,0,NotSubmitted,quorum not reached,136.17
+76,149154428,39,0,amount_swap,0dee66826e,15981,0,1,1,0,0,1,3840,25600,164780,52.52,59.91,12.86,2.29,0,commitment does not open to the stated amount | unreachable: URLError,4.2,0,0,NotSubmitted,quorum not reached,86.02
+77,73220626,42,1,,ecc2f88305,8327,0,0,0,1,0,1,3840,25600,169421,53.68,60.94,44.43,22.04,3,unreachable: URLError,4.71,0,0,NotSubmitted,quorum not reached,119.08
+78,54918774,35,0,,6ddae4ea86,3179,0,0,0,0,1,0,3840,25600,167596,50.32,58.15,44.09,21.88,3,unreachable: URLError,4.6,0,0,NotSubmitted,quorum not reached,116.93
+79,115090672,38,0,,6ca36633e0,23659,0,1,1,0,0,1,3840,25600,170957,51.18,58.95,46.33,23.89,3,unreachable: URLError,4.53,0,0,NotSubmitted,quorum not reached,119.59
+80,218095274,47,0,,0dee66826e,15294,0,1,1,0,1,1,3840,25600,167148,76.02,84.91,46.58,22.87,3,unreachable: URLError,4.71,0,0,NotSubmitted,quorum not reached,145.78
+81,65233753,48,0,,ecc2f88305,4341,1,0,1,0,0,1,3840,25600,170893,50.46,58.94,45.04,22.65,3,unreachable: URLError,4.59,0,0,NotSubmitted,quorum not reached,117.48
+82,218285334,47,0,,6ddae4ea86,9092,1,0,1,0,0,1,3840,25600,167180,53.27,61.23,43.11,21.52,3,unreachable: URLError,4.54,0,0,NotSubmitted,quorum not reached,118.15
+83,81726621,46,0,,6ca36633e0,4875,0,0,0,0,1,0,3840,25600,170477,58.62,66.31,49.06,23.05,3,unreachable: URLError,4.74,0,0,NotSubmitted,quorum not reached,129.24
+84,94282454,43,0,,0dee66826e,6636,0,0,0,1,0,1,3840,25600,169420,51.54,59.51,44.56,22.5,3,unreachable: URLError,4.54,0,0,NotSubmitted,quorum not reached,118.66
+85,109179805,46,0,,ecc2f88305,547,0,0,0,0,1,0,3840,25600,167340,52.46,60.09,47.2,22.4,3,unreachable: URLError,4.67,0,0,NotSubmitted,quorum not reached,120.99
+86,1879066,42,1,,6ddae4ea86,133,0,0,0,0,1,0,3840,25600,169741,49.78,57.46,43.87,22.07,3,unreachable: URLError,4.56,0,0,NotSubmitted,quorum not reached,115.7
+87,66522249,46,0,,6ca36633e0,20023,0,1,1,0,1,1,3840,25600,171853,57.2,65.2,46.82,23.98,3,unreachable: URLError,4.5,0,0,NotSubmitted,quorum not reached,125.68
+88,73382392,42,0,,0dee66826e,7430,0,0,0,0,1,0,3840,25600,170797,54.68,62.46,44.32,22.43,3,unreachable: URLError,4.38,0,0,NotSubmitted,quorum not reached,120.66
+89,70449777,35,0,,ecc2f88305,9522,1,0,1,0,1,1,3840,25600,171469,53.0,60.95,44.38,22.27,3,unreachable: URLError,4.43,0,0,NotSubmitted,quorum not reached,118.69
+90,105848607,44,0,,6ddae4ea86,6758,0,0,0,0,1,0,3840,25600,171757,50.74,58.59,48.72,24.11,3,unreachable: URLError,5.14,0,0,NotSubmitted,quorum not reached,121.65
+91,87732051,46,0,,6ca36633e0,4096,0,0,0,1,1,1,3840,25600,173485,75.19,83.37,46.73,22.2,3,unreachable: URLError,6.5,0,0,NotSubmitted,quorum not reached,146.71
+92,156045694,45,0,,0dee66826e,15684,0,1,1,0,0,1,3840,25600,168108,49.83,57.61,51.07,25.46,3,unreachable: URLError,4.96,0,0,NotSubmitted,quorum not reached,123.51
+93,105594237,44,0,wrong_model,ecc2f88305,11590,0,0,0,0,1,0,3840,25600,169292,52.17,60.52,10.58,1.38,0,statement is about a different model | unreachable: URLError,4.31,0,0,NotSubmitted,quorum not reached,85.65
+94,94079905,43,0,,6ddae4ea86,1012,0,0,0,0,1,0,3840,25600,167980,51.03,58.26,45.78,23.48,3,unreachable: URLError,4.66,0,0,NotSubmitted,quorum not reached,118.51
+95,200636780,36,0,,6ca36633e0,21150,0,1,1,0,1,1,3840,25600,169068,50.01,57.84,44.1,21.48,3,unreachable: URLError,4.6,0,0,NotSubmitted,quorum not reached,115.53
+96,31086091,44,0,corrupt_proof,0dee66826e,8269,1,0,1,0,0,1,3840,25600,168684,50.35,58.08,32.39,15.34,0,"unreachable: URLError | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.471583} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.472} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.48708399999999996}",4.27,0,0,NotSubmitted,quorum not reached,103.92
+97,200657605,36,0,,ecc2f88305,20489,0,1,1,0,1,1,3840,25600,167692,50.55,59.41,46.1,22.14,3,unreachable: URLError,5.04,0,0,NotSubmitted,quorum not reached,120.05
+98,155720765,45,0,,6ddae4ea86,5812,0,0,0,0,1,0,3840,25600,166604,54.5,61.06,43.0,21.4,3,unreachable: URLError,4.87,0,0,NotSubmitted,quorum not reached,118.57
+99,195440736,46,0,stale_slash,6ca36633e0,18591,0,1,1,0,0,1,3840,25600,169869,58.85,66.7,26.51,9.2,0,"proof used slash 4096, registry requires 3840 | unreachable: URLError",4.66,0,0,NotSubmitted,quorum not reached,107.31
+100,53845870,47,0,,0dee66826e,13781,0,1,1,0,0,1,3840,25600,170509,65.95,73.29,42.78,21.73,3,unreachable: URLError,4.63,0,0,NotSubmitted,quorum not reached,130.62
+101,67655158,35,0,,ecc2f88305,9977,0,0,0,0,1,0,3840,25600,170285,51.46,59.66,42.99,21.74,3,unreachable: URLError,4.7,0,0,NotSubmitted,quorum not reached,116.31
+102,29520081,37,0,corrupt_proof,6ddae4ea86,19999,0,1,1,0,1,1,3840,25600,169772,52.05,60.25,28.96,12.82,0,"unreachable: URLError | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.470791} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.47470900000000005} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.484375}",4.15,0,0,NotSubmitted,quorum not reached,102.46
+103,218314791,47,0,flip_viol,6ca36633e0,24845,0,1,1,0,0,0,3840,25600,173197,54.57,62.85,31.82,15.58,0,"unreachable: URLError | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.6598330000000001} | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.672083} | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.749042}",4.44,0,0,NotSubmitted,quorum not reached,108.11
+104,155771964,45,0,corrupt_proof,0dee66826e,16132,0,1,1,0,0,1,3840,25600,168428,50.74,59.01,30.31,14.65,0,"unreachable: URLError | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.463084} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.463792} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.479583}",4.09,0,0,NotSubmitted,quorum not reached,102.84
+105,96596928,40,0,,ecc2f88305,8699,1,0,1,0,0,1,3840,25600,171309,54.39,62.61,44.99,23.23,3,unreachable: URLError,4.55,0,0,NotSubmitted,quorum not reached,120.88
+106,151222468,39,0,,6ddae4ea86,25014,0,1,1,0,1,1,3840,25600,169837,54.11,61.75,46.52,23.96,3,unreachable: URLError,4.69,0,0,NotSubmitted,quorum not reached,122.14
+107,94372364,43,0,amount_swap,6ca36633e0,12417,0,0,0,0,1,0,3840,25600,170445,49.98,57.32,11.73,2.2,0,commitment does not open to the stated amount | unreachable: URLError,4.14,0,0,NotSubmitted,quorum not reached,82.59
+108,73015021,42,0,,0dee66826e,23390,0,1,1,0,0,1,3840,25600,167116,51.12,58.31,43.3,21.63,3,unreachable: URLError,4.78,0,0,NotSubmitted,quorum not reached,115.46
+109,156142375,45,0,,ecc2f88305,6039,0,0,0,0,1,0,3840,25600,170925,62.45,70.75,47.18,24.01,3,unreachable: URLError,4.78,0,0,NotSubmitted,quorum not reached,133.9
+110,73230613,42,0,,6ddae4ea86,21384,0,1,1,0,0,1,3840,25600,162380,53.59,61.9,45.85,24.21,3,unreachable: URLError,4.41,0,0,NotSubmitted,quorum not reached,121.83
+111,73027909,42,0,,6ca36633e0,5199,1,0,1,0,1,1,3840,25600,168076,51.15,59.12,43.66,22.6,3,unreachable: URLError,4.86,0,0,NotSubmitted,quorum not reached,116.96
+112,97733199,40,0,,0dee66826e,7361,0,0,0,0,1,0,3840,25600,170381,51.01,58.7,44.09,22.03,3,unreachable: URLError,4.47,0,0,NotSubmitted,quorum not reached,116.93
+113,62853047,42,0,,ecc2f88305,12718,1,0,1,0,0,1,3840,25600,168780,51.18,58.65,43.78,22.22,3,unreachable: URLError,4.63,0,0,NotSubmitted,quorum not reached,115.95
+114,62722471,35,0,stale_slash,6ddae4ea86,19139,0,1,1,0,0,1,3840,25600,169645,51.92,59.98,21.34,8.33,0,"proof used slash 4096, registry requires 3840 | unreachable: URLError",4.04,0,0,NotSubmitted,quorum not reached,94.85
+115,94408269,45,0,,6ca36633e0,20475,0,1,1,0,0,1,3840,25600,167308,52.12,59.6,55.4,27.94,3,unreachable: URLError,4.71,0,0,NotSubmitted,quorum not reached,129.03
+116,73024110,42,0,,0dee66826e,11745,0,0,0,0,1,0,3840,25600,167468,49.75,57.65,45.3,22.52,3,unreachable: URLError,4.52,0,0,NotSubmitted,quorum not reached,117.61
+117,86476861,42,0,,ecc2f88305,19216,0,1,1,0,1,1,3840,25600,172013,50.94,58.77,49.56,25.74,3,unreachable: URLError,4.63,0,0,NotSubmitted,quorum not reached,122.11
+118,97501177,40,0,,6ddae4ea86,21325,0,1,1,1,0,1,3840,25600,169357,51.58,59.4,43.0,21.47,3,unreachable: URLError,4.42,0,0,NotSubmitted,quorum not reached,116.23
+119,156198655,45,0,,6ca36633e0,24868,0,1,1,0,1,1,3840,25600,168556,51.97,60.13,43.17,22.01,3,unreachable: URLError,4.57,0,0,NotSubmitted,quorum not reached,116.85
+120,151192988,39,0,,0dee66826e,11481,0,0,0,0,1,0,3840,25600,168812,50.41,58.04,41.7,21.12,3,unreachable: URLError,4.37,0,0,NotSubmitted,quorum not reached,112.79
+121,73224667,42,0,,ecc2f88305,16317,0,1,1,0,1,1,3840,25600,169901,57.52,65.43,44.03,22.82,3,unreachable: URLError,4.63,0,0,NotSubmitted,quorum not reached,123.38
+122,96566387,40,0,,6ddae4ea86,7464,0,0,0,0,1,0,3840,25600,169164,51.01,58.64,41.12,21.03,3,unreachable: URLError,4.46,0,0,NotSubmitted,quorum not reached,113.02
+123,12678621,41,0,wrong_model,6ca36633e0,15300,0,1,1,0,1,1,3840,25600,170445,50.33,58.38,11.52,1.26,0,statement is about a different model | unreachable: URLError,4.1,0,0,NotSubmitted,quorum not reached,82.75
+124,200639284,36,0,,0dee66826e,24125,0,1,1,0,0,1,3840,25600,170957,50.55,57.98,42.1,21.25,3,unreachable: URLError,4.61,0,0,NotSubmitted,quorum not reached,113.48
+125,54733770,35,0,,ecc2f88305,2897,1,0,1,0,0,1,3840,25600,172749,54.34,61.87,43.73,22.15,3,unreachable: URLError,4.52,0,0,NotSubmitted,quorum not reached,119.09
+126,54802206,35,0,amount_swap,6ddae4ea86,9374,0,0,0,0,1,0,3840,25600,170157,57.15,64.82,12.4,2.22,0,commitment does not open to the stated amount | unreachable: URLError,4.4,0,0,NotSubmitted,quorum not reached,91.41
+127,98112106,40,0,,6ca36633e0,10249,0,0,0,1,0,1,3840,25600,169196,52.41,59.89,42.71,21.54,3,unreachable: URLError,5.26,0,0,NotSubmitted,quorum not reached,117.71
+128,149157549,39,0,,0dee66826e,19965,0,1,1,0,1,1,3840,25600,173645,55.74,63.32,42.9,21.95,3,unreachable: URLError,4.37,0,0,NotSubmitted,quorum not reached,119.82
+129,94280719,43,0,,ecc2f88305,11590,0,0,0,0,1,0,3840,25600,169388,50.0,57.75,45.63,22.69,3,unreachable: URLError,4.55,0,0,NotSubmitted,quorum not reached,116.96
+130,106311963,44,0,,6ddae4ea86,21430,0,1,1,0,0,1,3840,25600,169580,50.52,58.48,43.86,21.63,3,unreachable: URLError,4.38,0,0,NotSubmitted,quorum not reached,115.92
+131,149127368,39,1,,6ca36633e0,13441,0,1,1,1,0,1,3840,25600,169869,51.48,59.4,42.66,21.39,3,unreachable: URLError,4.5,0,0,NotSubmitted,quorum not reached,115.39
+132,13364776,41,0,,0dee66826e,15692,0,1,1,0,0,1,3840,25600,170189,51.85,59.65,57.61,27.53,3,unreachable: URLError,4.7,0,0,NotSubmitted,quorum not reached,130.93
+133,98655828,43,0,,ecc2f88305,16427,0,1,1,0,0,1,3840,25600,170765,55.25,63.22,45.15,23.09,3,unreachable: URLError,4.24,0,0,NotSubmitted,quorum not reached,121.96
+134,219436818,47,0,flip_viol,6ddae4ea86,6319,0,0,0,0,1,1,3840,25600,173965,52.04,60.38,30.17,14.3,0,"unreachable: URLError | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.630334} | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.691542} | zero-knowledge proof does not verify: {""error"":""InvalidOpeningArgument(InvalidPowWitness(Query))"",""valid"":false,""verify_ms"":1.756667}",4.32,0,0,NotSubmitted,quorum not reached,103.49
+135,22205367,46,0,,6ca36633e0,18293,0,1,1,0,0,1,3840,25600,169421,62.91,71.42,50.27,25.91,3,unreachable: URLError,4.64,0,0,NotSubmitted,quorum not reached,135.51
+136,29158822,37,0,,0dee66826e,8108,0,0,0,0,1,0,3840,25600,170509,56.74,64.58,43.44,21.74,3,unreachable: URLError,4.43,0,0,NotSubmitted,quorum not reached,121.54
+137,105869875,44,0,stale_slash,ecc2f88305,15577,0,1,1,0,0,1,3840,25600,170573,49.98,57.66,20.1,8.12,0,"proof used slash 4096, registry requires 3840 | unreachable: URLError",3.86,0,0,NotSubmitted,quorum not reached,90.13
+138,198800166,36,0,,6ddae4ea86,25244,0,1,1,0,0,1,3840,25600,169196,58.17,65.41,42.42,21.85,3,unreachable: URLError,4.37,0,0,NotSubmitted,quorum not reached,120.61
+139,105592577,44,0,,6ca36633e0,14248,0,1,1,0,1,1,3840,25600,164652,50.45,58.2,42.82,21.61,3,unreachable: URLError,4.51,0,0,NotSubmitted,quorum not reached,115.48
+140,148827030,39,0,,0dee66826e,10416,0,0,0,0,1,0,3840,25600,171757,60.07,68.08,44.19,23.31,3,unreachable: URLError,4.65,0,0,NotSubmitted,quorum not reached,125.8
+141,105853155,44,0,corrupt_proof,ecc2f88305,12893,0,1,1,0,0,1,3840,25600,170445,52.33,61.04,28.69,13.43,0,"unreachable: URLError | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.459875} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.474666} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.49525}",4.39,0,0,NotSubmitted,quorum not reached,103.03
+142,106718595,44,0,,6ddae4ea86,14174,0,1,1,0,0,1,3840,25600,171117,55.75,63.57,44.45,23.2,3,unreachable: URLError,4.68,0,0,NotSubmitted,quorum not reached,121.67
+143,218103291,47,0,,6ca36633e0,8172,0,0,0,0,1,0,3840,25600,168652,50.16,58.57,43.42,22.24,3,unreachable: URLError,4.48,0,0,NotSubmitted,quorum not reached,115.14
+144,54732625,35,0,,0dee66826e,24349,0,1,1,0,0,1,3840,25600,168908,51.79,59.98,47.12,25.22,3,unreachable: URLError,4.42,0,0,NotSubmitted,quorum not reached,120.28
+145,13279830,41,0,corrupt_proof,ecc2f88305,12809,0,1,1,1,0,1,3840,25600,171085,48.68,56.67,29.22,13.51,0,"unreachable: URLError | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.46704100000000004} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.477958} | zero-knowledge proof does not verify: {""error"":""Serde Deserialization Error"",""valid"":false,""verify_ms"":0.5145}",4.02,0,0,NotSubmitted,quorum not reached,99.02
+146,97390680,40,0,,6ddae4ea86,24539,0,1,1,0,0,1,3840,25600,168812,52.52,60.33,43.73,22.04,3,unreachable: URLError,4.54,0,0,NotSubmitted,quorum not reached,117.08
+147,94289205,43,0,,6ca36633e0,7807,0,0,0,0,1,0,3840,25600,170957,52.84,60.63,46.25,23.03,3,unreachable: URLError,4.52,0,0,NotSubmitted,quorum not reached,120.08
+148,45432747,40,1,wrong_model,0dee66826e,23699,0,1,1,1,0,1,3840,25600,170957,52.55,60.17,11.05,1.22,0,statement is about a different model | unreachable: URLError,3.99,0,0,NotSubmitted,quorum not reached,84.02
+149,195421132,46,0,,ecc2f88305,16061,0,1,1,0,1,1,3840,25600,171245,53.23,60.82,41.94,21.14,3,unreachable: URLError,4.51,0,0,NotSubmitted,quorum not reached,116.25
+150,27558289,40,0,,6ddae4ea86,2276,0,0,0,0,1,0,3840,25600,168844,55.5,64.08,44.18,21.6,3,unreachable: URLError,4.47,0,0,NotSubmitted,quorum not reached,121.93
+151,95780172,43,0,,6ca36633e0,7919,0,0,0,0,1,0,3840,25600,171853,52.06,59.5,43.43,22.61,3,unreachable: URLError,4.44,0,0,NotSubmitted,quorum not reached,116.11
+152,200528352,36,0,,0dee66826e,8431,1,0,1,0,0,1,3840,25600,171341,51.82,59.5,47.84,24.92,3,unreachable: URLError,4.98,0,0,NotSubmitted,quorum not reached,121.2
+153,36725599,40,0,,ecc2f88305,12697,0,0,0,0,1,0,3840,25600,166988,52.27,59.74,40.63,21.09,3,unreachable: URLError,4.67,0,0,NotSubmitted,quorum not reached,115.04
+154,216562929,36,0,,6ddae4ea86,8841,0,0,0,0,1,0,3840,25600,171565,55.58,63.77,42.6,21.43,3,unreachable: URLError,4.41,0,0,NotSubmitted,quorum not reached,119.83
+155,148841996,39,0,amount_swap,6ca36633e0,12869,1,1,1,0,0,1,3840,25600,171117,52.45,62.51,11.71,2.37,0,commitment does not open to the stated amount | unreachable: URLError,3.82,0,0,NotSubmitted,quorum not reached,86.61
+156,69662492,35,1,wrong_model,0dee66826e,11435,0,0,0,1,0,1,3840,25600,171885,51.48,58.88,10.33,1.24,0,statement is about a different model | unreachable: URLError,3.8,0,0,NotSubmitted,quorum not reached,81.66
+157,29226430,37,0,,ecc2f88305,3492,0,0,0,0,1,0,3840,25600,167148,50.83,58.06,44.57,23.28,3,unreachable: URLError,4.3,0,0,NotSubmitted,quorum not reached,115.42
+158,114664264,38,0,amount_swap,6ddae4ea86,7677,0,0,0,0,1,0,3840,25600,170797,51.56,59.53,11.53,2.24,0,commitment does not open to the stated amount | unreachable: URLError,3.87,0,0,NotSubmitted,quorum not reached,84.1
+159,114635233,38,0,,6ca36633e0,3183,0,0,0,0,1,0,3840,25600,171565,52.38,59.37,46.4,23.29,3,unreachable: URLError,4.45,0,0,NotSubmitted,quorum not reached,118.83
+160,96925332,40,1,,0dee66826e,6558,0,0,0,1,1,1,3840,25600,167372,50.24,57.66,44.6,21.18,3,unreachable: URLError,4.42,0,0,NotSubmitted,quorum not reached,115.49
+161,15913585,46,0,wrong_model,ecc2f88305,3909,0,0,0,0,1,0,3840,25600,170701,50.58,58.69,11.08,1.43,0,statement is about a different model | unreachable: URLError,4.07,0,0,NotSubmitted,quorum not reached,83.26
+162,98658080,43,0,,6ddae4ea86,22921,1,1,1,0,0,1,3840,25600,171405,55.13,62.41,47.99,24.75,3,unreachable: URLError,4.38,0,0,NotSubmitted,quorum not reached,123.84
+163,13367108,41,0,,6ca36633e0,881,1,0,1,0,1,1,3840,25600,166764,52.65,60.11,42.01,21.14,3,unreachable: URLError,4.33,0,0,NotSubmitted,quorum not reached,115.02
+164,54760548,35,0,,0dee66826e,7106,0,0,0,0,1,0,3840,25600,168748,54.58,63.04,45.78,22.94,3,unreachable: URLError,4.43,0,0,NotSubmitted,quorum not reached,122.38
+165,96256375,40,0,amount_swap,ecc2f88305,12857,0,1,1,0,0,1,3840,25600,170541,52.13,60.04,12.23,2.27,0,commitment does not open to the stated amount | unreachable: URLError,3.96,0,0,NotSubmitted,quorum not reached,84.94
+166,91949576,43,0,,6ddae4ea86,8007,0,0,0,0,1,0,3840,25600,171181,50.97,58.16,41.1,20.76,3,unreachable: URLError,4.41,0,0,NotSubmitted,quorum not reached,112.43
+167,70766136,42,0,,6ca36633e0,3537,1,0,1,0,0,1,3840,25600,168492,55.15,62.89,42.04,21.26,3,unreachable: URLError,4.35,0,0,NotSubmitted,quorum not reached,118.62
+168,91867614,43,0,,0dee66826e,24595,0,1,1,0,0,1,3840,25600,168268,51.64,59.21,41.0,21.07,3,unreachable: URLError,4.34,0,0,NotSubmitted,quorum not reached,113.17
+169,218283424,47,0,stale_slash,ecc2f88305,18325,0,1,1,0,0,1,3840,25600,170221,50.06,57.22,19.44,7.34,0,"proof used slash 4096, registry requires 3840 | unreachable: URLError",4.41,0,0,NotSubmitted,quorum not reached,89.69
+170,96304815,40,0,amount_swap,6ddae4ea86,16106,0,1,1,0,0,1,3840,25600,172013,50.65,57.16,12.33,2.17,0,commitment does not open to the stated amount | unreachable: URLError,4.14,0,0,NotSubmitted,quorum not reached,82.94
+171,106779683,44,0,,6ca36633e0,2778,0,0,0,0,1,0,3840,25600,170636,50.46,57.56,44.07,23.23,3,unreachable: URLError,4.51,0,0,NotSubmitted,quorum not reached,114.73
+172,200006157,36,0,,0dee66826e,8801,1,0,1,0,0,1,3840,25600,169356,52.06,60.29,45.33,23.12,3,unreachable: URLError,4.9,0,0,NotSubmitted,quorum not reached,123.32
+173,196115726,46,0,,ecc2f88305,11165,0,0,0,0,1,0,3840,25600,172301,52.33,59.86,43.8,22.2,3,unreachable: URLError,6.54,0,0,NotSubmitted,quorum not reached,119.74
+174,199944376,36,0,,6ddae4ea86,5312,0,0,0,1,0,1,3840,25600,171533,50.17,57.55,42.51,21.39,3,unreachable: URLError,4.24,0,0,NotSubmitted,quorum not reached,112.89
+175,29986693,37,0,,6ca36633e0,22777,0,1,1,0,1,1,3840,25600,170957,52.73,60.38,49.25,26.19,3,unreachable: URLError,4.45,0,0,NotSubmitted,quorum not reached,122.77
+176,25244255,36,0,,0dee66826e,25561,0,1,1,0,0,1,3840,25600,166860,50.97,59.08,42.8,21.36,3,unreachable: URLError,4.47,0,0,NotSubmitted,quorum not reached,115.73
+177,148854546,39,0,,ecc2f88305,23105,0,1,1,0,0,1,3840,25600,171629,50.2,57.62,42.83,22.15,3,unreachable: URLError,4.28,0,0,NotSubmitted,quorum not reached,113.38
+178,71989678,42,1,wrong_model,6ddae4ea86,10101,0,0,0,1,1,1,3840,25600,170925,51.1,58.47,10.36,1.25,0,statement is about a different model | unreachable: URLError,3.72,0,0,NotSubmitted,quorum not reached,81.76
+179,106370308,44,0,,6ca36633e0,9472,0,0,0,0,1,0,3840,25600,169612,52.21,59.17,42.32,21.34,3,unreachable: URLError,4.2,0,0,NotSubmitted,quorum not reached,114.21
+180,106718344,44,0,,0dee66826e,3556,0,0,0,0,1,0,3840,25600,169836,51.96,59.33,43.86,20.67,3,unreachable: URLError,4.39,0,0,NotSubmitted,quorum not reached,116.03
+181,195426636,46,0,,ecc2f88305,8680,1,0,1,0,0,1,3840,25600,171917,54.54,62.46,45.15,22.28,3,unreachable: URLError,5.15,0,0,NotSubmitted,quorum not reached,122.62
+182,71152837,42,0,,6ddae4ea86,11648,0,0,0,0,1,0,3840,25600,169708,55.11,63.23,41.93,21.51,3,unreachable: URLError,4.3,0,0,NotSubmitted,quorum not reached,118.8
+183,189092998,49,0,,6ca36633e0,19339,1,1,1,0,1,1,3840,25600,165676,51.15,59.1,42.47,20.91,3,unreachable: URLError,4.36,0,0,NotSubmitted,quorum not reached,114.5
+184,72631469,42,1,,0dee66826e,11281,0,0,0,1,0,1,3840,25600,170957,51.87,59.27,45.1,22.57,3,unreachable: URLError,4.53,0,0,NotSubmitted,quorum not reached,118.24
+185,11735899,36,0,,ecc2f88305,12610,0,0,0,0,1,0,3840,25600,171469,51.52,59.01,42.25,21.34,3,unreachable: URLError,4.81,0,0,NotSubmitted,quorum not reached,115.01
+186,97089300,40,0,,6ddae4ea86,22021,1,1,1,0,1,1,3840,25600,168396,57.76,66.3,45.57,23.31,3,unreachable: URLError,4.31,0,0,NotSubmitted,quorum not reached,125.65
+187,96932674,40,0,,6ca36633e0,18290,0,1,1,0,1,1,3840,25600,168876,56.3,63.91,41.09,21.74,3,unreachable: URLError,4.69,0,0,NotSubmitted,quorum not reached,119.2
+188,100458403,36,0,,0dee66826e,10529,0,0,0,0,1,0,3840,25600,170957,58.6,66.9,51.74,24.46,3,unreachable: URLError,4.46,0,0,NotSubmitted,quorum not reached,132.46
+189,115076686,38,0,,ecc2f88305,5180,0,0,0,0,1,0,3840,25600,171149,59.38,67.52,43.56,21.86,3,unreachable: URLError,4.25,0,0,NotSubmitted,quorum not reached,123.82
+190,29581775,37,1,,6ddae4ea86,20000,0,1,1,1,0,1,3840,25600,167340,50.06,58.18,41.89,20.95,3,unreachable: URLError,4.32,0,0,NotSubmitted,quorum not reached,113.03
+191,13223487,41,0,,6ca36633e0,18469,0,1,1,0,0,1,3840,25600,169613,52.25,59.68,41.33,21.27,3,unreachable: URLError,4.24,0,0,NotSubmitted,quorum not reached,113.45
+192,12791293,41,0,wrong_model,0dee66826e,11398,1,0,1,0,0,1,3840,25600,169613,50.51,57.85,9.84,1.12,0,statement is about a different model | unreachable: URLError,3.8,0,0,NotSubmitted,quorum not reached,79.99
+193,155815753,45,0,,ecc2f88305,13311,0,1,1,0,1,1,3840,25600,165996,54.11,61.14,42.34,20.91,3,unreachable: URLError,4.24,0,0,NotSubmitted,quorum not reached,116.18
+194,13031319,41,0,,6ddae4ea86,15267,0,1,1,0,1,1,3840,25600,171117,55.95,63.55,42.48,21.96,3,unreachable: URLError,4.15,0,0,NotSubmitted,quorum not reached,118.67
+195,66442559,46,0,,6ca36633e0,16008,0,1,1,0,0,1,3840,25600,169292,51.66,59.65,44.66,21.95,3,unreachable: URLError,4.3,0,0,NotSubmitted,quorum not reached,117.31
+196,156225072,45,0,,0dee66826e,24495,0,1,1,0,0,1,3840,25600,171085,54.64,60.8,43.64,21.47,3,unreachable: URLError,4.92,0,0,NotSubmitted,quorum not reached,117.97
+197,98656788,43,0,,ecc2f88305,11032,0,0,0,0,1,0,3840,25600,169228,61.15,67.8,44.36,21.82,3,unreachable: URLError,4.39,0,0,NotSubmitted,quorum not reached,126.45
+198,70262115,42,0,,6ddae4ea86,11485,0,0,0,0,1,0,3840,25600,171789,61.34,69.24,46.92,25.85,3,unreachable: URLError,4.31,0,0,NotSubmitted,quorum not reached,135.18
+199,187254716,46,0,,6ca36633e0,1467,0,0,0,0,1,0,3840,25600,169676,50.78,58.89,41.15,20.71,3,unreachable: URLError,4.45,0,0,NotSubmitted,quorum not reached,113.14
