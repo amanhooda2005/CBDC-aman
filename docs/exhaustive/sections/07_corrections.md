@@ -29,6 +29,12 @@
 | 23 | H4 coverage: a heuristic picked scales that hurt accuracy | Fidelity loss | Scales selected by validation PR-AUC instead |
 | 24 | H3 durable-liability outputs (`durable_report.json`, `durable_actions.csv`) were blocked by `h3-abt/.gitignore` (`results/*.json`, `results/*.csv`) | The README referenced files missing from the repo | Force-added in the PR that adds this document |
 | 25 | H4 composed pre-registration (`h4_composed.md`) states the PQ main trace width as 219; it is 220 (12 SIS + 207 workload + 1 link accumulator) | Descriptive typo; no effect on the circuit or the timing | Corrected in this document and in `FULL_REPORT.md`; the pre-registration is left as committed |
+| 26 | The first versions of `FULL_REPORT.md` and the exhaustive report quoted "≥ 2⁶¹⁵ quantum" next to the composed proof. That figure covers only the SIS commitment's binding; the proof as a whole is about 63 bits quantum (v3) or 62 bits (v4) | Overstated the quantum security of the proof | Reworded everywhere (Part 6A.5, C1); found during the review of PR #37 |
+| 27 | The report title and abstract called the system "quantum-safe" | Overclaim given the estimates above | Title changed to "Post-Quantum"; abstract qualified |
+| 28 | PR #36 and PR #37 were the same branch (#36 closed, #37 merged); PR #37 omitted the audit script, evidence and logs it relied on | Claims in `EVIDENCE.md` could not be checked from `main` | Added in PR #38 |
+| 29 | The H1 v2.1 shared verifiers (4 verifiers, 17.2 M deploy gas instead of about 251 M) remove the proving-time gain: a disputed block step takes about as long as the whole-model proof, and a projection step is 2.8× slower | The 14.9× speedup was still quoted as if it applied to the on-chain design | H1 README, FULL_REPORT and Part 6A now state that 14.9× applies to the fixed-weights design only (PR #38) |
+| 30 | The recorded `anvil_state.json` of the on-chain dispute run could not be loaded by current Foundry builds (written by 1.5.1) | The 116-transaction record was not re-checkable with a current toolchain | `verify_dispute_record.py` gained a replay mode that re-sends the original signed transactions (PR #38); reproduced independently |
+| 31 | The independent-validator run (host outside the team, reviewer a team member) does not export the ledger | The reviewer's own-ledger checks are self-reported | Stated as a limit in Part 6A.6; ledger export requested |
 
 ## 7.2 Provenance gaps that remain
 
@@ -51,8 +57,8 @@
 | Deep-RL monetary policy engine; Reverse-Kelly AMM | Not attempted (outside the 2–3 month scope) |
 | ExpProof-style verifiable explanations bound to the ABT | Not attempted |
 | Blockchain orchestration of FL; secure multi-party aggregation; encrypted gradients | Not attempted (FedAvg is simulated in-process) |
-| On-chain ABT contract (Solidity) | Not built; the registry is in-simulation |
-| Settlement-layer integration of the PQ proofs | Not attempted |
+| On-chain ABT contract (Solidity) | Not built in the original programme; built later as `LiabilityRegistry` (Part 6A) |
+| Settlement-layer integration of the PQ proofs | Not attempted in the original programme; a lab-scale integration on a Besu QBFT ledger was added later (Part 6A). Not a production or central-bank ledger |
 | Real VASP institutions | Simulated by graph partitioning |
 | Transaction-level DP | Not attempted; only institution-level DP |
 | Hiding (zero-knowledge) commitments in H4 | Not claimed; binding only |

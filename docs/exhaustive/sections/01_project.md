@@ -22,8 +22,8 @@ The proposal decomposes its objectives into four falsifiable hypotheses, each wi
 - the Reverse-Kelly AMM;
 - ExpProof-style verifiable explanations;
 - secure multi-party aggregation and blockchain orchestration of the federated-learning layer;
-- an on-chain ABT contract;
-- settlement-layer integration.
+- an on-chain ABT contract (built later, see Part 6A);
+- settlement-layer integration (a lab-scale version was built later, see Part 6A).
 
 See §7.4.
 

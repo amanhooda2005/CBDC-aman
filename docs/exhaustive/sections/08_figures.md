@@ -49,3 +49,7 @@ Paths are relative to the repository root. The PDF build embeds each image.
 **Figure 12 — H4 overhead law (C2):** PQ/classical ratio versus classical cost.
 
 ![H4 overhead law](../h4-pqc-stark/benchmark_v2/results/overhead_law.png)
+
+**Figure 13 — H3 learning agents under imperfect detection (Part 6A):** violation rate over time per regime for detection probability 0.5 and 0.8.
+
+![H3 learning](../h3-abt/results/learning_figure.png)
