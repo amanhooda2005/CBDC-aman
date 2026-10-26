@@ -119,7 +119,7 @@ On the Elliptic deployment, the merchant's CBDC balance (1,930,131) equals the s
 **Limits of this run.**
 1. The reviewer is a team member, and the host is an outside person (Aman describes him as a roommate) following the team's instructions. It shows that the gate needs a key the host does not hold, not that an unrelated third party audited the system.
 2. Both sides run the team's code. The verifier was built separately on each machine.
-3. The ledger itself stayed on the two machines and is not exported, so the reviewer's own-ledger checks are **self-reported**.
+3. The ledger was not exported at first; the reviewer's ledger (3,033 blocks) was exported later (PR #41). The mentor decoded the export and checked that it matches its SHA-256, that all 166 settlement transactions carry 4 signatures and match the host's records on amount, EXEC and VIOL, and that no falsified request settled. Re-execution in a fresh Besu node was done by the reviewer (Aman), not by the mentor.
 
 ## 6A.7 What the mentor independently verified, and what not
 
@@ -139,7 +139,7 @@ Checks were made between 15 and 21 Oct 2026 on the mentor's own machine, using A
 
 **Not independently verified:**
 - The **live runs themselves** (Besu chain, EZKL proving and key generation, the pipeline) and **all timings**, which come from Aman's machines. Records and ledger were replayed; the executions were not repeated.
-- The **reviewer's own ledger** in the independent-validator run (not exported).
+- The **Besu re-execution** of the reviewer's exported ledger (done by the reviewer; the mentor checked it by decoding the export, not by re-executing it).
 - The **H3 learning-study** and **H4 v4** results beyond their passing test suites.
 - `bench_shared_vs_mono.py` (needs EZKL and a 3 GB key setup).
 

@@ -12,7 +12,7 @@ Results, method and pass/fail verdict: **[WRITEUP.md](WRITEUP.md)**.
 | Criterion | Result |
 |---|---|
 | ≥10× proof latency | **Pass only at 60 blocks and only with fixed-weight step circuits** (14.9× single-core, 12.6× multi-core; multi-core measured at 60 blocks only). **Fail with the shared verifiers of v2.1** (no faster than the whole-model proof; see below). **Fail** at 24 blocks (7.7×), 8 blocks (3.9×) and 1 block (1.07×), all single-core. |
-| ≥10× on-chain cost | **Pass amortized** (13.9× for undisputed inferences). **Fail per dispute** (up to 2.4× more gas than monolithic in the worst case; about 1.8× typical). Holds on average only if fewer than about 1.2% of inferences are disputed (worst-case dispute cost; about 1.6% with the typical cost). |
+| ≥10× on-chain cost | **Pass amortized** (13.9× for undisputed inferences). **Fail per dispute** (up to 2.4× more gas than monolithic in the worst case; about 1.8× typical). Holds on average only if fewer than about 0.8% of inferences are disputed (complete v2 accounting, worst case; about 0.9% typical). The first accounting gave 1.2% / 1.6%. |
 | ≤1 pp accuracy drop | **Pass** (worst case 0.13 pp). |
 | Bisection isolates the fault in bounded rounds | **Pass** (≤6 rounds for 63 steps; 7 of 7 scenarios). |
 

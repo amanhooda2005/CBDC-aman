@@ -42,7 +42,7 @@ The H4 result also includes **one proof covering H1 risk inference → H3 decisi
    - Stake maintenance (z = −13.1) and operator-bound history (z = −18.5) fix both problems.
    - A registration bond blocks resets at exactly the derived break-even B* = V_max − p·s − C_min.
 4. **C4 — False-positive targets for federated AML are gameable.** A pre-registered matched-recall analysis shows the "≥ 20% fewer false positives" criterion is met only because federated models flag less. At equal recall, federation is never significantly better, and it is significantly worse with ample labels (+67–80% false positives). Such targets must be stated at fixed recall. (§3.3)
-5. **C5 — Optimistic bisection for ZKML.** It isolates a tampered step in ⌈log₂ n⌉ rounds (7/7 scenarios) with zero accuracy cost from bisection itself. The 10× latency gain needs deep models (crossover between 24 and 60 blocks). On-chain, it only pays off if fewer than ≈ 1.2% of inferences are disputed. (§2) With the later shared verifiers, a disputed step is no faster than proving the whole model (§6A).
+5. **C5 — Optimistic bisection for ZKML.** It isolates a tampered step in ⌈log₂ n⌉ rounds (7/7 scenarios) with zero accuracy cost from bisection itself. The 10× latency gain needs deep models (crossover between 24 and 60 blocks). On-chain, it only pays off if fewer than ≈ 0.8% of inferences are disputed (the earlier first-accounting figure was 1.2%; §2). (§2) With the later shared verifiers, a disputed step is no faster than proving the whole model (§6A).
 6. **C6 — The four mechanisms work together on a BFT ledger, with the gate enforced by validators, not by the operator.** 889 / 889 honest transfers settled and 0 / 111 falsified ones did on 1,000 real transactions; every settled row reproduces exactly from the replayed ledger; a four-of-four run with one validator held by another person gave the same decisions on all 200 requests. Lab-scale, not production. (§6A)
 
 Negative and boundary results are part of the contribution. In particular:
@@ -84,14 +84,14 @@ Negative and boundary results are part of the contribution. In particular:
 | Optimistic commit | 49,962 (13.9× cheaper) |
 | Full dispute (6 rounds + one step verification) | 1.26 M typical, 1.67 M worst (1.8–2.4× *more* than monolithic) |
 
-**Break-even:** the 10× gas target holds on average only if the dispute rate is below ≈ 1.2% (worst case) or ≈ 1.6% (typical).
+**Break-even:** with the figures above, the 10× gas target holds on average only if the dispute rate is below ≈ 1.2% (worst case) or ≈ 1.6% (typical). The table above is the first accounting (v1); the complete one (v2: challenge, opening and adjudication included, real step verifiers: commit 54,673 gas = 12.8× cheaper, dispute 1.58 M typical / 1.91 M worst) gives **≈ 0.8% worst / ≈ 0.9% typical**, which is the figure to cite.
 
 ### Verdict against the pre-registered criteria
 
 | Criterion | Result |
 |---|---|
 | ≥ 10× latency | **PASS only at 60 blocks**; FAIL at ≤ 24 |
-| ≥ 10× on-chain cost | **PASS amortized** at a dispute rate below about 1.2%; **FAIL per dispute** |
+| ≥ 10× on-chain cost | **PASS amortized** at a dispute rate below about 0.8%; **FAIL per dispute** |
 | ≤ 1 pp accuracy loss | **PASS** (0.13 pp) |
 | Bounded localization | **PASS** (⌈log₂ n⌉ rounds) |
 
@@ -486,7 +486,7 @@ sequential operator, and privacy of amounts towards validators.
 ### Independent-validator run and what has been checked independently
 - **Run (20–21 Oct 2026):** host (a person outside the team, his own MacBook) ran the network, three validators and 200 real Elliptic transfers (34 falsified); the reviewer (Aman Hooda, his own MacBook Air) ran a separate Besu node and the fourth validator with a key generated on his machine and his own build of the verifier. The contract required all four signatures. Result: the reviewer's validator signed exactly the 166 honest transfers and refused all 34 falsified ones, each for the matching reason; the three host validators decided identically on all 200 requests; with the reviewer unreachable, nothing settled.
 - **Checked by the mentor on his own machine:** all 234 tests; every summary recomputed from the raw records; the exported ledger re-executed in a fresh Besu 25.10 node (audit table of 2,197 settlements byte-identical to the team's); all 116 recorded dispute transactions replayed on an empty `anvil` (116 / 116 match; 7 / 7 winners agree; all proofs verify); the independent-validator records rechecked with separately written code.
-- **Not independently verified:** the live runs and all timings (they come from the team's machines), the reviewer's own ledger (not exported, so its checks are self-reported), and the H3 learning study and H4 v4 results beyond their test suites.
+- **Not independently verified:** the live runs and all timings (they come from the team's machines), the re-execution of the reviewer's exported ledger in Besu (done by the reviewer; the mentor checked the export by decoding it, see §6A), and the H3 learning study and H4 v4 results beyond their test suites.
 - **Limits:** the reviewer is a team member and the host followed the team's instructions; the run shows the gate needs a key the host does not hold, not an audit by an unrelated third party.
 
 ---

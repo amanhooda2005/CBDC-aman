@@ -21,7 +21,7 @@ The top-level `README.md` has the Final Results table and a "Cross-cutting findi
 
 ## Open items
 
-- **Export the independent-validator ledger** (`besu blocks export` on the reviewer's node plus `audit_chain.py` output) so it can be replayed like the earlier runs; until then the reviewer's own-ledger checks are self-reported.
+- ~~Export the independent-validator ledger~~ done in PR #41 (mentor decoded it; Besu re-execution by the reviewer only).
 - A reviewer who is not a team member for the two-machine run.
 - Independent re-run of the live Besu/EZKL runs and the timings (verified so far: records, ledger replay, dispute replay, tests).
 

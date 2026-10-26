@@ -8,7 +8,7 @@
 | C2 | **PQ binding in ZKML has a near-constant additive cost:** about +12 ms verify, +28 ms prove, +8.4 KB. The ratio ≈ 1 + c / classical falls as models grow; it predicted an unseen workload within 0.02× for size and prove time. | Post-hoc | §5.6 |
 | C3 | **Slashing-based agent liability wears out and is Sybil-fragile; two protocol changes make it durable.** Stake maintenance (z = −13.1) and operator-bound history (z = −18.5) take violations from 50.7% to 2.0%. A registration bond blocks resets exactly at the derived break-even B* = 14. | Confirmatory | §4.5 |
 | C4 | **False-positive targets for federated AML are gameable.** The ≥ 20% FP criterion holds at threshold 0.5 at every level but fails at matched recall at every evaluable level. With ample labels, federation makes 67–80% more false positives at equal recall. | Confirmatory | §3.5 |
-| C5 | **Optimistic bisection for ZKML works mechanically but pays off only for deep models and rare disputes.** Faults are localized in ⌈log₂ n⌉ rounds (7/7). The ≥ 10× latency gain appears only at 60 blocks, and the gas gain only below a ≈ 1.2% dispute rate. | Confirmatory for mechanism; latency and gas as measured | §2 |
+| C5 | **Optimistic bisection for ZKML works mechanically but pays off only for deep models and rare disputes.** Faults are localized in ⌈log₂ n⌉ rounds (7/7). The ≥ 10× latency gain appears only at 60 blocks, and the gas gain only below a ≈ 0.8% dispute rate. | Confirmatory for mechanism; latency and gas as measured | §2 |
 
 ## 6.2 Negative and boundary results (part of the contribution)
 
