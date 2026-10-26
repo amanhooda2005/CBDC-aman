@@ -1,0 +1,27 @@
+{
+ "prove": {
+  "peak_rss_mb_max": 20.3,
+  "runs": 5,
+  "last": {
+   "exec": 0,
+   "proof_bytes": 171693,
+   "prove_ms": 795.4292469999999,
+   "risk": 1,
+   "viol": 1
+  }
+ },
+ "verify": {
+  "peak_rss_mb_max": 12.5,
+  "runs": 5,
+  "last": {
+   "error": null,
+   "valid": true,
+   "verify_ms": 10.94063
+  }
+ },
+ "binary_mb": 4.26,
+ "binary_stripped_mb": 2.39,
+ "proof_bytes": 171693,
+ "statement_bytes": 640,
+ "machine": "2-vCPU, 8 GB cloud VM (x86-64); variant pq_zk (deployed)"
+}

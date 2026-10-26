@@ -1,0 +1,98 @@
+{
+ "monolithic_60_blocks": {
+  "logrows": 17,
+  "rows": 131072,
+  "pk_mb": 553.91,
+  "vk_mb": 0.26,
+  "srs_mb": 16.78,
+  "proof_kb": 40.2,
+  "prove_s": 20.92,
+  "verify_s": 0.097,
+  "verified": true,
+  "peak_rss_mb": 1243,
+  "process_baseline_rss_mb": 16,
+  "vs_whole_model": {
+   "rows": 1.0,
+   "pk": 1.0,
+   "peak_rss": 1.0,
+   "prove_time": 1.0
+  }
+ },
+ "block_step_fixed": {
+  "logrows": 12,
+  "rows": 4096,
+  "pk_mb": 41.17,
+  "vk_mb": 0.01,
+  "srs_mb": 0.52,
+  "proof_kb": 21.2,
+  "prove_s": 1.42,
+  "verify_s": 0.01,
+  "verified": true,
+  "peak_rss_mb": 107,
+  "process_baseline_rss_mb": 16,
+  "vs_whole_model": {
+   "rows": 32.0,
+   "pk": 13.5,
+   "peak_rss": 11.62,
+   "prove_time": 14.73
+  }
+ },
+ "block_step_hashed": {
+  "logrows": 16,
+  "rows": 65536,
+  "pk_mb": 658.66,
+  "vk_mb": 0.16,
+  "srs_mb": 8.39,
+  "proof_kb": 21.4,
+  "prove_s": 20.89,
+  "verify_s": 0.08,
+  "verified": true,
+  "peak_rss_mb": 1373,
+  "process_baseline_rss_mb": 16,
+  "vs_whole_model": {
+   "rows": 2.0,
+   "pk": 0.8,
+   "peak_rss": 0.91,
+   "prove_time": 1.0
+  }
+ },
+ "projection_step_fixed": {
+  "logrows": 11,
+  "rows": 2048,
+  "pk_mb": 28.45,
+  "vk_mb": 0.01,
+  "srs_mb": 0.26,
+  "proof_kb": 56.2,
+  "prove_s": 0.96,
+  "verify_s": 0.011,
+  "verified": true,
+  "peak_rss_mb": 87,
+  "process_baseline_rss_mb": 16,
+  "vs_whole_model": {
+   "rows": 64.0,
+   "pk": 19.5,
+   "peak_rss": 14.29,
+   "prove_time": 21.79
+  }
+ },
+ "projection_step_hashed": {
+  "logrows": 17,
+  "rows": 131072,
+  "pk_mb": 1820.81,
+  "vk_mb": 0.48,
+  "srs_mb": 16.78,
+  "proof_kb": 56.3,
+  "prove_s": 58.58,
+  "verify_s": 0.161,
+  "verified": true,
+  "peak_rss_mb": 4022,
+  "process_baseline_rss_mb": 16,
+  "vs_whole_model": {
+   "rows": 1.0,
+   "pk": 0.3,
+   "peak_rss": 0.31,
+   "prove_time": 0.36
+  }
+ },
+ "machine": "2-vCPU, 8 GB cloud VM (same machine for every row); one fresh process per proof"
+}
