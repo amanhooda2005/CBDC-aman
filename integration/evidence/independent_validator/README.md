@@ -51,6 +51,31 @@ from the host. All three host validators signed the 166 honest requests, but **n
 - `host/logs/decisions_v{0,1,2}.jsonl`: the host validators' decisions (both attempts).
 - `cross_check.py` → `cross_check.json`: reconciles the two sides (standard library only;
   `python3 cross_check.py`). Result: `"all_ok": true`.
+- `independent_chain.blocks.gz`: **the whole ledger of this run** (3,033 blocks), exported on 26 Oct 2026
+  from the reviewer's own node with `besu blocks export` (SHA-256 `66ea5c4c…4cb4bf4`).
+- `ledger_check.py` → `ledger_check.json`: checks that ledger against the host's run record (below).
+- `reviewer/my_check_on_imported_ledger.json`: the reviewer's `check_my_validator.py`, rerun against a
+  fresh node that imported the exported ledger.
 
-No private keys are included. The ledger itself stayed on the two machines and is not exported here;
-the reviewer's check was made against his own copy of it.
+No private keys are included.
+
+## Checking the exported ledger yourself
+Importing re-executes every block, so balances and the registry are
+recomputed by your node, not copied:
+```bash
+gunzip -k independent_chain.blocks.gz
+echo "0x$(openssl rand -hex 32)" > /tmp/ivkey                     # any node key; this node never signs
+besu --data-path=/tmp/iv --genesis-file=reviewer/genesis.json --node-private-key-file=/tmp/ivkey \
+     blocks import --from=independent_chain.blocks
+besu --data-path=/tmp/iv --genesis-file=reviewer/genesis.json --node-private-key-file=/tmp/ivkey \
+     --rpc-http-enabled --rpc-http-port=8645 --rpc-http-api=ETH,NET,QBFT,WEB3 --p2p-enabled=false &
+python3 ledger_check.py --rpc http://127.0.0.1:8645
+python3 ../../pipeline/check_my_validator.py reviewer/decisions.jsonl reviewer/deployment_public.json --rpc http://127.0.0.1:8645
+```
+Result on a fresh Besu 25.10.0 node (26 Oct 2026), `"all_ok": true`:
+- 166 successful settle transactions, 0 reverted, none from any other run;
+- they are exactly the rows the host's CSV reports as settled, with the same amount, EXEC, VIOL, outcome
+  and gas (65 Executed, 100 AgentRefused, 1 Blocked); 0 falsified requests have a settle transaction;
+- every one carries the signatures of all four attesters registered on the gate, including the reviewer's;
+- the merchant's balance (467,712) equals the sum of the Executed amounts, and the customers hold the rest;
+- the reviewer's three checks come out identical to his self-reported `my_check.json`.

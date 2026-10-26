@@ -1,0 +1,28 @@
+{
+ "ledger_head": 3033,
+ "gate": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+ "attesters_on_gate": [
+  "0x4ea9FC9EcF0E3cEE87a60eDe4ff36Fd34eB5faA3",
+  "0x639b44e48e822b4F5448A4d13aC62a363949A7b9",
+  "0xe2be10c462E7fa94eee7501Ec788d67839A725EF",
+  "0xf88933d89FDe0b4353926722888B65a12e9fC1f7"
+ ],
+ "threshold": 4,
+ "reviewer_is_attester": true,
+ "settle_txs_of_this_run": 166,
+ "settle_txs_reverted": 0,
+ "settle_txs_other_runs": 0,
+ "outcomes_onchain": {
+  "AgentRefused": 100,
+  "Blocked": 1,
+  "Executed": 65
+ },
+ "settled_rows_equal_csv_settled": true,
+ "falsified_with_a_settle_tx": 0,
+ "rows_with_differences": 0,
+ "problems": [],
+ "merchant_balance_onchain": 467712,
+ "executed_amount_sum_csv": 467712,
+ "balances_consistent": true,
+ "all_ok": true
+}
