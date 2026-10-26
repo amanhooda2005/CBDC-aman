@@ -8,7 +8,7 @@ each check, from cheapest to strongest.
 |---|---|---|
 | Integrated runs (Elliptic 1,000 tx and the four synthetic runs): every honest request settled as recorded, no faulty request settled | `integration/pipeline/runs/*/transactions.csv` (driver record) | **Level 2:** replay the exported Besu chain and run `audit_chain.py` (10 min) |
 | H1 on-chain disputes with real EZKL verifiers: 7/7 scenarios correct | `h1-zkopml-v2/results/onchain_disputes_B60*.json` | **Level 2:** load the recorded chain state and run `verify_dispute_record.py` (2 min); **Level 3:** re-run `onchain_dispute.py --record` |
-| Independent validator (20–21 Oct 2026): a validator key and Besu node on a second person's machine, 4-of-4 gate; its validator signed exactly the 166 honest transfers, refused all 34 falsified ones, and nothing settled without it | `integration/evidence/independent_validator/` (both sides' records) | `python3 cross_check.py` in that folder (seconds); the reviewer's own-ledger check is `reviewer/my_check.json` |
+| Independent validator (20–21 Oct 2026): a validator key and Besu node on a second person's machine, 4-of-4 gate; its validator signed exactly the 166 honest transfers, refused all 34 falsified ones, and nothing settled without it | `integration/evidence/independent_validator/` (both sides' records) | `python3 cross_check.py` in that folder (seconds); against the exported ledger: import it into your own Besu node and run `ledger_check.py` (about 5 min) |
 | Test suites | the repository | `forge test`, `pytest`, `cargo test` (already confirmed by the reviewer) |
 
 ## Level 1 – the raw records
@@ -165,6 +165,10 @@ falsified ones, each for the matching reason; the ledger holds exactly those 166
 signatures, and its own-ledger checks are all `true`. A first attempt in which that validator could not be
 reached settled nothing. Records, results and a cross-check script are in
 [`integration/evidence/independent_validator/`](../integration/evidence/independent_validator/README.md).
+The ledger of that run (3,033 blocks) was exported from the reviewer's node on 26 Oct 2026 and is in the
+same folder (`independent_chain.blocks.gz`). Imported into a fresh node, it reproduces all 166 settlements
+exactly as the host recorded them, each with all four signatures, and the reviewer's checks come out
+identical (`ledger_check.py`, about 5 minutes including the import).
 
 ## Why `docs/EXHAUSTIVE_REPORT.md` changes when rebuilt
 Five generated parts depend on when and where the build runs: the commit count (read from `git log`; the

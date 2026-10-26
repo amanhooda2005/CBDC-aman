@@ -1,0 +1,22 @@
+{
+ "my_address": [
+  "0xf88933d89FDe0b4353926722888B65a12e9fC1f7"
+ ],
+ "gate": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+ "attesters": 4,
+ "threshold": 4,
+ "my_decisions": 200,
+ "i_signed": 166,
+ "i_refused": 34,
+ "refusal_reasons": {
+  "statement is about a different model": 10,
+  "zero-knowledge proof does not verify": 10,
+  "proof used slash 7936, registry requires 7680": 6,
+  "commitment does not open to the stated amount": 8
+ },
+ "settlements_on_my_ledger": 166,
+ "settlements_with_my_signature": 166,
+ "check1_every_settlement_with_my_signature_was_signed_by_me": true,
+ "check2_no_settlement_with_my_signature_for_a_request_i_refused": true,
+ "check3_strict_gate_nothing_settled_without_me": true
+}
