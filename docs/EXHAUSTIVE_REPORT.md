@@ -3,7 +3,7 @@
 **Repository:** github.com/maanas1234/CBDC (`main`)
 **Team:** Aman Hooda (H1), Indrakshi (H2), Anjali (H3), Simran Pundir (H4). Mentor and reviewer: Maanas Tyagi.
 **Source proposal:** *Architecting a Secure, Compliant, and Intelligent CBDC Ecosystem* (`docs/CBDC_AI_Blockchain_Research_Proposal.pdf`)
-**Updated:** 21 Oct 2026 (includes Aman's integration work, PRs #36–#39).
+**Updated:** 28 Oct 2026 (includes Aman's integration work, PRs #36–#39, and the hardware integration, Part 6B, PR #43).
 **Companion summary:** `docs/FULL_REPORT.md` (short version). This document is the long version.
 
 ---
@@ -155,7 +155,7 @@ Each hypothesis was owned end to end by one student. The mentor reviewed and mer
 
 ## 1.4 Timeline
 
-149 commits between 2026-09-03 and 2026-10-28. By author name: Maanas Tyagi 74, Aman Hooda 25, Indrakshi 24, simranpundirr 12, amanhooda2005 8, Anjali503 5, Simran Pundir 1.
+150 commits between 2026-09-03 and 2026-10-28. By author name: Maanas Tyagi 74, Aman Hooda 26, Indrakshi 24, simranpundirr 12, amanhooda2005 8, Anjali503 5, Simran Pundir 1.
 
 | Date | Milestone |
 |---|---|
@@ -2998,13 +2998,13 @@ Paths are relative to the repository root. The PDF build embeds each image.
 | `docs/CBDC_AI_Blockchain_Research_Proposal.pdf` | 787,684 |
 | `docs/EVIDENCE.md` | 13,412 |
 | `docs/EXHAUSTIVE_REPORT.md` | (this file) |
-| `docs/FULL_REPORT.md` | 47,159 |
+| `docs/FULL_REPORT.md` | 47,222 |
 | `docs/INDEPENDENT_VALIDATOR.md` | 8,462 |
 | `docs/NEXT_SESSION.md` | 3,963 |
 | `docs/exhaustive/build.py` | 49,461 |
 | `docs/exhaustive/pr_history.json` | 46,094 |
 | `docs/exhaustive/render.py` | 2,724 |
-| `docs/exhaustive/sections/00_front.md` | 6,585 |
+| `docs/exhaustive/sections/00_front.md` | 6,632 |
 | `docs/exhaustive/sections/01_project.md` | 4,884 |
 | `docs/exhaustive/sections/02_h1.md` | 11,105 |
 | `docs/exhaustive/sections/03_h2.md` | 11,411 |

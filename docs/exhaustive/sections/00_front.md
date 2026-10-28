@@ -3,7 +3,7 @@
 **Repository:** github.com/maanas1234/CBDC (`main`)
 **Team:** Aman Hooda (H1), Indrakshi (H2), Anjali (H3), Simran Pundir (H4). Mentor and reviewer: Maanas Tyagi.
 **Source proposal:** *Architecting a Secure, Compliant, and Intelligent CBDC Ecosystem* (`docs/CBDC_AI_Blockchain_Research_Proposal.pdf`)
-**Updated:** 21 Oct 2026 (includes Aman's integration work, PRs #36–#39).
+**Updated:** 28 Oct 2026 (includes Aman's integration work, PRs #36–#39, and the hardware integration, Part 6B, PR #43).
 **Companion summary:** `docs/FULL_REPORT.md` (short version). This document is the long version.
 
 ---

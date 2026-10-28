@@ -3,6 +3,7 @@
 **Project:** CBDC – AI – Blockchain research (proposal: `docs/CBDC_AI_Blockchain_Research_Proposal.pdf`)
 **Repository:** github.com/maanas1234/CBDC (all results on `main`, PRs #1–#43)
 **Team:** Aman (H1), Indrakshi (H2), Anjali (H3), Simran (H4); mentor Maanas Tyagi
+**Updated:** 28 Oct 2026 (adds the hardware integration, §6B)
 **Status:** all experiments complete. This document collects every result, how it was obtained, what it does and does not show, and where the raw evidence lives. **October 2026 update:** the four mechanisms now run as one integrated system on a Byzantine-fault-tolerant ledger, validated on 1,000 real Elliptic transactions (§6A), and a second run split across two people and two machines in which the fourth validator's key was held by someone other than the host (§6A); sections 2–5 describe the original experiments and §6A lists what changed in each track. **Hardware update (late October 2026):** after a faculty review of the invention disclosure, hardware was made part of the method and measured (§6B): a model decomposition sized to the prover node's memory, a TPM-anchored operator identity, and simulated TEE signing and offline payment devices.
 
 ---
