@@ -623,13 +623,16 @@ def gen_h4_v4():
 
 
 # ---------------------------------------------------------------- hardware integration (Oct 2026, after the faculty review)
+def sup(k):
+    return "2" + str(k).translate(str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
+
 def gen_hw_resources():
     d = rjson("h1-zkopml-v2/results/dispute_resources.json")
     label = {"monolithic_60_blocks": "Whole 60-block model", "block_step_fixed": "One block step, weights fixed (own verifier)",
              "block_step_hashed": "One block step, weights hashed (shared verifier)", "projection_step_fixed": "One projection half, weights fixed",
              "projection_step_hashed": "One projection half, weights hashed (shared verifier)"}
     a = table(["Proof", "Circuit rows", "Proving key MB", "SRS MB", "Peak memory MB", "Prove s (this run)", "Proof KB", "Verified"],
-              [(label[k], f"2^{v['logrows']} = {v['rows']:,}", f(v["pk_mb"], 1), f(v["srs_mb"], 1), f"{v['peak_rss_mb']:,}", f(v["prove_s"], 2), f(v["proof_kb"], 1), v["verified"])
+              [(label[k], f"{sup(v['logrows'])} = {v['rows']:,}", f(v["pk_mb"], 1), f(v["srs_mb"], 1), f"{v['peak_rss_mb']:,}", f(v["prove_s"], 2), f(v["proof_kb"], 1), v["verified"])
                for k, v in d.items() if isinstance(v, dict) and "logrows" in v])
     z = rjson("h4-pqc-stark/zk_composed/results/resources.json")
     b = table(["Composed proof (pq_zk)", "Value"], [("Prover peak memory", f"{z['prove']['peak_rss_mb_max']} MB"), ("Verifier peak memory", f"{z['verify']['peak_rss_mb_max']} MB"),
@@ -644,11 +647,11 @@ def gen_hw_resources():
 
 def gen_hw_memory():
     p, pl = rjson("h1-zkopml-v2/results/memory_profile.json"), rjson("h1-zkopml-v2/results/memory_plans.json")
-    rows = [(f"projection in {k} part(s): one part", f"2^{v['logrows']}", f(v["pk_mb"], 1), v["peak_rss_mb"], f(v["prove_s"], 2)) for k, v in p["proj"].items()]
-    rows += [(f"join step after {k} part(s)", f"2^{v['logrows']}", f(v["pk_mb"], 1), v["peak_rss_mb"], f(v["prove_s"], 2)) for k, v in p["join"].items()]
-    rows += [(f"{g} residual block(s) per step", f"2^{v['logrows']}", f(v["pk_mb"], 1), v["peak_rss_mb"], f(v["prove_s"], 2)) for g, v in p["group"].items()]
+    rows = [(f"projection in {k} part(s): one part", sup(v['logrows']), f(v["pk_mb"], 1), v["peak_rss_mb"], f(v["prove_s"], 2)) for k, v in p["proj"].items()]
+    rows += [(f"join step after {k} part(s)", sup(v['logrows']), f(v["pk_mb"], 1), v["peak_rss_mb"], f(v["prove_s"], 2)) for k, v in p["join"].items()]
+    rows += [(f"{g} residual block(s) per step", sup(v['logrows']), f(v["pk_mb"], 1), v["peak_rss_mb"], f(v["prove_s"], 2)) for g, v in p["group"].items()]
     w = p["whole_model"]
-    rows.append(("whole model (60 blocks)", f"2^{w['logrows']}", f(w["pk_mb"], 1), w["peak_rss_mb"], "—"))
+    rows.append(("whole model (60 blocks)", sup(w['logrows']), f(w["pk_mb"], 1), w["peak_rss_mb"], "—"))
     prof = table(["Step shape", "Circuit rows", "Proving key MB", "Peak memory MB", "Prove s"], rows)
     pr = []
     for b, q in pl["plans"].items():
@@ -670,10 +673,11 @@ def _scen(d, skip=()):
         if isinstance(v, dict):
             res = "accepted" if v.get("ok") or v.get("accepted") else ("refused" if ("ok" in v or "accepted" in v) else "")
             why = v.get("reason") or ", ".join(f"{a}: {b}" for a, b in v.items() if a not in ("ok", "accepted", "credential_tx", "operator_id", "reason") and not isinstance(b, (dict, list)))
-            rows.append((k.replace("_", " "), res, str(why).replace("|", "/").replace("\n", " ")[:220]))
+            why = str(why).replace("|", "/").replace("\n", " ")[:220]
+            rows.append((k.replace("_", " "), f"**{res}**: {why}" if res else why))
         else:
-            rows.append((k.replace("_", " "), "", str(v)))
-    return table(["Scenario", "Result", "Detail"], rows)
+            rows.append((k.replace("_", " "), str(v)))
+    return table(["Scenario", "Outcome"], rows)
 
 
 def gen_hw_identity():

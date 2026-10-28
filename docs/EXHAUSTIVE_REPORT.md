@@ -155,7 +155,7 @@ Each hypothesis was owned end to end by one student. The mentor reviewed and mer
 
 ## 1.4 Timeline
 
-148 commits between 2026-09-03 and 2026-10-28. By author name: Maanas Tyagi 74, Aman Hooda 24, Indrakshi 24, simranpundirr 12, amanhooda2005 8, Anjali503 5, Simran Pundir 1.
+149 commits between 2026-09-03 and 2026-10-28. By author name: Maanas Tyagi 74, Aman Hooda 25, Indrakshi 24, simranpundirr 12, amanhooda2005 8, Anjali503 5, Simran Pundir 1.
 
 | Date | Milestone |
 |---|---|
@@ -2577,11 +2577,11 @@ What was **left out on purpose**, because it was not built or measured: "elimina
 
 | Proof | Circuit rows | Proving key MB | SRS MB | Peak memory MB | Prove s (this run) | Proof KB | Verified |
 |---|---|---|---|---|---|---|---|
-| Whole 60-block model | 2^17 = 131,072 | 553.9 | 16.8 | 1,243 | 20.92 | 40.2 | True |
-| One block step, weights fixed (own verifier) | 2^12 = 4,096 | 41.2 | 0.5 | 107 | 1.42 | 21.2 | True |
-| One block step, weights hashed (shared verifier) | 2^16 = 65,536 | 658.7 | 8.4 | 1,373 | 20.89 | 21.4 | True |
-| One projection half, weights fixed | 2^11 = 2,048 | 28.4 | 0.3 | 87 | 0.96 | 56.2 | True |
-| One projection half, weights hashed (shared verifier) | 2^17 = 131,072 | 1820.8 | 16.8 | 4,022 | 58.58 | 56.3 | True |
+| Whole 60-block model | 2¹⁷ = 131,072 | 553.9 | 16.8 | 1,243 | 20.92 | 40.2 | True |
+| One block step, weights fixed (own verifier) | 2¹² = 4,096 | 41.2 | 0.5 | 107 | 1.42 | 21.2 | True |
+| One block step, weights hashed (shared verifier) | 2¹⁶ = 65,536 | 658.7 | 8.4 | 1,373 | 20.89 | 21.4 | True |
+| One projection half, weights fixed | 2¹¹ = 2,048 | 28.4 | 0.3 | 87 | 0.96 | 56.2 | True |
+| One projection half, weights hashed (shared verifier) | 2¹⁷ = 131,072 | 1820.8 | 16.8 | 4,022 | 58.58 | 56.3 | True |
 
 Composed post-quantum proof (`zk_composed/results/resources.json`):
 
@@ -2626,20 +2626,20 @@ Hardware profile (2-vCPU, 8 GB cloud VM; fixed-weight step circuits; one fresh p
 
 | Step shape | Circuit rows | Proving key MB | Peak memory MB | Prove s |
 |---|---|---|---|---|
-| projection in 1 part(s): one part | 2^12 | 56.9 | 150 | 1.86 |
-| projection in 2 part(s): one part | 2^11 | 28.5 | 100 | 1.09 |
-| projection in 4 part(s): one part | 2^11 | 28.5 | 100 | 1.00 |
-| projection in 8 part(s): one part | 2^10 | 14.2 | 100 | 0.67 |
-| join step after 1 part(s) | 2^12 | 41.2 | 107 | 1.34 |
-| join step after 2 part(s) | 2^12 | 41.2 | 107 | 1.52 |
-| join step after 4 part(s) | 2^13 | 82.3 | 188 | 2.13 |
-| join step after 8 part(s) | 2^14 | 164.7 | 358 | 4.49 |
-| 1 residual block(s) per step | 2^12 | 41.2 | 107 | 1.57 |
-| 2 residual block(s) per step | 2^13 | 82.3 | 188 | 2.31 |
-| 4 residual block(s) per step | 2^13 | 82.3 | 190 | 2.23 |
-| 8 residual block(s) per step | 2^14 | 164.7 | 358 | 4.39 |
-| 16 residual block(s) per step | 2^15 | 329.3 | 691 | 8.11 |
-| whole model (60 blocks) | 2^17 | 553.9 | 1243 | — |
+| projection in 1 part(s): one part | 2¹² | 56.9 | 150 | 1.86 |
+| projection in 2 part(s): one part | 2¹¹ | 28.5 | 100 | 1.09 |
+| projection in 4 part(s): one part | 2¹¹ | 28.5 | 100 | 1.00 |
+| projection in 8 part(s): one part | 2¹⁰ | 14.2 | 100 | 0.67 |
+| join step after 1 part(s) | 2¹² | 41.2 | 107 | 1.34 |
+| join step after 2 part(s) | 2¹² | 41.2 | 107 | 1.52 |
+| join step after 4 part(s) | 2¹³ | 82.3 | 188 | 2.13 |
+| join step after 8 part(s) | 2¹⁴ | 164.7 | 358 | 4.49 |
+| 1 residual block(s) per step | 2¹² | 41.2 | 107 | 1.57 |
+| 2 residual block(s) per step | 2¹³ | 82.3 | 188 | 2.31 |
+| 4 residual block(s) per step | 2¹³ | 82.3 | 190 | 2.23 |
+| 8 residual block(s) per step | 2¹⁴ | 164.7 | 358 | 4.39 |
+| 16 residual block(s) per step | 2¹⁵ | 329.3 | 691 | 8.11 |
+| whole model (60 blocks) | 2¹⁷ | 553.9 | 1243 | — |
 
 Plans (margin 10%):
 
@@ -2676,24 +2676,24 @@ Plans (margin 10%):
 
 Test with two software TPMs (swtpm, EK certificates from its local CA) and the contract on anvil:
 
-| Scenario | Result | Detail |
-|---|---|---|
-| enrol tpmA | accepted | new_operator: True, aks: 1, onchain_credentialed: True |
-| attested registrations |  | admitted: 20, strictly_increasing: True, onchain_registerAgent_ok: 3, attestation_bytes: 149, signature_bytes: 71 |
-| replay same nonce | refused | nonce not issued by this registry or already used (replay) |
-| rebound to other agent | refused | attestation is bound to a different nonce or agent id |
-| tampered attestation | refused | signature is not from an enrolled TPM attestation key; no valid attestation from an enrolled TPM: admitted only with a deposit >= B* (14) |
-| software signed attestation | refused | signature is not from an enrolled TPM attestation key; no valid attestation from an enrolled TPM: admitted only with a deposit >= B* (14) |
-| software signed with deposit B* | accepted | no valid attestation from an enrolled TPM: admitted only with a deposit >= B* (14) |
-| forged ek certificate | refused | EK certificate does not chain to a trusted TPM manufacturer: CN = fake-tpm error 18 at 0 depth lookup: self-signed certificate error /tmp/tmp_rnisj79/ek.pem: verification failed |
-| software key as AK | refused | AK is not a TPM-resident restricted signing key (attributes 0x00060040) |
-| activation by other tpm | refused | TPM B cannot activate a credential made for TPM A's EK and AK: TPM2_ActivateCredential refuses (the software TPM reports TPM_RC_FAILURE for the failed seed decryption and stays operational) |
-| same tpm new ak second account | refused | this TPM is already the identity of operator 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC; one hardware identity, one operator |
-| same tpm new ak same account | accepted | new_operator: False, aks: 2, same_operator_id: True, last_counter_kept: 21, second_account_credentialed_onchain: False |
-| counter deleted and recreated |  | last_counter_before: 21, counter_after: 24, admitted: True, reset_to_low_value: False |
-| newer first | accepted | attested by the operator's TPM |
-| older after | refused | counter 25 not above last accepted 26 (stale, reordered or cloned state) |
-| enrol tpmB new hardware | accepted | new_operator: True, aks: 1, different_operator_id: True, onchain_credentialed: True |
+| Scenario | Outcome |
+|---|---|
+| enrol tpmA | **accepted**: new_operator: True, aks: 1, onchain_credentialed: True |
+| attested registrations | admitted: 20, strictly_increasing: True, onchain_registerAgent_ok: 3, attestation_bytes: 149, signature_bytes: 71 |
+| replay same nonce | **refused**: nonce not issued by this registry or already used (replay) |
+| rebound to other agent | **refused**: attestation is bound to a different nonce or agent id |
+| tampered attestation | **refused**: signature is not from an enrolled TPM attestation key; no valid attestation from an enrolled TPM: admitted only with a deposit >= B* (14) |
+| software signed attestation | **refused**: signature is not from an enrolled TPM attestation key; no valid attestation from an enrolled TPM: admitted only with a deposit >= B* (14) |
+| software signed with deposit B* | **accepted**: no valid attestation from an enrolled TPM: admitted only with a deposit >= B* (14) |
+| forged ek certificate | **refused**: EK certificate does not chain to a trusted TPM manufacturer: CN = fake-tpm error 18 at 0 depth lookup: self-signed certificate error /tmp/tmp_rnisj79/ek.pem: verification failed |
+| software key as AK | **refused**: AK is not a TPM-resident restricted signing key (attributes 0x00060040) |
+| activation by other tpm | **refused**: TPM B cannot activate a credential made for TPM A's EK and AK: TPM2_ActivateCredential refuses (the software TPM reports TPM_RC_FAILURE for the failed seed decryption and stays operational) |
+| same tpm new ak second account | **refused**: this TPM is already the identity of operator 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC; one hardware identity, one operator |
+| same tpm new ak same account | **accepted**: new_operator: False, aks: 2, same_operator_id: True, last_counter_kept: 21, second_account_credentialed_onchain: False |
+| counter deleted and recreated | last_counter_before: 21, counter_after: 24, admitted: True, reset_to_low_value: False |
+| newer first | **accepted**: attested by the operator's TPM |
+| older after | **refused**: counter 25 not above last accepted 26 (stale, reordered or cloned state) |
+| enrol tpmB new hardware | **accepted**: new_operator: True, aks: 1, different_operator_id: True, onchain_credentialed: True |
 
 All as expected: **True**. Median of 20: TPM increment + certify 47.0 ms; registry verification 0.43 ms. Environment: swtpm 0.7.3 (software TPM 2.0, EK certificates from swtpm-localca); tpm2-tools version="5.6"; anvil, LiabilityRegistry.sol (h3-abt) with the regulator role held by the admission registry.
 
@@ -2722,16 +2722,16 @@ All as expected: **True**. Median of 20: TPM increment + certify 47.0 ms; regist
 | wrong model | False | statement is about a different model | — |
 | outdated slash | False | proof used slash 4096, registry requires 3840 | — |
 
-| Scenario | Result | Detail |
-|---|---|---|
-| platform tpm enrolled | accepted | new_operator: True, aks: 1 |
-| approved enclave registered | accepted | platform: 1a78ea71730fd6e8dd02df862c9062ee1c31b5521eb0602e5177d7e85c38a7f1, measurement: 113757b621d935907b81ef0199b0f0f743f844b1ca4f5eece082b19bc05ff312 |
-| patched verifier registration | refused | enclave measurement is not an approved verifier build |
-| patched verifier signs corrupted proof |  | signed_by_patched_enclave: True, signature_counts_at_settlement: False |
-| replayed quote for host key | refused | quote is bound to a different signing key |
-| host key signature counts |  | False |
-| quote from unenrolled tpm | refused | quote not signed by an enrolled TPM |
-| verifier replaced on disk after launch |  | zero-knowledge proof does not verify: {"error":"Serde Deserialization Error","valid":false,"verify_ms":1.431122} |
+| Scenario | Outcome |
+|---|---|
+| platform tpm enrolled | **accepted**: new_operator: True, aks: 1 |
+| approved enclave registered | **accepted**: platform: 1a78ea71730fd6e8dd02df862c9062ee1c31b5521eb0602e5177d7e85c38a7f1, measurement: 113757b621d935907b81ef0199b0f0f743f844b1ca4f5eece082b19bc05ff312 |
+| patched verifier registration | **refused**: enclave measurement is not an approved verifier build |
+| patched verifier signs corrupted proof | signed_by_patched_enclave: True, signature_counts_at_settlement: False |
+| replayed quote for host key | **refused**: quote is bound to a different signing key |
+| host key signature counts | False |
+| quote from unenrolled tpm | **refused**: quote not signed by an enrolled TPM |
+| verifier replaced on disk after launch | zero-knowledge proof does not verify: {"error":"Serde Deserialization Error","valid":false,"verify_ms":1.431122} |
 
 All as expected: **True**. TPM quote 32.3 ms; check and sign 21.5 ms (median). Limits: simulation: the enclave is a separate process, not hardware-isolated memory, and the launcher (not the CPU) measures it; TPMs are software TPMs (swtpm) with a local CA.
 
@@ -2760,23 +2760,23 @@ All as expected: **True**. TPM quote 32.3 ms; check and sign 21.5 ms (median). L
    - that the cumulative spending is within the allowance.
 4. **On reconnection:** validators re-check every bundle and settle in counter order. A repeated counter or commitment, or a cumulative total that does not follow from earlier payments, is refused and the device flagged.
 
-| Scenario | Result | Detail |
-|---|---|---|
-| 01 honest payment X 5000 | accepted | accepted offline |
-| 02 same bundle replayed to X | refused | secure-element counter 2 not above 2 already seen from this device |
-| 03 bundle for X presented to Y | refused | payment is addressed to another payee |
-| 04 honest payment Y 3000 | accepted | accepted offline |
-| 05 amount raised in transit | refused | secure-element attestation does not bind this commitment, proof, payee, amount and total |
-| 05b original bundle | accepted | accepted offline |
-| 06 payment to sanctioned payee | refused | proof shows a policy violation (VIOL = 1): not accepted offline |
-| 07 honest app beyond allowance 3000 | refused | cumulative 13000 would exceed the offline allowance |
-| 08 manipulated app hides earlier spending Z 3000 | accepted | accepted offline |
-| 09 expired snapshot | refused | policy snapshot expired |
-| 10 secure element signature forged by software | refused | secure-element signature invalid |
-| 11 software wallet without certified secure element | refused | secure-element key is not the one the validators certified for this device |
-| 12 snapshot allowance altered | refused | policy snapshot lacks 3 of 4 validator signatures |
-| 13 after secure element counter deleted and recreated | accepted | accepted offline |
-| 14 device flagged |  | True |
+| Scenario | Outcome |
+|---|---|
+| 01 honest payment X 5000 | **accepted**: accepted offline |
+| 02 same bundle replayed to X | **refused**: secure-element counter 2 not above 2 already seen from this device |
+| 03 bundle for X presented to Y | **refused**: payment is addressed to another payee |
+| 04 honest payment Y 3000 | **accepted**: accepted offline |
+| 05 amount raised in transit | **refused**: secure-element attestation does not bind this commitment, proof, payee, amount and total |
+| 05b original bundle | **accepted**: accepted offline |
+| 06 payment to sanctioned payee | **refused**: proof shows a policy violation (VIOL = 1): not accepted offline |
+| 07 honest app beyond allowance 3000 | **refused**: cumulative 13000 would exceed the offline allowance |
+| 08 manipulated app hides earlier spending Z 3000 | **accepted**: accepted offline |
+| 09 expired snapshot | **refused**: policy snapshot expired |
+| 10 secure element signature forged by software | **refused**: secure-element signature invalid |
+| 11 software wallet without certified secure element | **refused**: secure-element key is not the one the validators certified for this device |
+| 12 snapshot allowance altered | **refused**: policy snapshot lacks 3 of 4 validator signatures |
+| 13 after secure element counter deleted and recreated | **accepted**: accepted offline |
+| 14 device flagged | True |
 
 Synchronisation (all payees together, settled in secure-element counter order):
 
@@ -3001,7 +3001,7 @@ Paths are relative to the repository root. The PDF build embeds each image.
 | `docs/FULL_REPORT.md` | 47,159 |
 | `docs/INDEPENDENT_VALIDATOR.md` | 8,462 |
 | `docs/NEXT_SESSION.md` | 3,963 |
-| `docs/exhaustive/build.py` | 49,323 |
+| `docs/exhaustive/build.py` | 49,461 |
 | `docs/exhaustive/pr_history.json` | 46,094 |
 | `docs/exhaustive/render.py` | 2,724 |
 | `docs/exhaustive/sections/00_front.md` | 6,585 |
