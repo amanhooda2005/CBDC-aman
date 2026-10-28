@@ -1,0 +1,71 @@
+{
+ "scenarios": {
+  "platform_tpm_enrolled": {
+   "ok": true,
+   "operator_id": "1a78ea71730fd6e8dd02df862c9062ee1c31b5521eb0602e5177d7e85c38a7f1",
+   "new_operator": true,
+   "aks": 1,
+   "credential_tx": null
+  },
+  "approved_enclave_registered": {
+   "ok": true,
+   "platform": "1a78ea71730fd6e8dd02df862c9062ee1c31b5521eb0602e5177d7e85c38a7f1",
+   "measurement": "113757b621d935907b81ef0199b0f0f743f844b1ca4f5eece082b19bc05ff312"
+  },
+  "approved_enclave_decisions": {
+   "honest": {
+    "signed": true,
+    "reason": null,
+    "signature_counts_at_settlement": true
+   },
+   "forged VIOL": {
+    "signed": false,
+    "reason": "request outputs differ from proven outputs"
+   },
+   "amount swapped": {
+    "signed": false,
+    "reason": "commitment does not open to the stated amount"
+   },
+   "corrupted proof": {
+    "signed": false,
+    "reason": "zero-knowledge proof does not verify: {\"error\":\"Serde Deserialization Error\",\"valid\":false,\"verify_ms\":1.2467540000000001}"
+   },
+   "wrong model": {
+    "signed": false,
+    "reason": "statement is about a different model"
+   },
+   "outdated slash": {
+    "signed": false,
+    "reason": "proof used slash 4096, registry requires 3840"
+   }
+  },
+  "patched_verifier_registration": {
+   "ok": false,
+   "reason": "enclave measurement is not an approved verifier build"
+  },
+  "patched_verifier_signs_corrupted_proof": {
+   "signed_by_patched_enclave": true,
+   "signature_counts_at_settlement": false
+  },
+  "replayed_quote_for_host_key": {
+   "ok": false,
+   "reason": "quote is bound to a different signing key"
+  },
+  "host_key_signature_counts": false,
+  "quote_from_unenrolled_tpm": {
+   "ok": false,
+   "reason": "quote not signed by an enrolled TPM"
+  },
+  "verifier_replaced_on_disk_after_launch": {
+   "corrupted_proof_signed": false,
+   "reason": "zero-knowledge proof does not verify: {\"error\":\"Serde Deserialization Error\",\"valid\":false,\"verify_ms\":1.431122}",
+   "honest_still_signed": true
+  }
+ },
+ "all_as_expected": true,
+ "timing_ms": {
+  "tpm_quote": 32.3,
+  "enclave_check_and_sign_median": 21.5
+ },
+ "limits": "simulation: the enclave is a separate process, not hardware-isolated memory, and the launcher (not the CPU) measures it; TPMs are software TPMs (swtpm) with a local CA"
+}

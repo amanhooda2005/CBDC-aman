@@ -1,0 +1,142 @@
+{
+ "scenarios": {
+  "01_honest_payment_X_5000": {
+   "accepted": true,
+   "reason": "accepted offline",
+   "counter": 2,
+   "check_ms": 81.5
+  },
+  "02_same_bundle_replayed_to_X": {
+   "accepted": false,
+   "reason": "secure-element counter 2 not above 2 already seen from this device",
+   "counter": 2,
+   "check_ms": 25.6
+  },
+  "03_bundle_for_X_presented_to_Y": {
+   "accepted": false,
+   "reason": "payment is addressed to another payee",
+   "counter": null,
+   "check_ms": 24.6
+  },
+  "04_honest_payment_Y_3000": {
+   "accepted": true,
+   "reason": "accepted offline",
+   "counter": 3,
+   "check_ms": 60.0
+  },
+  "05_amount_raised_in_transit": {
+   "accepted": false,
+   "reason": "secure-element attestation does not bind this commitment, proof, payee, amount and total",
+   "counter": null,
+   "check_ms": 29.1
+  },
+  "05b_original_bundle": {
+   "accepted": true,
+   "reason": "accepted offline",
+   "counter": 4,
+   "check_ms": 61.9
+  },
+  "06_payment_to_sanctioned_payee": {
+   "accepted": false,
+   "reason": "proof shows a policy violation (VIOL = 1): not accepted offline",
+   "counter": 5,
+   "check_ms": 64.2
+  },
+  "07_honest_app_beyond_allowance_3000": {
+   "accepted": false,
+   "reason": "cumulative 13000 would exceed the offline allowance"
+  },
+  "08_manipulated_app_hides_earlier_spending_Z_3000": {
+   "accepted": true,
+   "reason": "accepted offline",
+   "counter": 6,
+   "check_ms": 64.4
+  },
+  "09_expired_snapshot": {
+   "accepted": false,
+   "reason": "policy snapshot expired",
+   "counter": null,
+   "check_ms": 25.3
+  },
+  "10_secure_element_signature_forged_by_software": {
+   "accepted": false,
+   "reason": "secure-element signature invalid",
+   "counter": null,
+   "check_ms": 25.5
+  },
+  "11_software_wallet_without_certified_secure_element": {
+   "accepted": false,
+   "reason": "secure-element key is not the one the validators certified for this device",
+   "counter": null,
+   "check_ms": 26.7
+  },
+  "12_snapshot_allowance_altered": {
+   "accepted": false,
+   "reason": "policy snapshot lacks 3 of 4 validator signatures",
+   "counter": null,
+   "check_ms": 25.7
+  },
+  "13_after_secure_element_counter_deleted_and_recreated": {
+   "accepted": true,
+   "reason": "accepted offline",
+   "counter": 9,
+   "check_ms": 95.3,
+   "last_counter_seen_by_X": 4,
+   "counter_reset": false
+  },
+  "14_sync": [
+   {
+    "payee": 101,
+    "amount": 5000,
+    "declared_total": 5000,
+    "counter": 2,
+    "settled": true,
+    "reason": "settled"
+   },
+   {
+    "payee": 102,
+    "amount": 3000,
+    "declared_total": 8000,
+    "counter": 3,
+    "settled": true,
+    "reason": "settled"
+   },
+   {
+    "payee": 101,
+    "amount": 2000,
+    "declared_total": 10000,
+    "counter": 4,
+    "settled": true,
+    "reason": "settled"
+   },
+   {
+    "payee": 103,
+    "amount": 3000,
+    "declared_total": 3000,
+    "counter": 6,
+    "settled": false,
+    "reason": "overspend: declared total 3000 does not follow from earlier payments (10000 + 3000)"
+   },
+   {
+    "payee": 101,
+    "amount": 1000,
+    "declared_total": 11000,
+    "counter": 9,
+    "settled": true,
+    "reason": "settled"
+   }
+  ],
+  "14_device_flagged": true
+ },
+ "all_as_expected": true,
+ "settled_total": 11000,
+ "measurements": {
+  "payer_prove_ms_median": 620.8,
+  "payer_secure_element_ms_median": 45.7,
+  "payer_total_ms_median": 755.0,
+  "payee_full_offline_check_ms_median": 64.4,
+  "bundle_bytes": 173783,
+  "prover_peak_mb_and_verifier_peak_mb": "20.3 / 12.5 (h4-pqc-stark/zk_composed/results/resources.json)",
+  "machine": "2-vCPU, 8 GB cloud VM (x86-64), software TPM; not measured on phone or terminal hardware"
+ }
+}
