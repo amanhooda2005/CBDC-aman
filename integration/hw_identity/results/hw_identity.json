@@ -1,0 +1,141 @@
+{
+ "scenarios": {
+  "enrol_tpmA": {
+   "ok": true,
+   "operator_id": "7d1c4b4387e58a82d85d25c69ef8d00859bf7496ca05e8e0e1545e07a50a3b3e",
+   "new_operator": true,
+   "aks": 1,
+   "credential_tx": 1,
+   "onchain_credentialed": true
+  },
+  "attested_registrations": {
+   "admitted": 20,
+   "counters": [
+    2,
+    21
+   ],
+   "strictly_increasing": true,
+   "onchain_registerAgent_ok": 3,
+   "attestation_bytes": 149,
+   "signature_bytes": 71
+  },
+  "replay_same_nonce": {
+   "ok": false,
+   "operator_id": "7d1c4b4387e58a82d85d25c69ef8d00859bf7496ca05e8e0e1545e07a50a3b3e",
+   "reason": "nonce not issued by this registry or already used (replay)",
+   "verify_ms": 0.181
+  },
+  "rebound_to_other_agent": {
+   "ok": false,
+   "operator_id": "7d1c4b4387e58a82d85d25c69ef8d00859bf7496ca05e8e0e1545e07a50a3b3e",
+   "reason": "attestation is bound to a different nonce or agent id",
+   "verify_ms": 0.473
+  },
+  "tampered_attestation": {
+   "ok": false,
+   "operator_id": null,
+   "reason": "signature is not from an enrolled TPM attestation key; no valid attestation from an enrolled TPM: admitted only with a deposit >= B* (14)",
+   "verify_ms": 0.373
+  },
+  "software_signed_attestation": {
+   "ok": false,
+   "operator_id": null,
+   "reason": "signature is not from an enrolled TPM attestation key; no valid attestation from an enrolled TPM: admitted only with a deposit >= B* (14)",
+   "verify_ms": 0.245
+  },
+  "software_signed_with_deposit_B*": {
+   "ok": true,
+   "operator_id": null,
+   "reason": "no valid attestation from an enrolled TPM: admitted only with a deposit >= B* (14)",
+   "verify_ms": 0.002
+  },
+  "forged_ek_certificate": {
+   "ok": false,
+   "reason": "EK certificate does not chain to a trusted TPM manufacturer: CN = fake-tpm\nerror 18 at 0 depth lookup: self-signed certificate\nerror /tmp/tmp_rnisj79/ek.pem: verification failed"
+  },
+  "software_key_as_AK": {
+   "ok": false,
+   "reason": "AK is not a TPM-resident restricted signing key (attributes 0x00060040)"
+  },
+  "activation_by_other_tpm": {
+   "ok": false,
+   "tpm_error_codes": [
+    "0x00000101"
+   ],
+   "tpm_b_still_operational": true,
+   "reason": "TPM B cannot activate a credential made for TPM A's EK and AK: TPM2_ActivateCredential refuses (the software TPM reports TPM_RC_FAILURE for the failed seed decryption and stays operational)"
+  },
+  "same_tpm_new_ak_second_account": {
+   "ok": false,
+   "reason": "this TPM is already the identity of operator 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC; one hardware identity, one operator"
+  },
+  "same_tpm_new_ak_same_account": {
+   "ok": true,
+   "operator_id": "7d1c4b4387e58a82d85d25c69ef8d00859bf7496ca05e8e0e1545e07a50a3b3e",
+   "new_operator": false,
+   "aks": 2,
+   "credential_tx": null,
+   "same_operator_id": true,
+   "last_counter_kept": 21,
+   "second_account_credentialed_onchain": false
+  },
+  "counter_deleted_and_recreated": {
+   "last_counter_before": 21,
+   "counter_after": 24,
+   "admitted": true,
+   "reset_to_low_value": false
+  },
+  "newer_first": {
+   "ok": true,
+   "operator_id": "7d1c4b4387e58a82d85d25c69ef8d00859bf7496ca05e8e0e1545e07a50a3b3e",
+   "account": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+   "counter": 26,
+   "reason": "attested by the operator's TPM",
+   "verify_ms": 0.51
+  },
+  "older_after": {
+   "ok": false,
+   "operator_id": "7d1c4b4387e58a82d85d25c69ef8d00859bf7496ca05e8e0e1545e07a50a3b3e",
+   "counter": 25,
+   "reason": "counter 25 not above last accepted 26 (stale, reordered or cloned state)",
+   "verify_ms": 0.253
+  },
+  "enrol_tpmB_new_hardware": {
+   "ok": true,
+   "operator_id": "f9c2d2745db968e56eb4fbc2212c18c66565391a50af7758768b8d81cd6d9f73",
+   "new_operator": true,
+   "aks": 1,
+   "credential_tx": 1,
+   "different_operator_id": true,
+   "onchain_credentialed": true
+  }
+ },
+ "timing_ms": {
+  "tpm_increment_and_certify_median": 47.0,
+  "registry_verify_median": 0.43,
+  "runs": 20,
+  "note": "software TPM on the 2-vCPU VM; a hardware TPM is typically slower for signing"
+ },
+ "summary": {
+  "enrol_tpmA": true,
+  "replay_same_nonce": false,
+  "rebound_to_other_agent": false,
+  "tampered_attestation": false,
+  "software_signed_attestation": false,
+  "software_signed_with_deposit_B*": true,
+  "forged_ek_certificate": false,
+  "software_key_as_AK": false,
+  "activation_by_other_tpm": false,
+  "same_tpm_new_ak_second_account": false,
+  "same_tpm_new_ak_same_account": true,
+  "newer_first": true,
+  "older_after": false,
+  "enrol_tpmB_new_hardware": true
+ },
+ "all_as_expected": true,
+ "environment": {
+  "tpm": "swtpm 0.7.3 (software TPM 2.0, EK certificates from swtpm-localca)",
+  "tpm2_tools": "version=\"5.6\"",
+  "chain": "anvil, LiabilityRegistry.sol (h3-abt) with the regulator role held by the admission registry"
+ }
+}

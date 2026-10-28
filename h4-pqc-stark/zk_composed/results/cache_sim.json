@@ -1,0 +1,24 @@
+{
+ "tool": "valgrind-3.22.0 cachegrind, RAYON_NUM_THREADS=1, --D1=<size>,16,64",
+ "binary": "zk_composed (pq_zk variant), example instance 1",
+ "prove_D1_1024KiB": {
+  "data_refs": 1150255699,
+  "misses": 1063116,
+  "hit_rate_pct": 99.91
+ },
+ "prove_D1_256KiB": {
+  "data_refs": 1133942867,
+  "misses": 1726669,
+  "hit_rate_pct": 99.85
+ },
+ "verify_D1_1024KiB": {
+  "data_refs": 37704543,
+  "misses": 35506,
+  "hit_rate_pct": 99.91
+ },
+ "verify_D1_256KiB": {
+  "data_refs": 37706968,
+  "misses": 99543,
+  "hit_rate_pct": 99.74
+ }
+}

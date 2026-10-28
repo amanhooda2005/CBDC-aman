@@ -1,0 +1,74 @@
+{
+ "margin": 0.1,
+ "budgets_mb": [
+  128,
+  256,
+  512,
+  1024,
+  2048
+ ],
+ "plans": {
+  "128": {
+   "whole_model_fits": false,
+   "proj_parts": 2,
+   "blocks_per_step": 1,
+   "steps": 63,
+   "bisection_rounds": 6,
+   "predicted_peak_mb": 107,
+   "validation": {
+    "measured_peak_mb_other_positions": 107,
+    "within_budget": true,
+    "all_proofs_verified": true
+   }
+  },
+  "256": {
+   "whole_model_fits": false,
+   "proj_parts": 1,
+   "blocks_per_step": 4,
+   "steps": 18,
+   "bisection_rounds": 5,
+   "predicted_peak_mb": 190,
+   "validation": {
+    "measured_peak_mb_other_positions": 190,
+    "within_budget": true,
+    "all_proofs_verified": true
+   }
+  },
+  "512": {
+   "whole_model_fits": false,
+   "proj_parts": 1,
+   "blocks_per_step": 8,
+   "steps": 11,
+   "bisection_rounds": 4,
+   "predicted_peak_mb": 358,
+   "validation": {
+    "measured_peak_mb_other_positions": 357,
+    "within_budget": true,
+    "all_proofs_verified": true
+   }
+  },
+  "1024": {
+   "whole_model_fits": false,
+   "proj_parts": 1,
+   "blocks_per_step": 16,
+   "steps": 7,
+   "bisection_rounds": 3,
+   "predicted_peak_mb": 691,
+   "validation": {
+    "measured_peak_mb_other_positions": 691,
+    "within_budget": true,
+    "all_proofs_verified": true
+   }
+  },
+  "2048": {
+   "whole_model_fits": true,
+   "steps": 1,
+   "bisection_rounds": 0
+  }
+ },
+ "unsplit_reference": {
+  "steps_one_per_unit": 63,
+  "bisection_rounds": 6,
+  "whole_model_peak_mb": 1243
+ }
+}
