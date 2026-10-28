@@ -61,6 +61,7 @@ Rebuilding twice in a row on the same checkout and environment gives a byte-iden
 | 5 | H4: post-quantum ZK-STARK (v1 prototypes, halt, v2, v3, model coverage, composed proof, overhead law) |
 | 6 | Cross-cutting findings and the system picture |
 | 6A | The integrated system (TRL 4): Besu pipeline, on-chain disputes and registry, Plonky3 proof, independent-validator run, and what was independently verified |
+| 6B | Hardware integration (after the faculty review): machine resources, memory-budgeted decomposition, TPM-anchored identity, simulated TEE and offline devices |
 | 7 | Corrections, deviations, withdrawn work, and what was not done |
 | 8 | Reproducibility and the full artifact index |
 | Appendices | Configurations, pre-registrations and original documentation, verbatim |
