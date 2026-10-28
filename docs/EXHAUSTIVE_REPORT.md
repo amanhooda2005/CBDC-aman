@@ -155,7 +155,7 @@ Each hypothesis was owned end to end by one student. The mentor reviewed and mer
 
 ## 1.4 Timeline
 
-150 commits between 2026-09-03 and 2026-10-28. By author name: Maanas Tyagi 74, Aman Hooda 26, Indrakshi 24, simranpundirr 12, amanhooda2005 8, Anjali503 5, Simran Pundir 1.
+151 commits between 2026-09-03 and 2026-10-28. By author name: Maanas Tyagi 74, Aman Hooda 27, Indrakshi 24, simranpundirr 12, amanhooda2005 8, Anjali503 5, Simran Pundir 1.
 
 | Date | Milestone |
 |---|---|
@@ -211,6 +211,10 @@ Each hypothesis was owned end to end by one student. The mentor reviewed and mer
 | #37 | merged | amanhooda2005 | 2026-10-15 | 2026-10-15 | `aman/trl4-integration` | TRL 4: integrated CBDC pipeline on Besu QBFT, real EZKL dispute verifiers, ZK composed proof, on-chain H3 registry |
 | #38 | merged | amanhooda2005 | 2026-10-20 | 2026-10-20 | `aman/trl4-evidence` | Evidence, reproducibility fixes and independent-validator setup |
 | #39 | merged | amanhooda2005 | 2026-10-20 | 2026-10-21 | `aman/independent-validator-result` | Evidence: independent-validator run on two machines (4-of-4 gate) |
+| #40 | merged | maanas1234 | 2026-10-21 | 2026-10-21 | `maanas/final-docs-update` | Docs: update both reports for the integrated system (TRL 4); correct quantum-security wording |
+| #41 | merged | amanhooda2005 | 2026-10-26 | 2026-10-26 | `aman/independent-ledger-export` | Evidence: exported ledger of the two-machine run, checked against the host's record |
+| #42 | merged | maanas1234 | 2026-10-26 | 2026-10-26 | `maanas/fix-break-even` | docs: fix gas break-even rate, record the exported independent ledger |
+| #43 | open | amanhooda2005 | 2026-10-28 | — | `aman/hardware-resources` | Hardware integration: memory-budgeted proving, machine resource measurements, TPM-anchored operator identity |
 
 
 # Part 2 — H1: Verifiable off-chain inference (zk-OPML)
@@ -2860,12 +2864,14 @@ The IDF-B grew from 13 to 22 pages:
 | 30 | The recorded `anvil_state.json` of the on-chain dispute run could not be loaded by current Foundry builds (written by 1.5.1) | The 116-transaction record was not re-checkable with a current toolchain | `verify_dispute_record.py` gained a replay mode that re-sends the original signed transactions (PR #38); reproduced independently |
 | 31 | The independent-validator run (host outside the team, reviewer a team member) does not export the ledger | The reviewer's own-ledger checks are self-reported | Stated as a limit in Part 6A.6; ledger exported in PR #41 and decoded by the mentor (Besu re-execution by the reviewer only) |
 | 32 | `FULL_REPORT.md`, the H1 README and the exhaustive report quoted a 10× gas break-even dispute rate of 1.2% / 1.6%, from the first (v1) gas accounting. The complete v2 accounting (challenge, opening and adjudication included; real step verifiers) gives 0.79% worst / 0.93% typical, as the invention disclosure form states | Overstated the dispute rate at which the gas target holds | Updated to 0.8% / 0.9%, with the v1 figure kept and labelled |
+| 33 | The exhaustive report listed the 20 H4 `benchmark_v2` Rust tests as "0 tests" (no Rust toolchain at build time), and with a toolchain every name printed as `tests` (cut at the first colon) | The test list was missing | Fixed in `build.py` in the report update of 28 Oct 2026; the 20 names now print in full |
 
 ## 7.2 Provenance gaps that remain
 
 - **H1 single-core raw timings** behind the headline 14.9× are not committed; only the multi-core files are.
 - **H2 data** is not committed (licence and size). Results are reproducible from the PyG mirror.
 - **H1 v1 code and results** exist only in git history (commit `3d6e84c^`).
+- **Hardware integration (Part 6B)** has not been independently re-run. The TPMs are software TPMs, and the TEE and offline devices are simulations on one machine.
 
 ## 7.3 Deviations from pre-registrations
 
@@ -2994,15 +3000,15 @@ Paths are relative to the repository root. The PDF build embeds each image.
 | Path | Bytes |
 |---|---|
 | `.gitignore` | 35 |
-| `README.md` | 13,152 |
+| `README.md` | 13,568 |
 | `docs/CBDC_AI_Blockchain_Research_Proposal.pdf` | 787,684 |
-| `docs/EVIDENCE.md` | 13,412 |
+| `docs/EVIDENCE.md` | 13,808 |
 | `docs/EXHAUSTIVE_REPORT.md` | (this file) |
 | `docs/FULL_REPORT.md` | 47,222 |
 | `docs/INDEPENDENT_VALIDATOR.md` | 8,462 |
 | `docs/NEXT_SESSION.md` | 3,963 |
 | `docs/exhaustive/build.py` | 49,461 |
-| `docs/exhaustive/pr_history.json` | 46,094 |
+| `docs/exhaustive/pr_history.json` | 51,029 |
 | `docs/exhaustive/render.py` | 2,724 |
 | `docs/exhaustive/sections/00_front.md` | 6,632 |
 | `docs/exhaustive/sections/01_project.md` | 4,884 |
@@ -3013,7 +3019,7 @@ Paths are relative to the repository root. The PDF build embeds each image.
 | `docs/exhaustive/sections/06_cross.md` | 3,608 |
 | `docs/exhaustive/sections/06a_integration.md` | 14,001 |
 | `docs/exhaustive/sections/06b_hardware.md` | 11,152 |
-| `docs/exhaustive/sections/07_corrections.md` | 8,703 |
+| `docs/exhaustive/sections/07_corrections.md` | 9,183 |
 | `docs/exhaustive/sections/08_figures.md` | 2,399 |
 | `docs/exhaustive/sections/09_repro.md` | 3,395 |
 | `docs/exhaustive/sections/10_appendix_a.md` | 640 |
@@ -3349,7 +3355,7 @@ Paths are relative to the repository root. The PDF build embeds each image.
 | `h4-pqc-stark/zk_composed/src/tests.rs` | 9,465 |
 | `h4-pqc-stark/zk_composed/src/trace.rs` | 9,863 |
 | `integration/.gitignore` | 17 |
-| `integration/README.md` | 12,639 |
+| `integration/README.md` | 13,278 |
 | `integration/chain/.gitignore` | 26 |
 | `integration/chain/qbftConfigFile.json` | 1,634 |
 | `integration/chain/start_chain.sh` | 1,745 |
@@ -5856,7 +5862,7 @@ Integration found two real defects, both fixed with regression tests: the compos
 once H3's slash escalated (a 22-bit comparison window; now 30 bits with a stated domain), and the proven
 rule could never execute a compliant transfer.
 
-Reviewers: the raw logs, the exported ledger and scripts that check every number against the chain are described in [`docs/EVIDENCE.md`](docs/EVIDENCE.md). A run with one validator key and Besu node on a second person's machine (4-of-4 gate, 200 Elliptic transfers, all 34 falsified ones refused, nothing settled without that validator) is in [`integration/evidence/independent_validator/`](integration/evidence/independent_validator/README.md).
+Reviewers: the raw logs, the exported ledger and scripts that check every number against the chain are described in [`docs/EVIDENCE.md`](docs/EVIDENCE.md). A run with one validator key and Besu node on a second person's machine (4-of-4 gate, 200 Elliptic transfers, all 34 falsified ones refused, nothing settled without that validator) is in [`integration/evidence/independent_validator/`](integration/evidence/independent_validator/README.md). Hardware integration (28 Oct 2026): a model decomposition sized to the prover node's memory (`h1-zkopml-v2/memory_planner.py`), a TPM-anchored operator identity ([`integration/hw_identity/`](integration/hw_identity/README.md)) and simulated TEE signing and offline payment devices ([`integration/embodiments/`](integration/embodiments/README.md)); summarised in §6B of [`docs/FULL_REPORT.md`](docs/FULL_REPORT.md).
 
 Follow-up work per track (details in each README):
 - **H1 v2/v2.1:** hardened dispute contract (on-chain adjudication, prefix-consistency check, bonds,
