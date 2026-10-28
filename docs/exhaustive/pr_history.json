@@ -627,9 +627,9 @@
     "body": "",
     "createdAt": "2026-10-28T05:57:00Z",
     "headRefName": "aman/hardware-resources",
-    "mergedAt": null,
+    "mergedAt": "2026-10-28T16:39:25Z",
     "number": 43,
-    "state": "OPEN",
+    "state": "MERGED",
     "title": "Hardware integration: memory-budgeted proving, machine resource measurements, TPM-anchored operator identity"
   }
 ]

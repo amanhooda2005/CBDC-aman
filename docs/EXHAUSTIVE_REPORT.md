@@ -155,7 +155,7 @@ Each hypothesis was owned end to end by one student. The mentor reviewed and mer
 
 ## 1.4 Timeline
 
-151 commits between 2026-09-03 and 2026-10-28. By author name: Maanas Tyagi 74, Aman Hooda 27, Indrakshi 24, simranpundirr 12, amanhooda2005 8, Anjali503 5, Simran Pundir 1.
+154 commits between 2026-09-03 and 2026-10-28. By author name: Maanas Tyagi 75, Aman Hooda 28, Indrakshi 24, simranpundirr 12, amanhooda2005 8, Anjali503 5, Claude 1, Simran Pundir 1.
 
 | Date | Milestone |
 |---|---|
@@ -214,7 +214,7 @@ Each hypothesis was owned end to end by one student. The mentor reviewed and mer
 | #40 | merged | maanas1234 | 2026-10-21 | 2026-10-21 | `maanas/final-docs-update` | Docs: update both reports for the integrated system (TRL 4); correct quantum-security wording |
 | #41 | merged | amanhooda2005 | 2026-10-26 | 2026-10-26 | `aman/independent-ledger-export` | Evidence: exported ledger of the two-machine run, checked against the host's record |
 | #42 | merged | maanas1234 | 2026-10-26 | 2026-10-26 | `maanas/fix-break-even` | docs: fix gas break-even rate, record the exported independent ledger |
-| #43 | open | amanhooda2005 | 2026-10-28 | — | `aman/hardware-resources` | Hardware integration: memory-budgeted proving, machine resource measurements, TPM-anchored operator identity |
+| #43 | merged | amanhooda2005 | 2026-10-28 | 2026-10-28 | `aman/hardware-resources` | Hardware integration: memory-budgeted proving, machine resource measurements, TPM-anchored operator identity |
 
 
 # Part 2 — H1: Verifiable off-chain inference (zk-OPML)
@@ -3004,11 +3004,11 @@ Paths are relative to the repository root. The PDF build embeds each image.
 | `docs/CBDC_AI_Blockchain_Research_Proposal.pdf` | 787,684 |
 | `docs/EVIDENCE.md` | 13,808 |
 | `docs/EXHAUSTIVE_REPORT.md` | (this file) |
-| `docs/FULL_REPORT.md` | 47,222 |
+| `docs/FULL_REPORT.md` | 47,246 |
 | `docs/INDEPENDENT_VALIDATOR.md` | 8,462 |
 | `docs/NEXT_SESSION.md` | 3,963 |
 | `docs/exhaustive/build.py` | 49,461 |
-| `docs/exhaustive/pr_history.json` | 51,029 |
+| `docs/exhaustive/pr_history.json` | 51,049 |
 | `docs/exhaustive/render.py` | 2,724 |
 | `docs/exhaustive/sections/00_front.md` | 6,632 |
 | `docs/exhaustive/sections/01_project.md` | 4,884 |
